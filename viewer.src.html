@@ -436,12 +436,12 @@ body.static .cr{display:none}
       <button class="btn" id="edBtn" type="button" aria-pressed="false" title="컨테이너 목록(Editor)과 집계표(Pivot) 창을 켜고 꺼요 (Ctrl + E)">EDITOR / PIVOT</button>
       <button class="btn" id="saveBtn" type="button" hidden>ASC 저장</button>
       <button class="btn" id="instBtn" type="button" hidden title="이 기기에 앱으로 설치해요 (홈 화면에 아이콘이 생겨요)">앱 설치</button>
-      <button class="btn" id="openBtn" type="button">ASC 파일 열기</button>
-      <input type="file" id="file" accept="application/octet-stream,text/plain,.asc" hidden>
+      <button class="btn" id="openBtn" type="button">ASC · EDI 파일 열기</button>
+      <input type="file" id="file" accept="application/octet-stream,text/plain,.asc,.edi" hidden>
     </div>
   </header>
   <div class="note" id="note" hidden></div>
-  <section id="start"><button type="button" id="startBtn">ASC 파일 열기</button>
+  <section id="start"><button type="button" id="startBtn">ASC · EDI 파일 열기</button>
     <p class="s1">여기부터 시작하세요</p>
     <p class="s2">파일을 이 화면에 끌어다 놓아도 열려요. 파일은 이 기기 안에서만 읽고 어디에도 올리지 않아요.</p></section>
   <section class="win" id="sumWin"><div class="tb">Summary</div><div class="body" id="sum"></div>
@@ -547,6 +547,41 @@ function parseAsc(text){
         rf:/C$/.test(tmp),temp:tmp,dgno:l.slice(60,64).trim(),li:i});
     }
   }
+  return out;
+}
+
+// ---------- EDI (BAPLIE 1.5 / 2.2) 읽기: ASC 와 같은 모양의 플랜으로 바꿈. 보기 전용(편집·저장은 ASC 만) ----------
+// 컨테이너 한 개 = LOC+147(자리 BBBRRTT) 부터 다음 LOC+147 전까지. LOC+6/9 = 선적항, LOC+12/11 = 양하항, EQD = 번호·타입·F/E(5/4),
+// NAD+CA = OPR, MEA = 무게(kg), TMP = 냉동 온도, DGS = 위험물(등급·UN). 기항 순서(Port Rotation)는 EDI 에 없음.
+function isEdi(t){return /^\s*UN[AB]/.test(t)&&/BAPLIE/.test(t.slice(0,400))}
+function parseEdi(text){
+  var segs=text.replace(/[\r\n]/g,"").split("'"),out={voy:"",vsl:"",rotation:[],boxes:[],dg:{},edi:true},b=null,nd=0,R={},k;
+  for(k in (window.ASC_PORTS||{}))if(!R[window.ASC_PORTS[k]])R[window.ASC_PORTS[k]]=k;   // 5글자 -> 회사에서 쓰는 3글자
+  function p3(c){return R[c]||(c.length===5?c.slice(2):c)}
+  function done(){if(!b)return;
+    var t=b.type||"",c0=t[0],c2=t[2];
+    b.size=!t?(b.bay%2?20:40):c0==="2"?20:40; b.len=(c0==="L"||c0==="9")?45:b.size;
+    b.hc=/^.[56]/.test(t)||c0==="L"||c0==="9"; b.tk=c2==="T"||c2==="7"; b.rt=c2==="R"||c2==="3"||c2==="4";
+    out.boxes.push(b);b=null}
+  segs.forEach(function(sg){
+    var e=sg.split("+"),tag=e[0],q=e[1]||"",c=(e[2]||"").split(":");
+    if(tag==="TDT"){out.voy=e[2]||"";e.forEach(function(x){var m=/:(?:103|146|ZZZ)?:[^:]*:?([^:]+)$/.exec(x);if(/:103:|:146:/.test(x)&&m)out.vsl=m[1].trim()})}
+    else if(tag==="LOC"&&q==="147"){done();var p=c[0].replace(/\D/g,"");if(p.length<7)p=("0000000"+p).slice(-7);
+      b={bay:+p.slice(0,p.length-4),row:+p.slice(-4,-2),tier:+p.slice(-2),cntr:"",line:"",pol:"",pod:"",dest:"",type:"",lab:"",ov:[0,0,0,0,0],
+        pol5:"",pod5:"",fe:"F",kg:0,rf:false,temp:"",dgno:"",li:-1}}
+    else if(!b)return;
+    else if(tag==="LOC"){var pc=c[0].trim().toUpperCase();
+      if(q==="6"||q==="9"){b.pol5=pc;b.pol=p3(pc)}
+      else if(q==="12"||q==="11"){b.pod5=pc;b.pod=p3(pc)}
+      else if(q==="83")b.dest=pc}
+    else if(tag==="MEA"){var m=/KGM:(\d+(?:\.\d+)?)/.exec(sg);if(m&&(q==="WT"||q==="VGM"||!b.kg))b.kg=Math.round(+m[1])}
+    else if(tag==="EQD"){b.cntr=(e[2]||"").split(":")[0].replace(/\s+/g,"");b.type=(e[3]||"").split(":")[0].trim();if((e[6]||"")==="4")b.fe="E"}
+    else if(tag==="NAD"&&q==="CA")b.line=c[0].trim();
+    else if(tag==="TMP"){var v=parseFloat(c[0]);if(!isNaN(v)){b.rf=true;b.temp=Math.round(v*10)+"C"}}
+    else if(tag==="DGS"){if(!b.dgno){b.dgno="E"+("00"+(++nd)).slice(-3);out.dg[b.dgno]=[]}
+      var cl=(e[2]||"").split(":")[0].trim();out.dg[b.dgno].push({cls:cl,un:(e[3]||"").split(":")[0].trim(),pg:(e[5]||"").split(":")[0].trim()})}
+  });
+  done();
   return out;
 }
 
@@ -975,7 +1010,7 @@ function codMail(){
   var f=$("bwF"),old=f.querySelector(".er");if(old)old.remove();
   function fail(m){var e=document.createElement("div");e.className="er";e.textContent=m;f.appendChild(e)}
   if(!st.pick.length)return;
-  if(!st.lines||!st.plan0)return fail("예시 플랜에서는 만들 수 없어요. 실제 ASC 파일을 열어 주세요.");
+  if(!st.lines||!st.plan0)return fail(st.plan.edi?"EDI 파일은 보기 전용이라 COD 메일을 만들 수 없어요. ASC 파일을 열어 주세요.":"예시 플랜에서는 만들 수 없어요. 실제 ASC 파일을 열어 주세요.");
   var B=st.plan.boxes,O=st.plan0.boxes,bx=st.pick.map(function(i){return B[i]}).filter(Boolean);
   var same=bx.filter(function(b){return evOf(O[b.i],"pod")===evOf(b,"pod")});
   if(same.length)return fail("POD(양하항)가 원래 그대로인 컨테이너가 있어서 COD 메일을 만들지 않았어요: "+same.map(function(b){var o=O[b.i],pc=evOf(o,"pol")!==evOf(b,"pol");
@@ -1162,15 +1197,15 @@ function saveAsc(){
 function latin1(u){var s="",i=0;for(;i<u.length;i+=8192)s+=String.fromCharCode.apply(null,u.subarray(i,i+8192));return s}
 function loadBytes(u,name){   // 바이트를 1:1 글자로 읽어야 저장할 때 원본과 한 바이트도 안 달라짐
   var t=latin1(u);load(t,name);
-  if(st.plan&&!st.example&&st.name===name){st.eol=/\r\n/.test(t)?"\r\n":"\n";st.lines=t.split(/\r?\n/);st.orig=st.lines.slice();st.plan0=parseAsc(st.lines.join("\n"));render();autoFit()}
+  if(st.plan&&!st.example&&st.name===name&&!st.plan.edi){st.eol=/\r\n/.test(t)?"\r\n":"\n";st.lines=t.split(/\r?\n/);st.orig=st.lines.slice();st.plan0=parseAsc(st.lines.join("\n"));render();autoFit()}
 }
 function load(text,name){
-  var P;try{P=parseAsc(text)}catch(e){P=null}
+  var P;try{P=isEdi(text)?parseEdi(text):parseAsc(text)}catch(e){P=null}
   if(!P||!P.boxes.length){var nt=$("note");nt.hidden=false;nt.className="note err";
-    nt.textContent="“"+name+"”에서 컨테이너 줄을 찾지 못했어요. CASP ASC($609/$604) 파일이 맞는지 확인해 주세요.";return}
+    nt.textContent="“"+name+"”에서 컨테이너를 찾지 못했어요. CASP ASC($609/$604)나 EDI(BAPLIE) 파일이 맞는지 확인해 주세요.";return}
   document.body.classList.remove("empty");
   st.plan=P;st.name=name;st.example=false;pickShip(detectShip(name));st.filter=null;st.sel=-1;st.pick=[];st.lines=st.orig=st.plan0=null;st.saved="";sumReset();st.open=null;st.q="";$("q").value="";$("sheet").hidden=true;
-  document.title=name.replace(/\.asc$/i,"")+" · PLAN VIEWER";
+  document.title=name.replace(/\.(asc|edi)$/i,"")+" · PLAN VIEWER";
   render(); if(typeof autoFit==="function")autoFit(); else toBow();
 }
 function toBow(){var w=$("gpw");w.scrollLeft=w.scrollWidth;w.scrollTop=0}

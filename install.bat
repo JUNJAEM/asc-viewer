@@ -7,6 +7,8 @@ reg add "HKCU\Software\Classes\ASCViewer.File\shell\open\command" /ve /d "conhos
 if exist "%~dp0local\icon.ico" reg add "HKCU\Software\Classes\ASCViewer.File\DefaultIcon" /ve /d "%~dp0local\icon.ico" /f >nul
 reg add "HKCU\Software\Classes\.asc" /ve /d "ASCViewer.File" /f >nul
 reg add "HKCU\Software\Classes\.asc\OpenWithProgids" /v "ASCViewer.File" /t REG_NONE /f >nul
+rem .edi: only added to the "Open with" list (the default program for .edi is left alone)
+reg add "HKCU\Software\Classes\.edi\OpenWithProgids" /v "ASCViewer.File" /t REG_NONE /f >nul
 echo.
 echo  Done. .asc files now open in PLAN VIEWER MADE BY JUNJAE.
 echo  (If another program still opens them: right-click an .asc file - Open with - choose another app.)
