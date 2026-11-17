@@ -1012,7 +1012,7 @@ document.addEventListener("click",function(e){
 
 });
 if(SHIPS){$("ship").innerHTML='<option value="">자동 (실린 칸 기준)</option>'+Object.keys(SHIPS).sort().map(function(c){
-    return '<option value="'+esc(c)+'">'+esc(c+(SHIPS[c].n?" · "+SHIPS[c].n:"")+(SHIPS[c].s?" ("+SHIPS[c].s+")":""))+'</option>'}).join("");
+    return '<option value="'+esc(c)+'">'+esc(c+(SHIPS[c].n?" · "+SHIPS[c].n:""))+'</option>'}).join("");
   $("ship").onchange=function(e){pickShip(e.target.value);render()}}
 else{$("ship").hidden=true;$("shipL").hidden=true}
 document.addEventListener("change",function(e){var t=e.target;

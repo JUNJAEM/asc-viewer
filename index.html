@@ -343,7 +343,7 @@ header.win .body{background:linear-gradient(#f7faff,#e7eef8)}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">ASC 베이 플랜 <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-17 17:02 판</small></div>
+  <header class="win"><div class="tb">ASC 베이 플랜 <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-17 17:06 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -1014,7 +1014,7 @@ document.addEventListener("click",function(e){
 
 });
 if(SHIPS){$("ship").innerHTML='<option value="">자동 (실린 칸 기준)</option>'+Object.keys(SHIPS).sort().map(function(c){
-    return '<option value="'+esc(c)+'">'+esc(c+(SHIPS[c].n?" · "+SHIPS[c].n:"")+(SHIPS[c].s?" ("+SHIPS[c].s+")":""))+'</option>'}).join("");
+    return '<option value="'+esc(c)+'">'+esc(c+(SHIPS[c].n?" · "+SHIPS[c].n:""))+'</option>'}).join("");
   $("ship").onchange=function(e){pickShip(e.target.value);render()}}
 else{$("ship").hidden=true;$("shipL").hidden=true}
 document.addEventListener("change",function(e){var t=e.target;
