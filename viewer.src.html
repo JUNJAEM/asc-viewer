@@ -699,12 +699,12 @@ function render(){
     var h14=sh&&sh.h||0,bt=h14*14;
     function pc(k2){return bt?Math.round(k2/1000/bt*100)+"%":"-"}
     function brow(k,g,cls){var t2=g.n20+g.n40*2,ov=bt&&(g.kg/1000>bt||t2>h14);return '<tr'+(cls?' class="'+cls+'"':'')+'><td>'+(cls?k:'<b>'+esc(k)+'</b>')+'</td><td>'+t2+'</td><td>'+T(g.kg)+'</td><td'+(ov?' class="ov"':'')+'>'+pc(g.kg)+'</td></tr>'}
-    function lrow(k,g,c){var t2=g.n20+g.n40*2,ov=bt&&(g.kg/1000>bt||t2>h14);return '<tr'+(c?'':' class="tt"')+'><td>'+(c?'<i class="gsw" style="background:'+c+'"></i><b>'+esc(k)+'</b>':k)+'</td><td>'+t2.toLocaleString("en-US")+'</td><td>'+T(g.kg)+'</td><td'+(ov?' class="ov"':'')+'>'+pc(g.kg)+'</td></tr>'}
+    function lrow(k,g,c){var t2=g.n20+g.n40*2,ov=bt&&(g.kg/1000>bt||t2>h14);return '<tr'+(c?'':' class="tt"')+'><td>'+(c?'<i class="gsw" style="background:'+c+'"></i><b>'+esc(k)+'</b>':k)+'</td><td>'+t2.toLocaleString("en-US")+'</td><td>'+T(g.kg)+'</td></tr>'}
     // 이미지로 저장할 때만 들어가는 표 (화면에는 안 보임): POD 색 막대 + BSA(14 HOMO) + 선적항별 LOADING TEU·톤
     $("gpInfo").innerHTML='<div class="gt">'+esc((sh?st.ship+" ":"")+(P.voy||""))+'</div><div class="gn">'+esc(sh&&sh.n||st.name||"")+'</div>'+
       '<div class="gix"><div class="pb"><em>POD</em>'+order.map(function(k){return '<div style="background:'+hex[k]+';color:'+ink(hex[k])+'">'+esc(k)+'</div>'}).join("")+'</div>'+
       '<div class="gb"><h4>BSA <small>14 HOMO</small></h4>'+(h14?'<table><tr class="bs"><td>'+h14.toLocaleString("en-US")+' TEU</td><td>'+bt.toLocaleString("en-US")+' TON</td></tr></table>':'<div class="nb">-</div>')+
-      '<h4>LOADING</h4><table><tr><th>POL</th><th>TEU</th><th>TON</th><th>BSA 대비</th></tr>'+
+      '<h4>LOADING</h4><table><tr><th>POL</th><th>TEU</th><th>TON</th></tr>'+
         po.map(function(k){return lrow(k,pg[k],hexL[k]||CUSTOM[k]||POLFIX[k]||"#8c8c8c")}).join("")+lrow("TOTAL",{n20:n20,n40:n40,kg:kg})+'</table></div></div>';
   })();
   var q=st.q, hits=0, GH=[];
