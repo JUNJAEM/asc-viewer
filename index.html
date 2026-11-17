@@ -142,7 +142,7 @@ body.rzing{user-select:none;-webkit-user-select:none}
 .sw{font-size:9.5px;color:var(--fg2);display:flex;align-items:center;justify-content:center;height:13px;min-width:0}
 .sw.z{color:transparent}
 .hbar{grid-column:1/-1;height:6px;background:var(--edge);margin:4px 23px 4px 0}
-.c{font:inherit;height:34px;min-width:0;padding:0;border:1px solid var(--edge);border-radius:0;background:var(--win);position:relative;
+.c{font:inherit;height:var(--ch,34px);min-width:0;padding:0;border:1px solid var(--edge);border-radius:0;background:var(--win);position:relative;
   display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;overflow:hidden;color:var(--fg)}
 .c.no{visibility:hidden}
 .c.xx{font-size:11px;color:var(--fg)}
@@ -209,6 +209,13 @@ i.swc{display:block;align-self:stretch}
 #sheet dd.dgv,.sd dd.dgv{color:var(--warn)}
 body.drag{outline:3px dashed var(--num);outline-offset:-6px}
 .emp{display:none}
+/* 폰: Bay Plan 창은 화면 가득 */
+#bw.full{display:block;padding:0}
+#bw.full .bwin{position:absolute;left:0;top:0;width:100%!important;height:100%!important;max-width:none;max-height:none;border-radius:0;border:0}
+#bw.full .bwin>.tb{border-radius:0;padding-top:calc(6px + env(safe-area-inset-top,0px))}
+#bw.full .wr,#bw.full #bwZ{display:none}
+#bw.full .bwf{border-radius:0;padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))}
+#bw.full .bwin .tb{cursor:default}
 /* Editor(목록) / Pivot */
 body.static #edWin,body.static #edBtn{display:none}
 #edBtn{margin-right:6px}
@@ -270,7 +277,7 @@ dd.chg .ei,dd.chg{background:#fff3a6}
   #bw:not(.free){padding-right:330px}
   body:has(#sheet:not([hidden])) .wrap{margin-right:322px}
 }
-@media (max-width:480px){ .c{height:31px} .c .w{font-size:10px} .c .p{font-size:7.5px} .bays{padding:8px 6px 10px} }
+@media (max-width:480px){ .c{height:var(--ch,31px)} .c .w{font-size:10px} .c .p{font-size:7.5px} .bays{padding:8px 6px 10px} }
 
 /* ===== 겉모습: 윈도우 비스타(Aero) 느낌 — 유리 제목줄, 둥근 모서리, 부드러운 그림자, 광택 버튼 =====
    플랜 칸(색·테두리·글자)은 그대로 두고 창·버튼·입력칸만 바꿈. 이 묶음을 지우면 예전(클래식) 모습으로 돌아감 */
@@ -336,7 +343,7 @@ header.win .body{background:linear-gradient(#f7faff,#e7eef8)}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">ASC 베이 플랜 <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-17 16:49 판</small></div>
+  <header class="win"><div class="tb">ASC 베이 플랜 <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-17 16:57 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -369,7 +376,8 @@ header.win .body{background:linear-gradient(#f7faff,#e7eef8)}
       <option value="row">한 줄로</option><option value="wrap">여러 줄로 (CASP)</option></select>
     <span class="zoom"><button type="button" id="zO" aria-label="축소" title="축소 (Ctrl + 휠)">−</button>
       <select id="zS" aria-label="확대 비율"></select>
-      <button type="button" id="zI" aria-label="확대" title="확대 (Ctrl + 휠)">+</button></span></div>
+      <button type="button" id="zI" aria-label="확대" title="확대 (Ctrl + 휠)">+</button>
+      <button type="button" id="zF" title="이 화면에 맞는 배열과 비율로 다시 맞춰요">맞춤</button></span></div>
     <div class="gpw" id="gpw"><div class="gp" id="gp"></div></div>
     <div class="rz rzr" data-rz="r" title="끌어서 너비 조절 (더블클릭: 원래대로)"></div><div class="rz rzb" data-rz="b" title="끌어서 높이 조절 (더블클릭: 원래대로)"></div><div class="rz rzc" data-rz="c" title="끌어서 크기 조절 (더블클릭: 원래대로)"></div></section>
   <section class="win" id="edWin" hidden><div class="tb"><span class="etab"><button type="button" id="tabE">Editor</button><button type="button" id="tabP">Pivot</button></span>
@@ -648,7 +656,12 @@ function drawWin(){
   if(!d){st.open=null;w.hidden=true;return}
   $("bwT").textContent="Bay Plan - "+d.name; $("bwS").textContent=d.sub;
   var sc=$("bwB").scrollTop; $("bwB").innerHTML=d.html; $("bwB").scrollTop=sc;
-  w.firstElementChild.style.setProperty("--bw",d.w+"px"); w.hidden=false; bwApply();
+  // 칸 높이: 그 베이의 단 수가 화면 높이에 다 들어오게 (24~42px), 창 폭은 칸 비율에 맞춤
+  var Q=PANELS[st.open],nt=Q?Q.T.D.length+Q.T.H.length:8,nr=Q?Q.rs.length:8,PH=window.innerWidth<700;
+  var availH=window.innerHeight-(PH?175:235), ch=Math.max(24,Math.min(42,Math.floor(availH/Math.max(nt,1))));
+  var bwid=Math.min(window.innerWidth-(PH?0:40),nr*Math.round(ch*1.5)+70);
+  w.firstElementChild.style.setProperty("--ch",ch+"px");
+  w.firstElementChild.style.setProperty("--bw",Math.max(bwid,Math.min(430,window.innerWidth))+"px"); w.hidden=false; bwApply();
   pickBar();
 }
 // ---------- Editor(목록) / Pivot — cCASP Stowage Edit · Pivot 과 같은 쓰임 ----------
@@ -956,7 +969,7 @@ function saveAsc(){
 function latin1(u){var s="",i=0;for(;i<u.length;i+=8192)s+=String.fromCharCode.apply(null,u.subarray(i,i+8192));return s}
 function loadBytes(u,name){   // 바이트를 1:1 글자로 읽어야 저장할 때 원본과 한 바이트도 안 달라짐
   var t=latin1(u);load(t,name);
-  if(st.plan&&!st.example&&st.name===name){st.eol=/\r\n/.test(t)?"\r\n":"\n";st.lines=t.split(/\r?\n/);st.orig=st.lines.slice();st.plan0=parseAsc(st.lines.join("\n"));render()}
+  if(st.plan&&!st.example&&st.name===name){st.eol=/\r\n/.test(t)?"\r\n":"\n";st.lines=t.split(/\r?\n/);st.orig=st.lines.slice();st.plan0=parseAsc(st.lines.join("\n"));render();autoFit()}
 }
 function load(text,name){
   var P;try{P=parseAsc(text)}catch(e){P=null}
@@ -964,7 +977,7 @@ function load(text,name){
     nt.textContent="“"+name+"”에서 컨테이너 줄을 찾지 못했어요. CASP ASC($609/$604) 파일이 맞는지 확인해 주세요.";return}
   st.plan=P;st.name=name;st.example=false;pickShip(detectShip(name));st.filter=null;st.sel=-1;st.pick=[];st.lines=st.orig=st.plan0=null;st.saved="";st.open=null;st.q="";$("q").value="";$("sheet").hidden=true;
   document.title=name.replace(/\.asc$/i,"")+" · ASC 베이 플랜";
-  render(); toBow();
+  render(); if(typeof autoFit==="function")autoFit(); else toBow();
 }
 function toBow(){var w=$("gpw");w.scrollLeft=w.scrollWidth;w.scrollTop=0}
 function readFile(f){var r=new FileReader();r.onload=function(){loadBytes(new Uint8Array(r.result),f.name)};r.readAsArrayBuffer(f)}
@@ -1016,10 +1029,38 @@ function setZoom(z){var w=$("gpw"),fx=w.scrollWidth?(w.scrollLeft+w.clientWidth/
   w.scrollLeft=fx*w.scrollWidth-w.clientWidth/2; w.scrollTop=fy*w.scrollHeight-w.clientHeight/2}   // 보던 자리를 가운데로 유지
 function stepZoom(d){var i=ZS.indexOf(zoom);setZoom(ZS[Math.max(0,Math.min(ZS.length-1,i+d))])}
 $("lay").value=LAYOUT;
-$("lay").onchange=function(e){LAYOUT=e.target.value;try{localStorage.setItem("ascGpLayout",LAYOUT)}catch(_){}render();toBow()};
-$("zO").onclick=function(){stepZoom(-1)}; $("zI").onclick=function(){stepZoom(1)};
-$("zS").onchange=function(e){setZoom(+e.target.value)};
-$("gpw").addEventListener("wheel",function(e){if(e.ctrlKey){e.preventDefault();stepZoom(e.deltaY<0?1:-1)}},{passive:false});
+// ---------- 자동 맞춤: 플랜을 열 때마다 이 기기 화면에 맞는 배열·비율로 ----------
+// PC  : 한 줄 배열로 전 베이가 창 안에 다 보이는 가장 큰 비율. 너무 작아지면(65% 미만) 여러 줄 배열로.
+// 폰  : 여러 줄 배열, 한 줄에 해치 두 개가 들어가는 비율(너무 작으면 한 개).
+// 직접 비율을 바꾸면 그때부터는 손댄 대로 두고, '맞춤'을 누르거나 새 파일을 열면 다시 맞춤. 배열을 직접 고른 적이 있으면 그 배열을 따름.
+var AUTOZ=true, LAYSET=false; try{LAYSET=localStorage.getItem("ascGpLayout")!==null}catch(_){}
+function autoFit(){
+  if(!st.plan||window.__STATIC__)return;
+  var w=$("gpw"),g=$("gp"),W=window.innerWidth,phone=W<700,want=LAYSET?LAYOUT:(phone?"wrap":"row");
+  function lay(v){if(LAYOUT!==v){LAYOUT=v;$("lay").value=v;render()}}
+  function avH(){return w.style.height?w.clientHeight:Math.max(240,window.innerHeight-(w.getBoundingClientRect().top+window.scrollY)-18)}
+  lay(want);setZoom(100);
+  var z=100,aw=w.clientWidth-2;
+  if(LAYOUT==="row"){
+    z=Math.min(aw/g.scrollWidth,avH()/g.scrollHeight)*100;
+    if(z<65&&!LAYSET){lay("wrap");setZoom(100)}
+  }
+  if(LAYOUT==="wrap"){
+    var gh=g.querySelector(".gh"),c=gh?gh.offsetWidth+6:200,pad2=16;
+    if(phone){z=(aw-pad2)/(2*c)*100;if(z<70)z=Math.min(170,(aw-pad2)/c*100)}
+    else z=Math.min(110,(aw-pad2)/c*100);
+  }
+  z=Math.max(40,Math.min(300,Math.floor(z/5)*5));setZoom(z);
+  if(LAYOUT==="row"){var n=0;while((g.scrollWidth>w.clientWidth+1||(!w.style.height&&g.scrollHeight>avH()+1))&&z>40&&n++<12){z-=5;setZoom(z)}}
+  AUTOZ=true;toBow();
+}
+$("lay").onchange=function(e){LAYOUT=e.target.value;LAYSET=true;try{localStorage.setItem("ascGpLayout",LAYOUT)}catch(_){}render();if(AUTOZ)autoFit();else toBow()};
+$("zO").onclick=function(){AUTOZ=false;stepZoom(-1)}; $("zI").onclick=function(){AUTOZ=false;stepZoom(1)};
+$("zS").onchange=function(e){AUTOZ=false;setZoom(+e.target.value)};
+$("zF").onclick=function(){LAYSET=false;try{localStorage.removeItem("ascGpLayout")}catch(_){}autoFit()};
+$("gpw").addEventListener("wheel",function(e){if(e.ctrlKey){e.preventDefault();AUTOZ=false;stepZoom(e.deltaY<0?1:-1)}},{passive:false});
+(function(){var t=0,lw=window.innerWidth;window.addEventListener("resize",function(){clearTimeout(t);t=setTimeout(function(){
+  if(AUTOZ&&st.plan&&(Math.abs(window.innerWidth-lw)>8||!TOUCH)){lw=window.innerWidth;autoFit();if(st.open)drawWin()}},180)})})();
 // General Plan 창 크기: 오른쪽·아래 가장자리, 오른쪽 아래 모서리를 끌어서 조절
 (function(){
   var win=$("gpWin"),gw=$("gpw"),d=null;
@@ -1053,6 +1094,8 @@ var BWDRAG=false, bwApply=function(){};
     b.x=Math.max(120-b.w,Math.min(b.x,W-120));b.y=Math.max(0,Math.min(b.y,H-40));return b}
   function put(b){win.style.left=b.x+"px";win.style.top=b.y+"px";win.style.width=b.w+"px";win.style.height=b.h+"px"}
   bwApply=function(){
+    var ph=window.innerWidth<700;bw.classList.toggle("full",ph);   // 폰: 항상 화면 가득 (저장해 둔 PC용 자리는 안 씀)
+    if(ph){bw.classList.remove("free");win.style.left=win.style.top=win.style.width=win.style.height="";return}
     if(maxed){bw.classList.add("free");put({x:0,y:0,w:window.innerWidth,h:window.innerHeight})}
     else if(box){bw.classList.add("free");put(fit(box))}
     else{bw.classList.remove("free");win.style.left=win.style.top=win.style.width=win.style.height=""}
@@ -1103,7 +1146,7 @@ if(window.__ICON__){$("logo").src=window.__ICON__;$("logo").hidden=false}   // �
 var E=window.__ASC__;
 if(E&&E.b64){var bin=atob(E.b64),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
   loadBytes(u,E.name||"plan.asc")}
-if(!st.plan){st.plan=example();st.name="";st.example=true;render();toBow()}
+if(!st.plan){st.plan=example();st.name="";st.example=true;render();autoFit()}
 if(window.__STATIC__){
   LAYOUT="wrap";zoom=100;st.open=null;render();
   document.body.classList.add("static");
