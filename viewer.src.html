@@ -45,6 +45,7 @@ header.win .body{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;bac
 .chipb{font:inherit;display:flex;align-items:center;gap:6px;border:0;background:none;color:var(--fg);padding:2px 8px;cursor:pointer;font-variant-numeric:tabular-nums;font-size:12px}
 .chipb small{color:var(--fg2);font-size:11px}
 .chips .x{padding:2px 8px;font-size:11.5px;margin-left:6px}
+.chips #sortCol{margin:0 4px 0 0;font-weight:700;background:linear-gradient(90deg,#ffeb00 0 25%,#2f7bff 25% 50%,#ff4136 50% 75%,#19c2b0 75%) bottom/100% 4px no-repeat,var(--chrome);padding-bottom:5px}
 .hint{font-size:11.5px;color:var(--fg2);margin-top:6px}
 .tools{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
 .tools label{font-size:12px}
@@ -175,7 +176,7 @@ body.rzing{user-select:none;-webkit-user-select:none}
 .bwf .ok{flex-basis:100%;color:#0a6b00;font-weight:700}
 .side{display:flex;justify-content:space-between;font-size:10px;color:var(--fg2);margin:3px 22px 0 0}
 /* 그림 전용 판 (window.__STATIC__) */
-body.static #openBtn,body.static .tools,body.static #lay,body.static .zoom,body.static .rz,body.static #resetCol,body.static #bw,body.static #sheet{display:none!important}
+body.static #openBtn,body.static .tools,body.static #lay,body.static .zoom,body.static .rz,body.static #sortCol,body.static #bw,body.static #sheet{display:none!important}
 /* 프로그램 없이 눌리는 동작: 칸 = :target 으로 상세 띄우기, 포트 = 숨은 라디오 + label */
 .sd{display:none;z-index:20}
 .sd:target{display:block}
@@ -265,8 +266,10 @@ var st={plan:null,name:"",example:false,color:"podpol",filter:null,q:"",sel:-1,o
 var SHIPS=window.ASC_SHIPS||null;
 var LAYOUT="row";try{if(localStorage.getItem("ascGpLayout")==="wrap")LAYOUT="wrap"}catch(_){}
 var BP={},ORD=[],FIRSTHIT="",PANELS={},BOXP={};   // PANELS·BOXP: 긴급양하 메일 그림용 (베이 그림 재료, 컨테이너가 있는 베이)   // Bay Plan 창에 넣을 그림(베이별), 베이 순서, 검색에 걸린 첫 베이
-// 양하항 기본 색 (기항 순서대로): 노랑 파랑 빨강 초록 주황 하늘 분홍 보라 연두 갈색 청록 살구
-var PAL=["#ffeb00","#2f7bff","#ff4136","#2ecc40","#ff9f1a","#5fd8ff","#ff85e0","#a66bff","#c3f53c","#b98555","#19c2b0","#ffd0b0"];
+// 양하항 색 (색정렬): 양하항이 N개면 이 목록의 앞 N색을 기항 순서대로. 앞 N색이 곧 'N개일 때 가장 잘 구분되는 묶음'
+// (tools/pick_colors.py: CIEDE2000 + 적록 색약 시뮬레이션 + 선적항 흑백 띠와의 거리로 계산, 2·3개는 가장 익숙한 노랑·파랑·빨강)
+// 노랑 파랑 빨강 청록 분홍 주황 초록 보라 연두 하늘 갈색 살구
+var PAL=["#ffeb00","#2f7bff","#ff4136","#19c2b0","#ff85e0","#ff9f1a","#2ecc40","#a66bff","#c3f53c","#5fd8ff","#b98555","#ffd0b0"];
 // 선적항 기본 색: 양하항 색과 겹치지 않게 무채색. 북항 PUS = 검정, 신항 PNC = 흰색, 그 밖은 회색
 var POLFIX={PUS:"#000000",PNC:"#ffffff"},POLGR=["#8c8c8c","#d9d9d9","#4d4d4d","#b3b3b3"];
 var CUSTOM={};try{CUSTOM=JSON.parse(localStorage.getItem("ascPortColors")||"{}")||{}}catch(_){CUSTOM={}}
@@ -435,10 +438,9 @@ function render(){
     '<div><span>DG</span><b>'+dg+'</b></div><div><span>RF</span><b>'+rf+'</b></div><div><span>Empty</span><b>'+em+'</b></div>'+
     (nout?'<div><span>구조에 없는 칸</span><b style="color:var(--warn)">'+nout+'</b></div>':'')+'</div>'+
     (rot?'<div class="rot">Port Rotation: '+esc(rot)+'</div>':'')+
-    '<div class="chips"><em>POD</em>'+order.map(function(k){return chip(k,k,groups[k])}).join("")+
-      '<em>POL</em>'+polOrder.map(function(k){return chip(k,"@"+k,pols[k])}).join("")+
-      (Object.keys(CUSTOM).length?'<button type="button" class="x" id="resetCol">색 초기화</button>':'')+'</div>'+
-    '<div class="hint">색 네모를 누르면 색을 바꿀 수 있고, 포트 이름을 누르면 그 포트만 진하게 보여요.</div>';
+    '<div class="chips"><button type="button" class="x" id="sortCol" title="양하항 '+order.length+'개에 맞춰 가장 잘 구분되는 색으로 다시 칠해요">색정렬</button><em>POD</em>'+order.map(function(k){return chip(k,k,groups[k])}).join("")+
+      '<em>POL</em>'+polOrder.map(function(k){return chip(k,"@"+k,pols[k])}).join("")+'</div>'+
+    '<div class="hint">색정렬 = 양하항 개수에 맞춰 가장 잘 구분되는 색을 기항 순서대로 (선적항은 북항 PUS 검정 · 신항 PNC 흰색). 색 네모 = 색 바꾸기, 포트 이름 = 그 포트만 진하게.</div>';
   function chip(k,f,g){return '<span class="chip'+(st.filter===f?' on':'')+'">'+
     '<input type="color" class="swc" id="col-'+esc(f)+'" data-port="'+esc(k)+'" value="'+(f[0]==="@"?hexL[k]:hex[k])+'" aria-label="'+esc(k)+' 색 바꾸기" title="색 바꾸기">'+
     '<button type="button" class="chipb" data-f="'+esc(f)+'" aria-pressed="'+(st.filter===f)+'"><b>'+esc(k)+'</b>'+
@@ -661,7 +663,9 @@ if(SHIPS){$("ship").innerHTML='<option value="">자동 (실린 칸 기준)</opti
 else{$("ship").hidden=true;$("shipL").hidden=true}
 document.addEventListener("change",function(e){var t=e.target;
   if(t.classList&&t.classList.contains("swc")){CUSTOM[t.dataset.port]=t.value;saveColors();render()}});
-document.addEventListener("click",function(e){if(e.target.id==="resetCol"){CUSTOM={};saveColors();render()}});
+// 색정렬: 이 플랜의 포트에 직접 고른 색을 지우고 기본 규칙(양하항 개수별 최적 색, 선적항 흑백)으로 다시 칠함
+document.addEventListener("click",function(e){if(e.target.id==="sortCol"&&st.plan){
+  st.plan.boxes.forEach(function(b){delete CUSTOM[b.pod];delete CUSTOM[b.pol]});saveColors();st.filter=null;render()}});
 var ZS=[40,50,60,75,100,125,150,200,250,300], zoom=window.innerWidth<600?60:100;
 try{var zz=+localStorage.getItem("ascZoom");if(zz>=30&&zz<=400)zoom=zz}catch(_){}
 function setZoom(z){var w=$("gpw"),fx=w.scrollWidth?(w.scrollLeft+w.clientWidth/2)/w.scrollWidth:1,fy=w.scrollHeight?(w.scrollTop+w.clientHeight/2)/w.scrollHeight:0;
