@@ -11,6 +11,7 @@ head = (u'<!doctype html>\n<html lang="ko"><head><meta charset="utf-8">'
         u'<meta name="robots" content="noindex,nofollow">'
         u'<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="ASC 뷰어">'
         u'<link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" type="image/png" href="icon-180.png">'
+        u'<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#000080"><meta name="mobile-web-app-capable" content="yes">'
         u'<style>body{margin:0}[hidden]{display:none!important}</style></head><body>\n')
 io.open(os.path.join(ROOT, "index.html"), "w", encoding="utf-8", newline="\n").write(head + body + u"\n</body></html>\n")
 print("index.html", os.path.getsize(os.path.join(ROOT, "index.html")))

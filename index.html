@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="ASC 뷰어"><link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" type="image/png" href="icon-180.png"><style>body{margin:0}[hidden]{display:none!important}</style></head><body>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="ASC 뷰어"><link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" type="image/png" href="icon-180.png"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#000080"><meta name="mobile-web-app-capable" content="yes"><style>body{margin:0}[hidden]{display:none!important}</style></head><body>
 <title>ASC 베이 플랜 뷰어</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
@@ -378,12 +378,13 @@ header.win .body{background:linear-gradient(#f7faff,#e7eef8)}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">ASC 베이 플랜 <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-17 18:00 판</small></div>
+  <header class="win"><div class="tb">ASC 베이 플랜 <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-17 22:24 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
       <button class="btn" id="edBtn" type="button" aria-pressed="false" title="컨테이너 목록(Editor)과 집계표(Pivot) 창을 켜고 꺼요 (Ctrl + E)">EDITOR / PIVOT</button>
       <button class="btn" id="saveBtn" type="button" hidden>ASC 저장</button>
+      <button class="btn" id="instBtn" type="button" hidden title="이 기기에 앱으로 설치해요 (홈 화면에 아이콘이 생겨요)">앱 설치</button>
       <button class="btn" id="openBtn" type="button">ASC 파일 열기</button>
       <input type="file" id="file" hidden>
     </div>
@@ -1310,6 +1311,23 @@ var E=window.__ASC__;
 if(E&&E.b64){var bin=atob(E.b64),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
   loadBytes(u,E.name||"plan.asc")}
 if(!st.plan){st.plan=example();st.name="";st.example=true;render();autoFit()}
+// ---------- 앱(설치판): 깃허브 페이지에서만 켜짐 (manifest 가 연결돼 있을 때) ----------
+// 안드로이드 크롬: '앱 설치' 버튼 → 홈 화면 아이콘. 설치하면 아웃룩 등에서 .asc 를 '공유 → ASC 뷰어'로 바로 열 수 있음.
+if(!window.__STATIC__&&document.querySelector('link[rel="manifest"]')&&"serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js").catch(function(){});
+  var dp=null;
+  window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();dp=e;$("instBtn").hidden=false});
+  window.addEventListener("appinstalled",function(){dp=null;$("instBtn").hidden=true});
+  $("instBtn").onclick=function(){if(!dp)return;dp.prompt();dp.userChoice.then(function(){dp=null;$("instBtn").hidden=true})};
+  if(/[?&]shared=1/.test(location.search)&&window.caches){   // 다른 앱에서 공유로 넘어온 파일
+    var su=new URL("shared-file",location.href.split("?")[0]).href;
+    caches.open("asc-shared").then(function(c){return c.match(su).then(function(r){if(!r)return;
+      var nm="plan.asc";try{nm=decodeURIComponent(r.headers.get("X-Name")||nm)}catch(_){}
+      return r.arrayBuffer().then(function(b){loadBytes(new Uint8Array(b),nm);return c.delete(su)})})}).catch(function(){});
+    try{history.replaceState(null,"",location.pathname)}catch(_){}
+  }
+  if(window.launchQueue)launchQueue.setConsumer(function(p){if(p.files&&p.files[0])p.files[0].getFile().then(readFile)});   // PC 설치판: .asc 연결 프로그램
+}
 if(window.__STATIC__){
   LAYOUT="wrap";zoom=100;st.open=null;render();
   document.body.classList.add("static");
