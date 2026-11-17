@@ -209,6 +209,36 @@ i.swc{display:block;align-self:stretch}
 #sheet dd.dgv,.sd dd.dgv{color:var(--warn)}
 body.drag{outline:3px dashed var(--num);outline-offset:-6px}
 .emp{display:none}
+/* Editor(목록) / Pivot */
+body.static #edWin{display:none}
+#edWin .tb{align-items:center;gap:6px}
+.etab button{font:inherit;font-weight:700;font-size:12px;border:1px solid var(--edge);background:var(--chrome);color:var(--fg);height:22px;padding:0 12px;cursor:pointer;border-radius:0;opacity:.75}
+.etab button.on{background:#fff;opacity:1;box-shadow:inset 0 -3px 0 var(--num)}
+#edWin .fo{font-size:12px;font-weight:400;display:inline-flex;gap:4px;align-items:center;cursor:pointer}
+#edCnt{font-weight:400}
+.edw{overflow:auto;max-height:420px;background:var(--win)}
+table.et{border-collapse:collapse;font-size:12px;font-family:Consolas,"Malgun Gothic",monospace;white-space:nowrap;min-width:100%}
+.et th,.et td{border:1px solid #c4c4c4;padding:2px 7px;text-align:left}
+.et td.n,.et th.n{text-align:right}
+.et thead th{position:sticky;top:0;background:#e3e3ee;z-index:2;cursor:pointer;user-select:none;font-family:Arial,"Malgun Gothic",sans-serif}
+.et thead tr.efr th{top:23px;background:#f1f1f7;padding:2px 3px;cursor:default}
+.et thead th .so{color:var(--num);font-size:10px;margin-left:3px}
+.ef{font:inherit;font-size:11.5px;width:100%;min-width:38px;border:1px solid var(--shade);padding:0 3px;height:19px;background:#fff;color:#000;text-transform:uppercase;border-radius:0}
+.ef.on{background:#fff3a6}
+.et tbody tr{cursor:pointer}
+.et tbody tr:hover td{background:#eef3ff}
+.et tbody tr.pk td{background:#ffd9d9}
+.et tbody tr.sel td{outline:1px solid #000;outline-offset:-1px}
+.et .more td{color:var(--fg2);font-family:Arial,"Malgun Gothic",sans-serif;cursor:default;background:#fafafa}
+.pvc{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;padding:7px 10px;font-size:12px;border-bottom:1px solid var(--edge);background:var(--chrome)}
+.pvc select{font:inherit;font-size:12px;height:22px;border:1px solid var(--edge);background:#fff;color:#000;border-radius:0}
+.pvc .hint{color:var(--fg2)}
+.et.pv td{text-align:right;cursor:pointer}
+.et.pv td.z{color:#bbb;cursor:default}
+.et.pv th.rh{position:sticky;left:0;background:#e3e3ee;z-index:1;cursor:pointer}
+.et.pv thead th{cursor:pointer}
+.et.pv .tot{font-weight:700;background:#f1f1f7}
+.et.pv td:hover:not(.z){background:#ffd9d9}
 .cnrow{display:none}
 #saveBtn{background:#fff0f0;color:#b00000;border-color:#b00000;margin-right:6px}
 .ei{font:inherit;font-family:Consolas,monospace;font-size:12.5px;width:100%;min-width:60px;border:1px solid var(--shade);background:#fff;color:#000;padding:1px 4px;border-radius:0;text-transform:uppercase}
@@ -242,7 +272,7 @@ dd.chg .ei,dd.chg{background:#fff3a6}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">ASC 베이 플랜 <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-17 16:28 판</small></div>
+  <header class="win"><div class="tb">ASC 베이 플랜 <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-17 16:40 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -277,6 +307,11 @@ dd.chg .ei,dd.chg{background:#fff3a6}
       <button type="button" id="zI" aria-label="확대" title="확대 (Ctrl + 휠)">+</button></span></div>
     <div class="gpw" id="gpw"><div class="gp" id="gp"></div></div>
     <div class="rz rzr" data-rz="r" title="끌어서 너비 조절 (더블클릭: 원래대로)"></div><div class="rz rzb" data-rz="b" title="끌어서 높이 조절 (더블클릭: 원래대로)"></div><div class="rz rzc" data-rz="c" title="끌어서 크기 조절 (더블클릭: 원래대로)"></div></section>
+  <section class="win" id="edWin"><div class="tb"><span class="etab"><button type="button" id="tabE">Editor</button><button type="button" id="tabP">Pivot</button></span>
+      <small id="edCnt"></small><span class="sp"></span>
+      <label class="fo" title="고른 컨테이너만 진하게, 나머지는 흐리게 (cCASP의 Highlight · Fade Out)"><input type="checkbox" id="edFade"> Fade Out</label>
+      <button type="button" id="edCS" title="정렬 지우기 (Clear Sorters)">정렬 지우기</button><button type="button" id="edCF" title="조건 지우기 (Clear Filters)">조건 지우기</button></div>
+    <div id="edBody"></div></section>
 </div>
 <div id="bw" hidden><div class="bwin win" role="dialog" aria-label="Bay Plan">
   <div class="tb"><span id="bwT"></span><small id="bwS"></small><span class="sp"></span>
@@ -486,7 +521,7 @@ function render(){
   var q=st.q, hits=0, GH=[];
   BP={};ORD=[];FIRSTHIT="";PANELS={};BOXP={};
   function kc(b){return ' k'+b.pod.replace(/\W/g,"_")+' l'+b.pol.replace(/\W/g,"_")}
-  function dimmed(b){return (st.filter&&(st.filter[0]==="@"?b.pol!==st.filter.slice(1):keyOf(b)!==st.filter))||(q&&b.cntr.indexOf(q)<0)}
+  function dimmed(b){return (st.filter&&(st.filter[0]==="@"?b.pol!==st.filter.slice(1):keyOf(b)!==st.filter))||(q&&b.cntr.indexOf(q)<0)||(ES.fade&&st.pick.length&&st.pick.indexOf(b.i)<0)}
   function marks(b){var d=b.dgno?((P.dg[b.dgno]||[])[0]||{}).cls||"DG":"";   // General Plan 칸 구석 표시 (Bay Plan 과 같은 자리)
     return (b.hc?'<i class="mh">H</i>':'')+(d?'<i class="md">'+esc(d)+'</i>':'')+
       (b.tk||b.fe==="E"?'<i class="me">'+(b.tk?"T":"")+(b.fe==="E"?"E":"")+'</i>':'')+(b.rf?'<i class="mrr">R</i>':'')}
@@ -540,6 +575,7 @@ function render(){
   var dn=dirtyN();$("saveBtn").hidden=!dn;$("saveBtn").textContent="ASC 저장 ("+dn+")";
   if(st.saved){nt.hidden=false;nt.className="note";nt.textContent=st.saved}
   $("ship").value=st.ship;
+  edDraw();
 }
 
 function drawWin(){
@@ -550,6 +586,114 @@ function drawWin(){
   w.firstElementChild.style.setProperty("--bw",d.w+"px"); w.hidden=false; bwApply();
   pickBar();
 }
+// ---------- Editor(목록) / Pivot — cCASP Stowage Edit · Pivot 과 같은 쓰임 ----------
+// Editor: 열 제목 = 정렬(Shift+클릭 = 여러 열), 둘째 줄 = 조건, 줄 클릭 = 고르기(Ctrl 여러 개), 더블클릭 = 그 베이 열기
+// Pivot : 행·열 항목과 값을 골라 집계, 칸을 누르면 그 컨테이너들이 골라짐
+var ES={tab:"E",sort:[],flt:{},fade:false,pr:"pod",pc:"type",pv:"van"};
+function dg0(b){return (b.dgno&&st.plan.dg[b.dgno]&&st.plan.dg[b.dgno][0])||{}}
+var EF=[   // [키, 제목, 숫자?, 값, 목록에 보임?, 피벗 항목?]
+  ["pos","Position",0,function(b){return pad(b.bay)+pad(b.row)+pad(b.tier)},1,0],
+  ["bay","Bay",1,function(b){return b.bay},0,1],["row","Row",1,function(b){return b.row},0,1],["tier","Tier",1,function(b){return b.tier},0,1],
+  ["hd","HD",0,function(b){return b.tier>=80?"D":"H"},1,1],
+  ["cntr","Cntr No",0,function(b){return b.cntr},1,0],
+  ["line","OPR",0,function(b){return b.line||""},1,1],
+  ["pol","POL",0,function(b){return evOf(b,"pol")},1,1],
+  ["pod","POD",0,function(b){return evOf(b,"pod")},1,1],
+  ["dest","DEST",0,function(b){return b.dest||""},1,1],
+  ["type","SzTp",0,function(b){return b.type||""},1,1],
+  ["size","Size",1,function(b){return b.len},1,1],
+  ["hc","HC",0,function(b){return b.hc?"Y":""},1,1],
+  ["kg","WGT",1,function(b){return b.kg},1,0],
+  ["fe","FE",0,function(b){return b.fe},1,1],
+  ["lab","CGT",0,function(b){return b.lab||""},1,1],
+  ["temp","RF",0,function(b){return evOf(b,"temp")},1,1],
+  ["imdg","IMDG",0,function(b){return dg0(b).cls||""},1,1],
+  ["un","UNNO",0,function(b){return dg0(b).un||""},1,1],
+  ["pg","PKG",0,function(b){return dg0(b).pg||""},1,0]];
+var EFM={};EF.forEach(function(f){EFM[f[0]]=f});
+function edMatch(v,f,num){
+  return f.split(",").some(function(p){p=p.trim();if(!p)return false;
+    var m=/^(>=|<=|>|<|=)\s*(.*)$/.exec(p);
+    if(m){var x=num?+v:String(v).toUpperCase(),y=num?+m[2]:m[2].toUpperCase();
+      return m[1]===">"?x>y:m[1]==="<"?x<y:m[1]===">="?x>=y:m[1]==="<="?x<=y:x===y}
+    return String(v).toUpperCase().indexOf(p.toUpperCase())>=0});
+}
+function edList(){   // 조건에 맞는 컨테이너를 정렬해서
+  if(!st.plan)return [];
+  var ks=Object.keys(ES.flt).filter(function(k){return ES.flt[k]&&EFM[k]});
+  var L=st.plan.boxes.filter(function(b){return ks.every(function(k){return edMatch(EFM[k][3](b),ES.flt[k],EFM[k][2])})});
+  if(ES.sort.length)L.sort(function(a,b){for(var i=0;i<ES.sort.length;i++){var f=EFM[ES.sort[i].k],x=f[3](a),y=f[3](b),c=f[2]?x-y:(x<y?-1:x>y?1:0);if(c)return ES.sort[i].d*c}return a.i-b.i});
+  return L;
+}
+function edRows(){
+  var L=edList(),cols=EF.filter(function(f){return f[4]}),MAX=600,h="";
+  L.slice(0,MAX).forEach(function(b){h+='<tr data-i="'+b.i+'" class="'+(st.pick.indexOf(b.i)>=0?'pk':'')+(b.i===st.sel?' sel':'')+'">'+cols.map(function(f){return '<td'+(f[2]?' class="n"':'')+'>'+esc(f[2]&&f[0]==="kg"?f[3](b).toLocaleString("en-US"):f[3](b))+'</td>'}).join("")+'</tr>'});
+  if(L.length>MAX)h+='<tr class="more"><td colspan="'+cols.length+'">… '+(L.length-MAX).toLocaleString()+'개 더 있어요. 조건을 넣어 좁혀 주세요.</td></tr>';
+  if(!L.length)h='<tr class="more"><td colspan="'+cols.length+'">조건에 맞는 컨테이너가 없어요.</td></tr>';
+  var tb=$("edTb");if(tb)tb.innerHTML=h;
+  var kg=0,teu=0;L.forEach(function(b){kg+=b.kg;teu+=b.size===20?1:2});
+  $("edCnt").textContent=L.length.toLocaleString()+" / "+st.plan.boxes.length.toLocaleString()+"개 · "+teu+" TEU · "+Math.round(kg/1000).toLocaleString()+" t"+(st.pick.length?" · 고른 것 "+st.pick.length+"개":"");
+  return L;
+}
+function edDraw(){
+  if(!st.plan||window.__STATIC__)return;
+  $("tabE").className=ES.tab==="E"?"on":"";$("tabP").className=ES.tab==="P"?"on":"";$("edFade").checked=ES.fade;
+  var body=$("edBody");
+  if(ES.tab==="E"){
+    var cols=EF.filter(function(f){return f[4]});
+    body.innerHTML='<div class="edw"><table class="et"><thead><tr>'+cols.map(function(f){var si=-1;ES.sort.forEach(function(s,i){if(s.k===f[0])si=i});
+        return '<th data-k="'+f[0]+'"'+(f[2]?' class="n"':'')+' title="누르면 정렬 (Shift+클릭 = 여러 열)">'+f[1]+(si>=0?'<span class="so">'+(ES.sort[si].d>0?"▲":"▼")+(ES.sort.length>1?si+1:"")+'</span>':'')+'</th>'}).join("")+
+      '</tr><tr class="efr">'+cols.map(function(f){var v=ES.flt[f[0]]||"";return '<th><input class="ef'+(v?' on':'')+'" data-k="'+f[0]+'" value="'+esc(v)+'" placeholder="'+(f[2]?">":"")+'" title="'+(f[2]?"숫자 조건: >20000, <=5000, =40":"글자 일부. 쉼표로 여러 개 (OSA,UKB), =값 은 완전히 같은 것")+'" autocomplete="off" spellcheck="false" aria-label="'+f[1]+' 조건"></th>'}).join("")+
+      '</tr></thead><tbody id="edTb"></tbody></table></div>';
+    edRows();
+  }else{
+    var pf=EF.filter(function(f){return f[5]}),L=edRows()||edList();
+    var opt=function(sel){return pf.map(function(f){return '<option value="'+f[0]+'"'+(f[0]===sel?' selected':'')+'>'+f[1]+'</option>'}).join("")};
+    var VS=[["van","Unit (개수)"],["teu","TEU"],["kg","Weight 합계 (t)"],["avg","Weight 평균 (t)"]];
+    var fr=EFM[ES.pr],fc=EFM[ES.pc],R={},C={},M={};
+    L.forEach(function(b){var r=String(fr[3](b)),c=String(fc[3](b));R[r]=1;C[c]=1;(M[r+"\u0001"+c]=M[r+"\u0001"+c]||[]).push(b)});
+    var srt=function(f){return function(a,b){return f[2]?a-b:(a<b?-1:a>b?1:0)}};
+    var rs=Object.keys(R).sort(srt(fr)),cs=Object.keys(C).sort(srt(fc));
+    var val=function(bs){if(!bs||!bs.length)return "";var kg=0,teu=0;bs.forEach(function(b){kg+=b.kg;teu+=b.size===20?1:2});
+      return ES.pv==="van"?bs.length.toLocaleString():ES.pv==="teu"?teu.toLocaleString():ES.pv==="kg"?(kg/1000).toLocaleString("en-US",{maximumFractionDigits:1}):(kg/bs.length/1000).toFixed(1)};
+    var all=function(pred){return L.filter(pred)};
+    var cell=function(r,c,bs,cls){var v=val(bs);return '<td class="'+(v===""?'z ':'')+(cls||'')+'" data-pr="'+esc(r)+'" data-pc="'+esc(c)+'" title="누르면 이 '+(bs?bs.length:0)+'개가 골라져요">'+(v===""?"·":v)+'</td>'};
+    var NUL="\u0002";
+    body.innerHTML='<div class="pvc"><label>행 <select id="pvR">'+opt(ES.pr)+'</select></label><label>열 <select id="pvC">'+opt(ES.pc)+'</select></label>'+
+      '<label>값 <select id="pvV">'+VS.map(function(v){return '<option value="'+v[0]+'"'+(v[0]===ES.pv?' selected':'')+'>'+v[1]+'</option>'}).join("")+'</select></label>'+
+      '<button type="button" class="x" id="pvX" title="행과 열 바꾸기">행 ↔ 열</button><span class="hint">칸을 누르면 그 컨테이너들이 골라져요. Editor의 조건이 그대로 적용돼요.</span></div>'+
+      '<div class="edw"><table class="et pv"><thead><tr><th class="rh">'+fr[1]+' \\ '+fc[1]+'</th>'+cs.map(function(c){return '<th class="n" data-pr="'+NUL+'" data-pc="'+esc(c)+'">'+esc(c||"(없음)")+'</th>'}).join("")+'<th class="n tot" data-pr="'+NUL+'" data-pc="'+NUL+'">합계</th></tr></thead><tbody>'+
+      rs.map(function(r){return '<tr><th class="rh" data-pr="'+esc(r)+'" data-pc="'+NUL+'">'+esc(r||"(없음)")+'</th>'+cs.map(function(c){return cell(r,c,M[r+"\u0001"+c])}).join("")+cell(r,NUL,all(function(b){return String(fr[3](b))===r}),"tot")+'</tr>'}).join("")+
+      '<tr class="tot"><th class="rh">합계</th>'+cs.map(function(c){return cell(NUL,c,all(function(b){return String(fc[3](b))===c}),"tot")}).join("")+cell(NUL,NUL,L,"tot")+'</tr></tbody></table></div>';
+  }
+}
+(function(){
+  var W=$("edWin");
+  $("tabE").onclick=function(){ES.tab="E";edDraw()};$("tabP").onclick=function(){ES.tab="P";edDraw()};
+  $("edFade").onchange=function(e){ES.fade=e.target.checked;render()};
+  $("edCS").onclick=function(){ES.sort=[];edDraw()};$("edCF").onclick=function(){ES.flt={};edDraw()};
+  W.addEventListener("input",function(e){var t=e.target;if(!t.classList.contains("ef"))return;ES.flt[t.dataset.k]=t.value.trim();t.classList.toggle("on",!!t.value.trim());edRows()});
+  W.addEventListener("change",function(e){var id=e.target.id;if(id==="pvR"){ES.pr=e.target.value;edDraw()}else if(id==="pvC"){ES.pc=e.target.value;edDraw()}else if(id==="pvV"){ES.pv=e.target.value;edDraw()}});
+  W.addEventListener("click",function(e){
+    if(e.target.id==="pvX"){var t=ES.pr;ES.pr=ES.pc;ES.pc=t;edDraw();return}
+    var th=e.target.closest("thead th[data-k]"),tr=e.target.closest("tbody tr[data-i]"),pc=e.target.closest("[data-pr]");
+    if(th&&!e.target.classList.contains("ef")){var k=th.dataset.k,i=-1;ES.sort.forEach(function(s,j){if(s.k===k)i=j});
+      if(e.shiftKey){if(i<0)ES.sort.push({k:k,d:1});else if(ES.sort[i].d>0)ES.sort[i].d=-1;else ES.sort.splice(i,1)}
+      else{var d=i>=0&&ES.sort.length===1?(ES.sort[i].d>0?-1:0):1;ES.sort=d?[{k:k,d:d}]:[]}
+      edDraw();return}
+    if(tr){var bi=+tr.dataset.i;
+      if(e.ctrlKey||e.metaKey){var x=st.pick.indexOf(bi);if(x<0)st.pick.push(bi);else st.pick.splice(x,1)}
+      else if(e.shiftKey&&st.sel>=0){var ids=[].map.call($("edTb").querySelectorAll("tr[data-i]"),function(r){return +r.dataset.i}),a=ids.indexOf(st.sel),b2=ids.indexOf(bi);
+        if(a>=0&&b2>=0)st.pick=ids.slice(Math.min(a,b2),Math.max(a,b2)+1);else st.pick=[bi]}
+      else st.pick=[bi];
+      var sc=W.querySelector(".edw").scrollTop;showBox(bi);render();W.querySelector(".edw").scrollTop=sc;return}
+    if(pc&&ES.tab==="P"){var NUL="\u0002",r=pc.dataset.pr,c=pc.dataset.pc,fr=EFM[ES.pr],fc=EFM[ES.pc];
+      st.pick=edList().filter(function(b){return (r===NUL||String(fr[3](b))===r)&&(c===NUL||String(fc[3](b))===c)}).map(function(b){return b.i});
+      if(r===NUL&&c===NUL&&e.target.tagName==="TH")st.pick=[];
+      render()}
+  });
+  W.addEventListener("dblclick",function(e){var tr=e.target.closest("tbody tr[data-i]");if(tr&&BOXP[+tr.dataset.i])openBay(BOXP[+tr.dataset.i])});
+})();
 // ---------- 긴급양하 메일 ----------
 function pickBar(){
   var n=st.pick.length, B=st.plan?st.plan.boxes:[];
