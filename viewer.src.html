@@ -384,6 +384,27 @@ header.win .body{background:linear-gradient(#f7faff,#e7eef8)}
 .et.pv .tot{background:#edf2f9}
 .pvc{background:linear-gradient(#f7faff,#e7eef8);border-bottom-color:#b9c7dc}
 .rzc,.wr.se{opacity:.7}
+/* General Plan 옆 표: 포트별(세로) 수량 + BSA(14 HOMO) 대비. 이미지로 저장할 때도 같이 들어감 */
+.gpx{display:flex;align-items:flex-start;min-width:0;background:var(--win)}
+.gpx .gpw{flex:1 1 0;min-width:0}
+.gi{flex:none;width:214px;padding:8px 8px 10px;font-size:11.5px;line-height:1.35;border-right:1px solid #c9d3e2;background:var(--win);color:var(--fg)}
+.gi:empty{display:none}
+.gi .gt{font-size:15px;font-weight:700}
+.gi .gn{color:var(--fg2);margin-bottom:6px}
+.gi h4{margin:9px 0 3px;font-size:11.5px;padding:2px 4px;background:#e4ebf6;border:1px solid #c9d3e2}
+.gi h4 small{font-weight:400;float:right}
+.gi table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+.gi th{font-weight:400;color:var(--fg2);text-align:right;padding:1px 3px;border-bottom:1px solid #c9d3e2}
+.gi td{text-align:right;padding:2px 3px;border-bottom:1px solid #e6ebf3;white-space:nowrap}
+.gi th:first-child,.gi td:first-child{text-align:left}
+.gi tr.tt td{font-weight:700;border-top:1px solid #8fa3c0;border-bottom:0}
+.gi .gsw{display:inline-block;width:13px;height:13px;border:1px solid #000;vertical-align:-2px;margin-right:5px}
+.gi .ov{color:var(--warn);font-weight:700}
+.gi .nb{color:var(--fg2);margin-top:4px}
+@media (max-width:699px),(hover:none) and (max-height:519px){.gpx{flex-direction:column-reverse}.gpx .gpw{flex:none;width:100%}.gi{width:auto;border-right:0;border-top:1px solid #c9d3e2;align-self:stretch}}   /* 폰: 표는 플랜 아래로 */
+.shot{position:absolute;left:-99999px;top:0;width:max-content;background:#fff;font-family:var(--sans);font-size:13px;line-height:1.4;color:#000}
+.shot .gpx{flex-direction:row}.shot .gi{width:214px;border-top:0;border-right:1px solid #c9d3e2;align-self:flex-start}
+#imgBtn{font:inherit;font-size:12px;font-weight:700;padding:1px 9px;margin-right:6px;cursor:pointer;border:1px solid var(--edge);background:var(--chrome);color:var(--fg);border-radius:3px;white-space:nowrap}
 /* 처음 화면: 예시 없이 비워 두고 'ASC 파일 열기'만 크게 */
 #start{display:none}
 body.empty #start{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:56vh;margin-top:12px;padding:24px 16px;
@@ -430,13 +451,14 @@ body.static .cr{display:none}
     <span><i class="lg out"></i>선박 구조에 없는 칸</span>
   </div>
   <section class="win" id="gpWin"><div class="tb">General Plan <small>선수가 오른쪽 · 베이를 더블클릭하면 Bay Plan이 떠요</small><span class="sp"></span>
+    <button type="button" id="imgBtn" title="지금 보이는 General Plan을 포트 표·BSA와 함께 그림(PNG)으로 저장해요">이미지로 저장</button>
     <select id="lay" aria-label="베이 배열" title="베이 배열">
       <option value="row">한 줄로</option><option value="wrap">여러 줄로 (CASP)</option></select>
     <span class="zoom"><button type="button" id="zO" aria-label="축소" title="축소 (Ctrl + 휠)">−</button>
       <select id="zS" aria-label="확대 비율"></select>
       <button type="button" id="zI" aria-label="확대" title="확대 (Ctrl + 휠)">+</button>
       <button type="button" id="zF" title="이 화면에 맞는 배열과 비율로 다시 맞춰요">맞춤</button></span></div>
-    <div class="gpw" id="gpw"><div class="gp" id="gp"></div></div>
+    <div class="gpx"><aside class="gi" id="gpInfo"></aside><div class="gpw" id="gpw"><div class="gp" id="gp"></div></div></div>
     <div class="rz rzr" data-rz="r" title="끌어서 너비 조절 (더블클릭: 원래대로)"></div><div class="rz rzb" data-rz="b" title="끌어서 높이 조절 (더블클릭: 원래대로)"></div><div class="rz rzc" data-rz="c" title="끌어서 크기 조절 (더블클릭: 원래대로)"></div></section>
   <section class="win" id="edWin" hidden><div class="tb"><span class="etab"><button type="button" id="tabE">Editor</button><button type="button" id="tabP">Pivot</button></span>
       <small id="edCnt"></small><span class="sp"></span>
@@ -660,6 +682,24 @@ function render(){
     '<button type="button" class="chipb" data-f="'+esc(f)+'" aria-pressed="'+(st.filter===f)+'"><b>'+esc(k)+'</b>'+
     '<small>20\' '+g.n20+' · 40\' '+g.n40+' · '+Math.round(g.kg/1000).toLocaleString()+'t</small></button></span>'}
 
+  // General Plan 옆 표 (세로): 양하항·선적항별 수량, BSA(14 HOMO TEU, x14 = 톤) 대비 선적항별 화물
+  (function(){
+    var pg={},po=[];B.forEach(function(b){var g=pg[b.pol];if(!g){g=pg[b.pol]={n20:0,n40:0,kg:0};po.push(b.pol)}if(b.size===20)g.n20++;else g.n40++;g.kg+=b.kg});
+    var ro3=P.rotation||[];po.sort(function(a,b){var x=ro3.indexOf(a),y=ro3.indexOf(b);return (x<0?99:x)-(y<0?99:y)||(a<b?-1:1)});
+    function T(kg){return Math.round(kg/1000).toLocaleString("en-US")}
+    function row(c,k,g){return '<tr><td><i class="gsw" style="background:'+c+'"></i><b>'+esc(k)+'</b></td><td>'+g.n20+'</td><td>'+g.n40+'</td><td>'+(g.n20+g.n40*2)+'</td><td>'+T(g.kg)+'</td></tr>'}
+    var tot='<tr class="tt"><td>TOTAL</td><td>'+n20+'</td><td>'+n40+'</td><td>'+(n20+n40*2)+'</td><td>'+T(kg)+'</td></tr>';
+    var hd="<tr><th></th><th>20'</th><th>40'</th><th>TEU</th><th>t</th></tr>";
+    var h14=sh&&sh.h||0,bt=h14*14;
+    function pc(k2){return bt?Math.round(k2/1000/bt*100)+"%":"-"}
+    function brow(k,g,cls){var t2=g.n20+g.n40*2,ov=bt&&(g.kg/1000>bt||t2>h14);return '<tr'+(cls?' class="'+cls+'"':'')+'><td>'+(cls?k:'<b>'+esc(k)+'</b>')+'</td><td>'+t2+'</td><td>'+T(g.kg)+'</td><td'+(ov?' class="ov"':'')+'>'+pc(g.kg)+'</td></tr>'}
+    $("gpInfo").innerHTML='<div class="gt">'+esc((sh?st.ship+" ":"")+(P.voy||""))+'</div><div class="gn">'+esc(sh&&sh.n||st.name||"")+'</div>'+
+      '<h4>POD</h4><table>'+hd+order.map(function(k){return row(hex[k],k,groups[k])}).join("")+tot+'</table>'+
+      '<h4>POL</h4><table>'+hd+po.map(function(k){return row(hexL[k]||CUSTOM[k]||POLFIX[k]||"#8c8c8c",k,pg[k])}).join("")+tot+'</table>'+
+      '<h4>BSA <small>14 HOMO</small></h4>'+(h14?'<table><tr><td>BSA</td><td>'+h14.toLocaleString("en-US")+' TEU</td><td>'+bt.toLocaleString("en-US")+' t</td></tr></table>'+
+        '<table><tr><th>POL</th><th>TEU</th><th>t</th><th>BSA 대비</th></tr>'+po.map(function(k){return brow(k,pg[k])}).join("")+brow("TOTAL",{n20:n20,n40:n40,kg:kg},"tt")+'</table>'
+        :'<div class="nb">선박을 고르면 BSA(14 HOMO)가 나와요.</div>');
+  })();
   var q=st.q, hits=0, GH=[];
   BP={};ORD=[];FIRSTHIT="";PANELS={};BOXP={};
   function kc(b){return ' k'+b.pod.replace(/\W/g,"_")+' l'+b.pol.replace(/\W/g,"_")}
@@ -1217,6 +1257,29 @@ function autoFit(){
 $("lay").onchange=function(e){LAYOUT=e.target.value;LAYSET=true;try{localStorage.setItem("ascGpLayout",LAYOUT)}catch(_){}render();if(AUTOZ)autoFit();else toBow()};
 $("zO").onclick=function(){AUTOZ=false;stepZoom(-1)}; $("zI").onclick=function(){AUTOZ=false;stepZoom(1)};
 $("zS").onchange=function(e){AUTOZ=false;setZoom(+e.target.value)};
+// ---------- 이미지로 저장: General Plan + 옆 표를 그대로 PNG 로 ----------
+function saveImg(){
+  if(!st.plan)return;
+  var g=$("gp"),box=document.createElement("div"),nt=$("note");box.className="shot";
+  box.innerHTML='<div class="gpx"><aside class="gi">'+$("gpInfo").innerHTML+'</aside><div class="'+g.className+'" style="'+(g.getAttribute("style")||"")+
+    (LAYOUT==="wrap"?";width:"+$("gpw").clientWidth+"px":"")+'">'+g.innerHTML+'</div></div>';
+  [].forEach.call(box.querySelectorAll(".cur"),function(x){x.classList.remove("cur")});
+  document.body.appendChild(box);
+  var W=Math.ceil(box.offsetWidth)+2,H=Math.ceil(box.offsetHeight)+2,xml=new XMLSerializer().serializeToString(box.firstChild);box.remove();
+  var css=[].map.call(document.querySelectorAll("style"),function(s){return s.textContent}).join("\n").replace(/&/g,"&amp;").replace(/</g,"&lt;");
+  var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+W+'" height="'+H+'"><foreignObject x="0" y="0" width="'+W+'" height="'+H+'">'+
+    '<div xmlns="http://www.w3.org/1999/xhtml" class="shot" style="position:static;width:'+W+'px;height:'+H+'px"><style>'+css+'</style>'+xml+'</div></foreignObject></svg>';
+  function fail(){nt.hidden=false;nt.className="note err";nt.textContent="이 브라우저에서는 이미지로 저장이 안 돼요. PC의 크롬이나 엣지에서 다시 해 보세요."}
+  var im=new Image(),K=2;
+  im.onload=function(){try{
+    var c=document.createElement("canvas");c.width=W*K;c.height=H*K;var x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);
+    c.toBlob(function(bl){if(!bl)return fail();var a=document.createElement("a"),u=URL.createObjectURL(bl);
+      a.href=u;a.download=((st.ship||"PLAN")+"_"+(st.plan.voy||"")).replace(/[^\w.-]+/g,"_")+"_GENERAL_PLAN.png";document.body.appendChild(a);a.click();
+      setTimeout(function(){URL.revokeObjectURL(u);a.remove()},4000)},"image/png")}catch(e){fail()}};
+  im.onerror=fail;
+  im.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
+}
+$("imgBtn").onclick=saveImg;
 $("zF").onclick=function(){LAYSET=false;try{localStorage.removeItem("ascGpLayout")}catch(_){}autoFit()};
 $("gpw").addEventListener("wheel",function(e){if(e.ctrlKey){e.preventDefault();AUTOZ=false;stepZoom(e.deltaY<0?1:-1)}},{passive:false});
 (function(){var t=0,lw=window.innerWidth,ll=window.innerWidth>window.innerHeight;window.addEventListener("resize",function(){clearTimeout(t);t=setTimeout(function(){

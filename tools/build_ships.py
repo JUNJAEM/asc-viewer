@@ -52,12 +52,15 @@ def main():
     for svc in sorted(lanes):
         for v in lanes[svc]: svc_of.setdefault(v, []).append(svc)
     ships, fail = {}, []
+    hp = os.path.join(HERE, "homo14.json")   # 전산 Vessel Code 의 HOMO14 (14t 균일 적재 TEU = BSA 기준)
+    homo = json.load(open(hp, encoding="utf-8")) if os.path.exists(hp) else {}
     for p in sorted(glob.glob(os.path.join(CC, "*_structure.json"))):
         code = os.path.basename(p).split("_")[0].upper()
         try:
             s = pack(ccasp(p))
             if not s["b"]: raise ValueError("no slots")
             s["s"] = u"·".join(svc_of.get(code, []))
+            if homo.get(code): s["h"] = homo[code]
             ships[code] = s
         except Exception as e:
             fail.append("%s (%s)" % (code, e))
