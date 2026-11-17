@@ -269,6 +269,68 @@ dd.chg .ei,dd.chg{background:#fff3a6}
   body:has(#sheet:not([hidden])) .wrap{margin-right:322px}
 }
 @media (max-width:480px){ .c{height:31px} .c .w{font-size:10px} .c .p{font-size:7.5px} .bays{padding:8px 6px 10px} }
+
+/* ===== 겉모습: 윈도우 비스타(Aero) 느낌 — 유리 제목줄, 둥근 모서리, 부드러운 그림자, 광택 버튼 =====
+   플랜 칸(색·테두리·글자)은 그대로 두고 창·버튼·입력칸만 바꿈. 이 묶음을 지우면 예전(클래식) 모습으로 돌아감 */
+:root{
+  --desk:#cfdff2; --chrome:#eef3fa; --edge:#8fa3c2; --shade:#aab6c8; --fg:#1b2433; --fg2:#4a586c;
+  --num:#0b4fc4; --title:#3d72c0; --title-fg:#ffffff; --cell:#1b2433;
+  --sans:"Segoe UI","Malgun Gothic","Apple SD Gothic Neo",Arial,sans-serif;
+  --glass:linear-gradient(to bottom,rgba(255,255,255,.62) 0,rgba(255,255,255,.22) 47%,rgba(255,255,255,0) 50%,rgba(255,255,255,.16) 100%),linear-gradient(to right,#2f5fa8,#5e97dc 45%,#4f88d0 70%,#2f5fa8);
+  --btn:linear-gradient(to bottom,#fbfdff 0,#eaf0f8 48%,#d9e3f1 52%,#edf2f9 100%);
+  --btn-h:linear-gradient(to bottom,#f2fbff 0,#d8f0fd 48%,#b9e3fb 52%,#d6effd 100%);
+}
+body{background:linear-gradient(165deg,#e6eff9 0,#cfdff2 45%,#b7cde8 100%) fixed;font-size:13px}
+.win{border:1px solid #5d7fae;border-radius:8px;box-shadow:0 0 0 1px rgba(255,255,255,.55) inset,0 8px 22px rgba(25,55,100,.28)}
+.win>.tb{background:var(--glass);border-radius:7px 7px 0 0;padding:6px 10px;text-shadow:0 1px 2px rgba(0,20,60,.65);border-bottom:1px solid #2c4f8a;align-items:center;letter-spacing:.01em}
+.win>.body:last-child,.win>.gpw,#edBody,#edBody .edw:last-child,.bwf{border-radius:0 0 7px 7px}
+header.win .body{background:linear-gradient(#f7faff,#e7eef8)}
+#logo{border-radius:6px;border-color:#9fb2cc;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.note{border-radius:6px;border-color:#d8c36a;background:linear-gradient(#fffbe0,#fff3b8);box-shadow:0 2px 6px rgba(25,55,100,.15)}
+/* 버튼 */
+.btn,.x,.tb button,.bwin .tb button,.etab button,.bwf button,#eMsg button{
+  background:var(--btn);border:1px solid #707f96;border-radius:3px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.75);color:#1b2433;text-shadow:none;transition:background .12s,border-color .12s}
+.btn:hover,.x:hover,.tb button:hover,.bwin .tb button:hover,.etab button:hover,.bwf button:hover,#eMsg button:hover{background:var(--btn-h);border-color:#3c7fb1}
+.btn:active,.x:active,.tb button:active{background:linear-gradient(#c4e5f6,#98d1ef);box-shadow:inset 0 1px 3px rgba(0,40,80,.35)}
+.btn{padding:6px 14px}
+.tb button{height:23px}
+#edBtn[aria-pressed="true"]{background:linear-gradient(#c4e5f6,#98d1ef);color:#0b2a55;border-color:#2c628b;box-shadow:inset 0 1px 3px rgba(0,40,80,.35)}
+#saveBtn,#bwM{background:linear-gradient(#fff5f4,#ffd9d6 50%,#ffc6c1 52%,#ffe1de);color:#a40000;border-color:#b3413a}
+#bwM:hover,#saveBtn:hover{background:linear-gradient(#fff,#ffcbc6);border-color:#8c1d16}
+#bwX{background:linear-gradient(#f0b3ad 0,#d9615a 48%,#c13229 52%,#dc6a62 100%);color:#fff;border-color:#7a1c16;font-weight:700;min-width:38px;text-shadow:0 1px 1px rgba(0,0,0,.5)}
+#bwX:hover{background:linear-gradient(#ffc9c4 0,#f07068 48%,#d8382e 52%,#f4837b 100%);border-color:#5e120d}
+.chips #sortCol{background:linear-gradient(90deg,#ffeb00 0 25%,#2f7bff 25% 50%,#ff4136 50% 75%,#19c2b0 75%) bottom/100% 4px no-repeat,var(--btn);border-radius:3px}
+/* 입력칸 */
+#ship,#q,.tb select,.pvc select,.ef,.ei{border:1px solid #9aa7ba;border-radius:3px;box-shadow:inset 0 1px 2px rgba(0,0,0,.08);background:#fff}
+#ship:hover,#q:hover,.tb select:hover,.pvc select:hover{border-color:#3c7fb1}
+.tb select{height:23px;color:#1b2433;text-shadow:none;font-weight:600}
+/* 포트 칩 */
+.chip{border-radius:4px;border-color:#8fa3c2;overflow:hidden;box-shadow:0 1px 2px rgba(25,55,100,.15)}
+.chip.on{box-shadow:0 0 0 2px var(--num)}
+.swc{border-right-color:#8fa3c2}
+/* 플랜 칸은 또렷하게 (어두운 테두리 유지) */
+.c,.m,.lg{border-color:var(--cell)}
+.hbar,.mbar{background:var(--cell)}
+.gh{border-left-color:#d5dde9}
+.mini.cur span{background:var(--title);border-radius:3px}
+/* Bay Plan 창 */
+#bw{background:rgba(20,45,85,.22)}
+.bwin{border-radius:8px;box-shadow:0 0 0 1px rgba(255,255,255,.55) inset,0 16px 48px rgba(0,20,60,.5)}
+.bwf{background:linear-gradient(#f7faff,#e7eef8);border-top-color:#b9c7dc}
+/* Container Editor 패널 */
+#sheet{background:linear-gradient(#f4f8fd,#e3ebf6);border-color:#5d7fae}
+#sheet .edt{background:var(--glass);text-shadow:0 1px 2px rgba(0,20,60,.65);padding:7px 10px}
+@media (min-width:900px){#sheet{box-shadow:-6px 0 18px rgba(25,55,100,.3);border-left:1px solid #5d7fae}
+  #sheet dd{border-color:#9aa7ba;border-radius:3px} #sheet .emp dd{background:#eef2f7}}
+/* Editor / Pivot */
+.etab button{border-radius:4px 4px 0 0;opacity:.85;height:23px}
+.etab button.on{background:#fff;box-shadow:inset 0 -3px 0 #3d72c0;opacity:1}
+.et thead th,.et.pv th.rh{background:linear-gradient(#f9fbfe,#e2eaf5)}
+.et thead tr.efr th{background:#f1f5fb}
+.et th,.et td{border-color:#c9d3e2}
+.et.pv .tot{background:#edf2f9}
+.pvc{background:linear-gradient(#f7faff,#e7eef8);border-bottom-color:#b9c7dc}
+.rzc,.wr.se{opacity:.7}
 </style>
 
 <div class="wrap">
