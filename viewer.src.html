@@ -585,8 +585,7 @@ function render(){
     (nout?'<div><span>구조에 없는 칸</span><b style="color:var(--warn)">'+nout+'</b></div>':'')+'</div>'+
     (rot?'<div class="rot">Port Rotation: '+esc(rot)+'</div>':'')+
     '<div class="chips"><button type="button" class="x" id="sortCol" title="양하항 '+order.length+'개에 맞춰 가장 잘 구분되는 색으로 다시 칠해요">색정렬</button><em>POD</em>'+order.map(function(k){return chip(k,k,groups[k])}).join("")+
-      '<em>POL</em>'+polOrder.map(function(k){return chip(k,"@"+k,pols[k])}).join("")+'</div>'+
-    '<div class="hint">색정렬 = 양하항 개수에 맞춰 가장 잘 구분되는 색을 기항 순서대로 (선적항은 북항 PUS 파랑 · 신항 PNC 노랑 고정). 색 네모 = 색 바꾸기, 포트 이름 = 그 포트만 진하게.</div>';
+      '<em>POL</em>'+polOrder.map(function(k){return chip(k,"@"+k,pols[k])}).join("")+'</div>';
   function chip(k,f,g){return '<span class="chip'+(st.filter===f?' on':'')+'">'+
     '<input type="color" class="swc" id="col-'+esc(f)+'" data-port="'+esc(k)+'" value="'+(f[0]==="@"?hexL[k]:hex[k])+'" aria-label="'+esc(k)+' 색 바꾸기" title="색 바꾸기">'+
     '<button type="button" class="chipb" data-f="'+esc(f)+'" aria-pressed="'+(st.filter===f)+'"><b>'+esc(k)+'</b>'+
