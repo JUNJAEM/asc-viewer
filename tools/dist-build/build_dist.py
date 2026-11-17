@@ -15,7 +15,7 @@ codes = re.findall(r'"?([A-Z0-9]{3,4})"?:\{"?n"?:"([^"]*)"', ships)
 shiplist = " · ".join(c for c, n in codes)
 def img(k): return "data:image/png;base64," + base64.b64encode(open(os.path.join(SP, "g_%s.png" % k), "rb").read()).decode()
 
-html = u'''<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>ASC 뷰어 사용 설명서</title>
+html = u'''<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>PLAN VIEWER MADE BY JUNJAE 사용 설명서</title>
 <style>
 @page{size:A4 landscape;margin:11mm 12mm}
 *{box-sizing:border-box}
@@ -44,7 +44,7 @@ kbd{border:1px solid #777;border-radius:3px;padding:0 4px;background:#f2f2f2;fon
 </style></head><body>
 
 <section class="pg">
-<h1>ASC 뷰어 사용 설명서</h1>
+<h1>PLAN VIEWER MADE BY JUNJAE 사용 설명서</h1>
 <p class="sub">Outlook 첨부파일 <b>.asc</b>를 더블클릭하면 CASP · cCASP에 올리지 않고도 바로 스토이지 플랜이 뜨는 도구예요.</p>
 <div class="cols">
 <div>
@@ -62,7 +62,7 @@ kbd{border:1px solid #777;border-radius:3px;padding:0 4px;background:#f2f2f2;fon
 <div class="row">설명서.pdf <span>이 문서</span></div></div>
 "Windows의 PC 보호" 파란 창이 뜨면 <b>추가 정보 → 실행</b>을 누르세요.</li>
 <li><b>검은 창에 <span class="tag">Done.</span> 이 보이면 아무 키나 눌러 닫으세요.</b>
-<div class="cmd">Done. .asc files now open in the ASC bay plan viewer.<br>계속하려면 아무 키나 누르십시오 . . .</div></li>
+<div class="cmd">Done. .asc files now open in PLAN VIEWER MADE BY JUNJAE.<br>계속하려면 아무 키나 누르십시오 . . .</div></li>
 </ol>
 <div class="box">관리자 권한이 필요 없고, 내 계정에만 적용돼요. 프로그램을 따로 까는 게 아니라 ".asc 파일을 이 뷰어로 열어라"는 연결만 등록해요.</div>
 </div>
@@ -83,21 +83,21 @@ kbd{border:1px solid #777;border-radius:3px;padding:0 4px;background:#f2f2f2;fon
 </ul>
 </div>
 </div>
-<div class="foot">ASC 뷰어 · 부산 운항 · 1 / 4</div>
+<div class="foot">PLAN VIEWER · 부산 운항 · 1 / 4</div>
 </section>
 
 <section class="pg">
 <h2>3. 첫 화면 — Summary와 General Plan</h2>
 <img class="shot" src="%(main)s" alt="">
 <p class="cap">CASP처럼 <b>General Plan이 메인</b>이에요. 선수가 오른쪽이고, 해치마다 위가 앞 베이, 아래가 뒤 베이(40'는 <kbd>15(14)</kbd>처럼 표시)예요. 칸 위쪽 색 = 양하항(POD), 아래 띠 색 = 선적항(POL).</p>
-<div class="foot">ASC 뷰어 · 부산 운항 · 2 / 4</div>
+<div class="foot">PLAN VIEWER · 부산 운항 · 2 / 4</div>
 </section>
 
 <section class="pg">
 <h2>4. Bay Plan 창 — 베이를 더블클릭하면 떠요</h2>
 <img class="shot" src="%(bay)s" alt="">
 <p class="cap">칸 위쪽 색 = 양하항(POD), 아래 띠 = 선적항(POL, 북항 PUS / 신항 PNC). 빗금 = 40', × = 옆 베이 40'가 차지한 칸. 로우 번호 아래 작은 숫자는 그 줄의 무게 합계(톤)예요.</p>
-<div class="foot">ASC 뷰어 · 부산 운항 · 3 / 4</div>
+<div class="foot">PLAN VIEWER · 부산 운항 · 3 / 4</div>
 </section>
 
 <section class="pg">
@@ -126,7 +126,7 @@ kbd{border:1px solid #777;border-radius:3px;padding:0 4px;background:#f2f2f2;fon
 </table>
 <p style="margin:10px 0 0">고장이나 건의는 배포한 사람에게 알려 주세요.</p>
 </div></div>
-<div class="foot">ASC 뷰어 · 부산 운항 · 4 / 4</div>
+<div class="foot">PLAN VIEWER · 부산 운항 · 4 / 4</div>
 </section>
 </body></html>'''
 for k, v in {"%(main)s": img("main"), "%(bay)s": img("bay"), "%(ships)s": shiplist, "%(n)d": str(len(codes)), "3%%": "3%"}.items():
@@ -135,7 +135,7 @@ for k, v in {"%(main)s": img("main"), "%(bay)s": img("bay"), "%(ships)s": shipli
 gh = os.path.join(SP, "guide.html"); io.open(gh, "w", encoding="utf-8").write(html)
 pdf = os.path.join(PK, u"설명서.pdf")
 subprocess.run([CH, "--headless=new", "--disable-gpu", "--no-pdf-header-footer", "--print-to-pdf=" + pdf, "file:///" + gh.replace("\\", "/")], capture_output=True)
-z = os.path.join(DIST, u"ASC뷰어_배포.zip")
+z = os.path.join(DIST, u"PLAN_VIEWER_배포.zip")
 with zipfile.ZipFile(z, "w", zipfile.ZIP_DEFLATED) as zf:
     for f in sorted(os.listdir(PK)): zf.write(os.path.join(PK, f), "asc-viewer/" + f)
 print(len(codes), os.path.getsize(pdf), os.path.getsize(z)); print(zipfile.ZipFile(z).namelist())

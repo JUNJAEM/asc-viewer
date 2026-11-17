@@ -1419,7 +1419,7 @@ if(E&&E.b64){var bin=atob(E.b64),u=new Uint8Array(bin.length);for(var i=0;i<bin.
 if(!st.plan)document.body.classList.add("empty");   // 처음 화면은 비워 둠 (예시 플랜을 보여 주지 않음)
 $("startBtn").onclick=function(){$("file").click()};
 // ---------- 앱(설치판): 깃허브 페이지에서만 켜짐 (manifest 가 연결돼 있을 때) ----------
-// 안드로이드 크롬: '앱 설치' 버튼 → 홈 화면 아이콘. 설치하면 아웃룩 등에서 .asc 를 '공유 → ASC 뷰어'로 바로 열 수 있음.
+// 안드로이드 크롬: '앱 설치' 버튼 → 홈 화면 아이콘. 설치하면 아웃룩 등에서 .asc 를 '공유 → PLAN VIEWER'로 바로 열 수 있음.
 if(!window.__STATIC__&&document.querySelector('link[rel="manifest"]')&&"serviceWorker" in navigator){
   navigator.serviceWorker.register("sw.js").catch(function(){});
   var dp=null;

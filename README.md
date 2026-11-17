@@ -1,4 +1,4 @@
-# ASC 뷰어
+# PLAN VIEWER MADE BY JUNJAE
 
 CASP ASC(`$609` / `$604`) 스토이지 플랜 파일을 CASP · cCASP 없이 바로 보는 뷰어예요.
 General Plan이 메인이고, 베이를 더블클릭하면 Bay Plan 창이 떠요.
