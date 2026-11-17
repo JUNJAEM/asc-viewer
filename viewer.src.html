@@ -775,11 +775,12 @@ function edDraw(){
       else{var d=i>=0&&ES.sort.length===1?(ES.sort[i].d>0?-1:0):1;ES.sort=d?[{k:k,d:d}]:[]}
       edDraw();return}
     if(tr){var bi=+tr.dataset.i;
-      if(e.ctrlKey||e.metaKey){var x=st.pick.indexOf(bi);if(x<0)st.pick.push(bi);else st.pick.splice(x,1)}
+      var off2=false;
+      if(e.ctrlKey||e.metaKey){var x=st.pick.indexOf(bi);if(x<0)st.pick.push(bi);else{st.pick.splice(x,1);off2=true}}
       else if(e.shiftKey&&st.sel>=0){var ids=[].map.call($("edTb").querySelectorAll("tr[data-i]"),function(r){return +r.dataset.i}),a=ids.indexOf(st.sel),b2=ids.indexOf(bi);
         if(a>=0&&b2>=0)st.pick=ids.slice(Math.min(a,b2),Math.max(a,b2)+1);else st.pick=[bi]}
       else st.pick=[bi];
-      var sc=W.querySelector(".edw").scrollTop;showBox(bi);render();W.querySelector(".edw").scrollTop=sc;return}
+      var sc=W.querySelector(".edw").scrollTop;if(off2)unmark(bi);else showBox(bi);render();W.querySelector(".edw").scrollTop=sc;return}
     if(pc&&ES.tab==="P"){var NUL="\u0002",r=pc.dataset.pr,c=pc.dataset.pc,fr=EFM[ES.pr],fc=EFM[ES.pc];
       st.pick=edList().filter(function(b){return (r===NUL||String(fr[3](b))===r)&&(c===NUL||String(fc[3](b))===c)}).map(function(b){return b.i});
       if(r===NUL&&c===NUL&&e.target.tagName==="TH")st.pick=[];
@@ -890,6 +891,7 @@ function urgentMail(){
   o.textContent="메일 파일을 받았어요. 브라우저의 다운로드 목록에서 열면 아웃룩 새 메일 창이 떠요. 터미널 칸만 채우고 보내기를 누르세요.";
 }
 function openBay(id){st.open=id;st.sel=-1;$("sheet").hidden=true;render()}
+function unmark(i){if(st.sel===i){st.sel=-1;$("sheet").hidden=true}}   // 표식을 지운 컨테이너가 상세에 떠 있었으면 닫음
 function closeBay(){st.open=null;st.sel=-1;$("sheet").hidden=true;render()}
 function stepBay(n){var i=ORD.indexOf(st.open);if(i<0)return;i+=n;if(i>=0&&i<ORD.length)openBay(ORD[i])}
 function showBox(i){
@@ -1010,9 +1012,11 @@ document.addEventListener("drop",function(e){e.preventDefault();document.body.cl
 document.addEventListener("click",function(e){
   var c=e.target.closest(".c.b"),ch=e.target.closest(".chipb"),mi=e.target.closest(".mini");
   if(c){var ci=+c.dataset.i;
-    if(e.ctrlKey||e.metaKey){var k=st.pick.indexOf(ci);if(k<0)st.pick.push(ci);else st.pick.splice(k,1)}
+    var off=false;
+    if(e.ctrlKey||e.metaKey){var k=st.pick.indexOf(ci);if(k<0)st.pick.push(ci);else{st.pick.splice(k,1);off=true}}
     else st.pick=[ci];
-    showBox(ci);render()}
+    if(off)unmark(ci);else showBox(ci);   // Ctrl+클릭으로 표식을 지우면 그 컨테이너의 상세·테두리도 같이 걷음
+    render()}
   else if(e.target.id==="pkC"){st.pick=[];render()}
   else if(mi){if(e.detail===0||TOUCH)openBay(mi.dataset.go)}   // 키보드(Enter)·터치 화면은 한 번에 열림
   else if(e.target.id==="bw"&&!BWDRAG)closeBay();
