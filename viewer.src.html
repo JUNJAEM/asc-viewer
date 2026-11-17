@@ -207,15 +207,24 @@ i.swc{display:block;align-self:stretch}
 #sheet dd.dgv,.sd dd.dgv{color:var(--warn)}
 body.drag{outline:3px dashed var(--num);outline-offset:-6px}
 .emp{display:none}
+.cnrow{display:none}
+#saveBtn{background:#fff0f0;color:#b00000;border-color:#b00000;margin-right:6px}
+.ei{font:inherit;font-family:Consolas,monospace;font-size:12.5px;width:100%;min-width:60px;border:1px solid var(--shade);background:#fff;color:#000;padding:1px 4px;border-radius:0;text-transform:uppercase}
+.ei:focus{outline:2px solid var(--num);outline-offset:0}
+dd.chg .ei,dd.chg{background:#fff3a6}
+#eMsg{font-size:11.5px;margin-top:6px;flex-basis:100%}
+#eMsg .er{color:var(--warn);font-weight:700}
+#eMsg button{font:inherit;font-size:11.5px;border:1px solid var(--edge);background:var(--win);padding:1px 8px;cursor:pointer;margin-top:4px}
+.c.ed::after{content:"\270E";position:absolute;top:-1px;left:50%;transform:translateX(-50%);font-size:9px;line-height:1;color:var(--ck)}
 #sheet .edt{display:none}
 @media (min-width:900px){
   #sheet{left:auto;top:0;bottom:0;right:0;width:318px;padding:0;border-top:0;border-left:2px solid var(--title);overflow:auto;box-shadow:-3px 0 0 rgba(0,0,0,.25)}
   #sheet .edt{display:flex;align-items:baseline;gap:8px;background:var(--title);color:var(--title-fg);font-weight:700;padding:5px 10px;position:sticky;top:0;z-index:1}
   #sheet .edt small{font-weight:400;opacity:.85;font-size:11px}
   #sheet .in{display:block;max-width:none;padding:8px 10px 14px}
-  #sheet .cn{display:grid;grid-template-columns:118px 1fr;gap:0 6px;align-items:center;font-size:13px;margin-bottom:2px}
-  #sheet .cn::before{content:"Container No.:";font:400 12px Arial,sans-serif;color:var(--fg);text-align:right}
-  #sheet .cn{border:0}
+  #sheet .cn{display:none}
+  #sheet .cnrow{display:contents}
+  #sheet dd:has(.ei){padding:0;border:0;background:none}
   #sheet dl{display:grid;grid-template-columns:118px 1fr;gap:2px 6px;align-items:center;margin:0}
   #sheet dl div{display:contents}
   #sheet .emp{display:contents}
@@ -225,6 +234,7 @@ body.drag{outline:3px dashed var(--num);outline-offset:-6px}
   #sheet .emp dd{background:#f1f1f1}
   #sheet .x{display:block;margin:10px 0 0 auto}
   #bw:not(.free){padding-right:330px}
+  body:has(#sheet:not([hidden])) .wrap{margin-right:322px}
 }
 @media (max-width:480px){ .c{height:31px} .c .w{font-size:10px} .c .p{font-size:7.5px} .bays{padding:8px 6px 10px} }
 </style>
@@ -234,6 +244,7 @@ body.drag{outline:3px dashed var(--num);outline-offset:-6px}
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
+      <button class="btn" id="saveBtn" type="button" hidden>ASC 저장</button>
       <button class="btn" id="openBtn" type="button">ASC 파일 열기</button>
       <input type="file" id="file" hidden>
     </div>
@@ -274,7 +285,7 @@ body.drag{outline:3px dashed var(--num);outline-offset:-6px}
   <div class="bwf" id="bwF"></div>
 </div></div>
 <div id="sheet" hidden><div class="edt"><span>Container Editor</span><small>보기 전용</small></div><div class="in">
-  <div class="cn" id="sCn"></div><dl id="sDl"></dl>
+  <div class="cn" id="sCn"></div><dl id="sDl"></dl><div id="eMsg"></div>
   <button class="x" id="sX" type="button">닫기</button>
 </div></div>
 
@@ -284,7 +295,7 @@ body.drag{outline:3px dashed var(--num);outline-offset:-6px}
 (function(){
 "use strict";
 var $=function(id){return document.getElementById(id)};
-var st={plan:null,name:"",example:false,color:"podpol",filter:null,q:"",sel:-1,open:null,ship:"",shipBad:false,pick:[]};
+var st={plan:null,name:"",example:false,color:"podpol",filter:null,q:"",sel:-1,open:null,ship:"",shipBad:false,pick:[],lines:null,orig:null,eol:"\r\n",plan0:null,saved:""};   // lines·orig: 편집용 원본 줄(바이트 그대로), plan0: 고치기 전 값
 var SHIPS=window.ASC_SHIPS||null;
 var LAYOUT="row";try{if(localStorage.getItem("ascGpLayout")==="wrap")LAYOUT="wrap"}catch(_){}
 var BP={},ORD=[],FIRSTHIT="",PANELS={},BOXP={};   // PANELS·BOXP: 긴급양하 메일 그림용 (베이 그림 재료, 컨테이너가 있는 베이)   // Bay Plan 창에 넣을 그림(베이별), 베이 순서, 검색에 걸린 첫 베이
@@ -327,7 +338,7 @@ function parseAsc(text){
         lab:l.slice(53,55).trim(),ov:[92,101,104,95,98].map(function(c){return +l.slice(c,c+3).trim()||0}),   // H,P,S,F,A
         pol5:/^[A-Z]{5}$/.test(l.slice(188,193))?l.slice(188,193):"",pod5:/^[A-Z]{5}$/.test(l.slice(193,198))?l.slice(193,198):"",
         hc:hc,tk:tk,rt:iso?t[2]==="R":t.slice(0,2)==="RF",fe:l.slice(51,52)==="E"?"E":"F",kg:kg,
-        rf:/C$/.test(tmp),temp:tmp,dgno:l.slice(60,64).trim()});
+        rf:/C$/.test(tmp),temp:tmp,dgno:l.slice(60,64).trim(),li:i});
     }
   }
   return out;
@@ -498,7 +509,7 @@ function render(){
         var c=p.cell(r,t),b=c.b;
         if(!b)return c.x?'<div class="c xx">×</div>':'<div class="c'+(!c.slot?' no':c.slot===3?' rp':'')+'"></div>';
         var cls="c b"+(PP?" pp":"")+(c.f40?" f40":"")+(c.out?" out":"")+kc(b), hit=q&&b.cntr.indexOf(q)>=0;
-        if(hit){cls+=" hit";hits++} if(dimmed(b))cls+=" dim"; if(b.i===st.sel)cls+=" sel"; if(st.pick.indexOf(b.i)>=0)cls+=" pk";
+        if(hit){cls+=" hit";hits++} if(dimmed(b))cls+=" dim"; if(b.i===st.sel)cls+=" sel"; if(st.pick.indexOf(b.i)>=0)cls+=" pk"; if(st.lines&&st.lines[b.li]!==st.orig[b.li])cls+=" ed";
         if(!(b.i in BOXP))BOXP[b.i]=p.id;
         var d=b.dgno?((P.dg[b.dgno]||[])[0]||{}).cls||"DG":"";
         return '<button type="button" class="'+cls+'" data-i="'+b.i+'" style="'+sty(b)+'" aria-label="'+esc(b.cntr+" "+b.pod)+'">'+
@@ -524,6 +535,8 @@ function render(){
   else if(st.shipBad){nt.hidden=false;nt.className="note";nt.textContent=st.ship+" 구조 파일이 이 플랜과 맞지 않아서, 실린 칸 기준으로 그렸어요. 선박이 다르면 ‘선박’ 칸에서 골라 주세요."}
   else if(SHIPS&&!st.ship){nt.hidden=false;nt.className="note";nt.textContent="파일 이름에서 선박을 찾지 못해 실린 칸 기준으로 그렸어요. ‘선박’ 칸에서 고르면 실제 선박 모양으로 보여요."}
   else nt.hidden=true;
+  var dn=dirtyN();$("saveBtn").hidden=!dn;$("saveBtn").textContent="ASC 저장 ("+dn+")";
+  if(st.saved){nt.hidden=false;nt.className="note";nt.textContent=st.saved}
   $("ship").value=st.ship;
 }
 
@@ -644,41 +657,112 @@ function showBox(i){
   st.sel=i; var b=st.plan.boxes[i], sh=$("sheet"); if(!b){sh.hidden=true;return}
   $("sCn").textContent=b.cntr||"(번호 없음)";
   var dg=(st.plan.dg[b.dgno]||[]).map(function(d){return d.cls+"류 UN"+d.un+(d.pg?" PG"+d.pg:"")}).join(", ");
-  var tv=/^(-?\d+)C$/.exec(b.temp||""), ovs=(b.ov||[]).some(function(v){return v>0});   // ASC 온도는 소수점 없이 적힘 (-250C = -25.0°C)
-  // cCASP Container Editor 와 같은 항목·순서. ASC 파일에 없는 항목(Block Stow, POD2, HI, Special Remark 등)은 빈칸
-  var rowsD=[["Position",pad(b.bay)+pad(b.row)+pad(b.tier)],
-    ["OPR",b.line||""],
-    ["POL",b.pol5||port5(b.pol)],
-    ["POD",b.pod5||port5(b.pod)],
+  var ovs=(b.ov||[]).some(function(v){return v>0});
+  var ED=!!st.lines&&!window.__STATIC__, o=ED&&st.plan0?st.plan0.boxes[i]:null;   // ED: 편집 가능 (실제 파일을 연 경우)
+  // cCASP Container Editor 와 같은 항목·순서. 네 번째 값 = 고칠 수 있는 칸의 이름. ASC 파일에 없는 항목은 빈칸
+  var rowsD=[["Container No.",b.cntr,0,"cntr"],
+    ["Position",pad(b.bay)+pad(b.row)+pad(b.tier)],
+    ["OPR",b.line||"",0,"line"],
+    ["POL",evOf(b,"pol"),0,"pol"],
+    ["POD",evOf(b,"pod"),0,"pod"],
     ["Block Stow",""],["POD2",""],["Final POD",""],
-    ["DEST",b.dest||""],
-    ["SzTp",(b.type||"")+(b.type?"  ("+b.len+"'"+(b.hc?" HC":"")+(b.tk?" TANK":"")+")":"")],
-    ["Weight",b.kg?b.kg.toLocaleString("en-US"):""],
-    ["F/E",b.fe],
+    ["DEST",b.dest||"",0,"dest"],
+    ["SzTp",ED?b.type:(b.type||"")+(b.type?"  ("+b.len+"'"+(b.hc?" HC":"")+(b.tk?" TANK":"")+")":""),0,"type"],
+    ["Weight",ED?String(b.kg||0):(b.kg?b.kg.toLocaleString("en-US"):""),0,"kg"],
+    ["F/E",b.fe,0,"fe"],
     ["Cargo Type",b.lab||""],
-    ["Reefer Temp.",b.rf?(tv?(+tv[1]/10).toFixed(1)+"C":b.temp):""],
+    ["Reefer Temp.",ED?evOf(b,"temp"):(evOf(b,"temp")?evOf(b,"temp")+"C":""),0,"temp"],
     ["RZ",""],
     ["IMDG/UNno/PG",b.dgno?(dg||("No."+b.dgno)):"",b.dgno?1:0],
     ["OverDim(H/P/S/F/A)",ovs?b.ov.join(" / "):""],
     ["OOG Type",""],["BBK Group ID",""],["BBK Dim(L/W/H)",""],
     ["HI1",""],["HI2",""],["HI3",""],["HI4",""],["HI5",""],["HI6",""],["HI7",""],["HI8",""],["HI9",""],
     ["Special Remark",""],["Violated DG Rules",""]];
-  $("sDl").innerHTML=rowsD.map(function(r){return '<div'+(r[1]===""?' class="emp"':'')+'><dt>'+r[0]+'</dt><dd'+(r[2]?' class="dgv"':'')+'>'+esc(r[1])+'</dd></div>'}).join("");
+  $("sDl").innerHTML=rowsD.map(function(r){var k=r[3],ch=o&&k&&evOf(o,k)!==evOf(b,k);
+    return '<div class="'+(r[1]===""&&!(ED&&k)?'emp':'')+(k==="cntr"?' cnrow':'')+'"><dt>'+r[0]+'</dt><dd class="'+(r[2]?'dgv':'')+(ch?' chg':'')+'"'+(ch?' title="원래 값: '+esc(evOf(o,k)||"(빈칸)")+'"':'')+'>'+
+      (ED&&k?'<input class="ei" data-k="'+k+'" value="'+esc(evOf(b,k))+'" autocomplete="off" spellcheck="false" aria-label="'+r[0]+'">':esc(r[1]))+'</dd></div>'}).join("");
+  var em=$("eMsg"), mod=ED&&st.lines[b.li]!==st.orig[b.li];
+  em.innerHTML=ED?'<div>값을 고치고 Enter를 누르면 바로 반영돼요. 노란 칸 = 고친 값.</div>'+(mod?'<button type="button" id="eUndo">이 컨테이너 원래대로</button> ':'')+(dirtyN()?'<button type="button" id="eSave" style="color:#b00000;border-color:#b00000;font-weight:700">ASC 저장 ('+dirtyN()+')</button>':''):'';
+  sh.querySelector(".edt small").textContent=ED?"편집 가능":"보기 전용";
   sh.hidden=false;
 }
 
+// ---------- 편집: 원본 줄에서 그 칸만 바꾸고 다시 읽음. 다른 칸·다른 줄은 한 글자도 안 건드림 ----------
+function evOf(b,k){   // 편집칸에 보이는 값
+  if(k==="pol")return b.pol5||port5(b.pol); if(k==="pod")return b.pod5||port5(b.pod);
+  if(k==="kg")return String(b.kg||0);
+  if(k==="temp"){var m=/^(-?\d+)C$/.exec(b.temp||"");return b.rf?(m?(+m[1]/10).toFixed(1):b.temp):""}   // ASC 온도는 소수점 없이 적힘 (-250C = -25.0)
+  if(k==="line")return b.line||""; if(k==="dest")return b.dest||""; if(k==="type")return b.type||"";
+  return b[k]==null?"":String(b[k]);
+}
+function putCol(l,a,z,v,right){
+  if(l.length<198)l+=new Array(199-l.length).join(" ");
+  v=String(v).slice(0,z-a);var sp=new Array(z-a-v.length+1).join(" ");
+  return l.slice(0,a)+(right?sp+v:v+sp)+l.slice(z);
+}
+function editBox(i,k,val){   // 돌려주는 값: 오류 글 (없으면 "")
+  var b=st.plan.boxes[i]; if(!b||!st.lines)return "";
+  var v=String(val).trim().toUpperCase(), l=st.lines[b.li], f604=(st.lines[0]||"").indexOf("$604")===0;
+  if(v===evOf(b,k).toUpperCase())return "";
+  if(k==="cntr"){if(!/^[A-Z0-9]{1,11}$/.test(v))return "컨테이너 번호는 영문·숫자 11자 이내로 넣어 주세요.";l=putCol(l,7,18,v)}
+  else if(k==="line"){if(!/^[A-Z0-9]{0,8}$/.test(v))return "OPR은 영문·숫자 8자 이내로 넣어 주세요.";l=putCol(l,19,27,v)}
+  else if(k==="pol"||k==="pod"){
+    if(!/^([A-Z]{3}|[A-Z]{5})$/.test(v))return "포트는 3글자(PUS)나 5글자(KRPUS)로 넣어 주세요.";
+    var p3=v.length===5?v.slice(2):v, p5=v.length===5?v:port5(v); if(p5.length!==5)p5="";
+    if(k==="pol"){l=putCol(l,27,30,p3);l=putCol(l,188,193,p5)}else{l=putCol(l,30,33,p3);l=putCol(l,193,198,p5)}}
+  else if(k==="dest"){if(!/^([A-Z]{5})?$/.test(v))return "DEST는 5글자(KRPUS)로 넣거나 비워 주세요.";l=putCol(l,39,44,v)}
+  else if(k==="type"){if(!/^[A-Z0-9]{4}$/.test(v))return "SzTp는 4자(예: 22GP, 45GP)로 넣어 주세요.";l=putCol(l,44,48,v)}
+  else if(k==="kg"){v=v.replace(/,/g,"");if(!/^\d{1,5}$/.test(v))return "Weight는 kg 숫자(0~99999)로 넣어 주세요.";
+    var kg=+v,w3=Math.min(999,Math.round(kg/100)),ka=f604?87:80,had=l.slice(ka,ka+5).trim()!=="";
+    l=putCol(l,48,51,("00"+w3).slice(-3));
+    if(had||kg%100)l=putCol(l,ka,ka+5,("0000"+kg).slice(-5))}   // 상세 kg 칸은 원래 적혀 있었거나 100kg 단위가 아닐 때만 씀
+  else if(k==="fe"){if(v!=="F"&&v!=="E")return "F/E는 F 또는 E로 넣어 주세요.";l=putCol(l,51,52,v)}
+  else if(k==="temp"){
+    if(v===""||v==="C")l=putCol(l,55,60,"");
+    else{v=v.replace(/C$/,"");if(!/^-?\d{1,2}(\.\d)?$/.test(v))return "온도는 -18 이나 2.5 처럼 넣어 주세요 (비우면 온도 없음).";
+      var n=Math.round(parseFloat(v)*10),t=f604?String(n)+"C":(n<0?"-":"")+("0"+Math.abs(n)).slice(-Math.max(2,String(Math.abs(n)).length))+"C";
+      l=putCol(l,55,60,t,f604)}}   // $609(cCASP)는 왼쪽 맞춤 "250C ", $604(CASP)는 오른쪽 맞춤 " 250C"
+  else return "";
+  st.lines[b.li]=l; st.saved=""; reparse(); return "";
+}
+function reparse(){var P=parseAsc(st.lines.join("\n"));st.plan=P}
+function dirtyN(){var n=0;if(st.lines)for(var i=0;i<st.lines.length;i++)if(st.lines[i]!==st.orig[i])n++;return n}
+function saveAsc(){
+  if(!st.lines)return;
+  var t=st.lines.join(st.eol),u=new Uint8Array(t.length);for(var i=0;i<t.length;i++)u[i]=t.charCodeAt(i)&255;
+  var nm=(st.name||"plan.asc").replace(/\.asc$/i,"")+"_EDIT.asc";
+  var a=document.createElement("a"),url=URL.createObjectURL(new Blob([u],{type:"application/octet-stream"}));
+  a.href=url;a.download=nm;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(url);a.remove()},4000);
+  st.saved="“"+nm+"”로 저장했어요 (고친 컨테이너 "+dirtyN()+"개, 원본 파일은 그대로예요). 보내기 전에 cCASP에 올려서 한 번 확인해 주세요.";
+  render();
+}
+function latin1(u){var s="",i=0;for(;i<u.length;i+=8192)s+=String.fromCharCode.apply(null,u.subarray(i,i+8192));return s}
+function loadBytes(u,name){   // 바이트를 1:1 글자로 읽어야 저장할 때 원본과 한 바이트도 안 달라짐
+  var t=latin1(u);load(t,name);
+  if(st.plan&&!st.example&&st.name===name){st.eol=/\r\n/.test(t)?"\r\n":"\n";st.lines=t.split(/\r?\n/);st.orig=st.lines.slice();st.plan0=parseAsc(st.lines.join("\n"));render()}
+}
 function load(text,name){
   var P;try{P=parseAsc(text)}catch(e){P=null}
   if(!P||!P.boxes.length){var nt=$("note");nt.hidden=false;nt.className="note err";
     nt.textContent="“"+name+"”에서 컨테이너 줄을 찾지 못했어요. CASP ASC($609/$604) 파일이 맞는지 확인해 주세요.";return}
-  st.plan=P;st.name=name;st.example=false;pickShip(detectShip(name));st.filter=null;st.sel=-1;st.pick=[];st.open=null;st.q="";$("q").value="";$("sheet").hidden=true;
+  st.plan=P;st.name=name;st.example=false;pickShip(detectShip(name));st.filter=null;st.sel=-1;st.pick=[];st.lines=st.orig=st.plan0=null;st.saved="";st.open=null;st.q="";$("q").value="";$("sheet").hidden=true;
   document.title=name.replace(/\.asc$/i,"")+" · ASC 베이 플랜";
   render(); toBow();
 }
 function toBow(){var w=$("gpw");w.scrollLeft=w.scrollWidth;w.scrollTop=0}
-function readFile(f){var r=new FileReader();r.onload=function(){load(String(r.result),f.name)};r.readAsText(f)}
+function readFile(f){var r=new FileReader();r.onload=function(){loadBytes(new Uint8Array(r.result),f.name)};r.readAsArrayBuffer(f)}
 
 $("openBtn").onclick=function(){$("file").click()};
+$("saveBtn").onclick=saveAsc;
+document.addEventListener("change",function(e){var t=e.target;if(!t.classList||!t.classList.contains("ei"))return;
+  var i=st.sel,er=editBox(i,t.dataset.k,t.value);
+  if(er){$("eMsg").innerHTML='<div class="er">'+esc(er)+'</div>';t.focus();return}
+  render();showBox(i)});
+document.addEventListener("keydown",function(e){if(e.key==="Enter"&&e.target.classList&&e.target.classList.contains("ei"))e.target.blur()});
+document.addEventListener("click",function(e){if(e.target.id==="eSave"){saveAsc();if(st.sel>=0)showBox(st.sel);return}
+  if(e.target.id==="eUndo"&&st.lines){var b=st.plan.boxes[st.sel];if(!b)return;
+  st.lines[b.li]=st.orig[b.li];st.saved="";reparse();render();showBox(st.sel)}});
+window.addEventListener("beforeunload",function(e){if(dirtyN()&&!st.saved){e.preventDefault();e.returnValue=""}});
 $("file").onchange=function(e){if(e.target.files[0])readFile(e.target.files[0]);e.target.value=""};
 document.addEventListener("dragover",function(e){e.preventDefault();document.body.classList.add("drag")});
 document.addEventListener("dragleave",function(){document.body.classList.remove("drag")});
@@ -801,7 +885,7 @@ setZoom(zoom);
 if(window.__ICON__){$("logo").src=window.__ICON__;$("logo").hidden=false}   // 이 PC 전용 그림 (실행 파일이 넣어 줌)
 var E=window.__ASC__;
 if(E&&E.b64){var bin=atob(E.b64),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
-  load(new TextDecoder("utf-8").decode(u),E.name||"plan.asc")}
+  loadBytes(u,E.name||"plan.asc")}
 if(!st.plan){st.plan=example();st.name="";st.example=true;render();toBow()}
 if(window.__STATIC__){
   LAYOUT="wrap";zoom=100;st.open=null;render();
