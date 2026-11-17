@@ -10,7 +10,7 @@ for f in ["viewer.src.html", "ships.js", "open-asc.ps1", "install.bat", "uninsta
     shutil.copy2(os.path.join(V, f), os.path.join(PK, f))
 
 ships = io.open(os.path.join(V, "ships.js"), encoding="utf-8").read()
-codes = re.findall(r'"?([A-Z0-9]{4})"?:\{"?n"?:"([^"]*)"', ships)
+codes = re.findall(r'"?([A-Z0-9]{3,4})"?:\{"?n"?:"([^"]*)"', ships)
 shiplist = " · ".join(c for c, n in codes)
 def img(k): return "data:image/png;base64," + base64.b64encode(open(os.path.join(SP, "g_%s.png" % k), "rb").read()).decode()
 
