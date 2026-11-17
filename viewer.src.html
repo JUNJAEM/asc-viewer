@@ -170,7 +170,10 @@ body.rzing{user-select:none;-webkit-user-select:none}
 .c.pk{outline:3px solid #e00000;outline-offset:-3px;z-index:3}
 .c.pk::before{content:"";position:absolute;inset:0;background:rgba(255,0,0,.38);pointer-events:none}
 .m.pk{outline:2px solid #e00000;outline-offset:-1px;position:relative;z-index:2}
-#bwM{margin-right:8px;padding:0 8px;background:#fff0f0;color:#b00000;border-color:#b00000}
+#bwM{margin-right:4px;padding:0 8px;background:#fff0f0;color:#b00000;border-color:#b00000}
+#bwC{margin-right:8px;padding:0 8px}
+#bwC:disabled{opacity:.45;cursor:default}
+.bwf .er{flex-basis:100%;color:var(--warn);font-weight:700}
 #bwM:disabled{opacity:.45;cursor:default}
 .bwf{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;padding:6px 12px 8px;border-top:1px solid var(--edge);font-size:12px;background:var(--chrome)}
 .bwf .pkl{font-family:Consolas,monospace;font-weight:700;color:#b00000;word-break:break-all}
@@ -334,6 +337,7 @@ header.win .body{background:linear-gradient(#f7faff,#e7eef8)}
 .tb button{height:23px}
 #edBtn[aria-pressed="true"]{background:linear-gradient(#c4e5f6,#98d1ef);color:#0b2a55;border-color:#2c628b;box-shadow:inset 0 1px 3px rgba(0,40,80,.35)}
 #saveBtn,#bwM{background:linear-gradient(#fff5f4,#ffd9d6 50%,#ffc6c1 52%,#ffe1de);color:#a40000;border-color:#b3413a}
+#bwC{background:linear-gradient(#f4f9ff,#d6e8ff 50%,#c2dcff 52%,#deecff);color:#0b3f94;border-color:#3d72c0}
 #bwM:hover,#saveBtn:hover{background:linear-gradient(#fff,#ffcbc6);border-color:#8c1d16}
 #bwX{background:linear-gradient(#f0b3ad 0,#d9615a 48%,#c13229 52%,#dc6a62 100%);color:#fff;border-color:#7a1c16;font-weight:700;min-width:38px;text-shadow:0 1px 1px rgba(0,0,0,.5)}
 #bwX:hover{background:linear-gradient(#ffc9c4 0,#f07068 48%,#d8382e 52%,#f4837b 100%);border-color:#5e120d}
@@ -417,6 +421,7 @@ header.win .body{background:linear-gradient(#f7faff,#e7eef8)}
 <div id="bw" hidden><div class="bwin win" role="dialog" aria-label="Bay Plan">
   <div class="tb"><span id="bwT"></span><small id="bwS"></small><span class="sp"></span>
     <button type="button" id="bwM" title="고른 컨테이너로 BPT 긴급양하 요청 메일을 만들어요" disabled>긴급양하 메일 생성</button>
+    <button type="button" id="bwC" title="POD를 바꾼(COD) 컨테이너를 골라 COD NOTICE 메일을 만들어요" disabled>COD 메일 생성</button>
     <button type="button" id="bwP" aria-label="왼쪽 베이" title="왼쪽 베이 (←)">◀</button><button type="button" id="bwN" aria-label="오른쪽 베이" title="오른쪽 베이 (→)">▶</button>
     <button type="button" id="bwZ" aria-label="최대화" title="최대화 / 이전 크기 (제목줄 더블클릭)">□</button><button type="button" id="bwX" aria-label="닫기" title="닫기 (Esc)">×</button></div>
   <div class="bwb" id="bwB"></div>
@@ -816,6 +821,7 @@ function edDraw(){
 function pickBar(){
   var n=st.pick.length, B=st.plan?st.plan.boxes:[];
   $("bwM").disabled=!n; $("bwM").textContent="긴급양하 메일 생성"+(n?" ("+n+")":"");
+  $("bwC").disabled=!n; $("bwC").textContent="COD 메일 생성"+(n?" ("+n+")":"");
   var f=$("bwF"), keep=f.querySelector(".ok");
   f.innerHTML=(n?'<span>고른 컨테이너 '+n+'개:</span><span class="pkl">'+st.pick.map(function(i){return esc((B[i]||{}).cntr||"?")}).join(", ")+'</span><button type="button" id="pkC">선택 지우기</button>'
     :'<span>칸을 누르면 고르고, <b>Ctrl</b>을 누른 채 누르면 여러 개 골라요 (다른 베이로 넘어가도 유지돼요).</span>');
@@ -832,7 +838,7 @@ function port5(c){   // ASC 3글자 -> 5글자 (그 플랜의 DEST 칸이 먼저
   var B=st.plan.boxes;for(var i=0;i<B.length;i++){var d=B[i].dest;if(d&&d.length===5&&d.slice(2)===c)return d}
   return (window.ASC_PORTS||{})[c]||c;
 }
-function bayPng(){   // 고른 컨테이너가 있는 베이들을 그림으로 (고른 칸 = 빨강)
+function bayPng(tt,lg){   // 고른 컨테이너가 있는 베이들을 그림으로 (고른 칸 = 빨강). tt = 제목 꼬리, lg = 범례 글
   var ids=[];ORD.forEach(function(id){st.pick.forEach(function(i){if(BOXP[i]===id&&ids.indexOf(id)<0)ids.push(id)})});
   var S=2,CW=24,CH=19,LB=26,TOP=40,GAP=34,HB=8,PER=4;
   var dims=ids.map(function(id){var Q=PANELS[id];return {w:LB*2+Q.rs.length*CW,h:TOP+16+(Q.T.D.length+Q.T.H.length)*CH+(Q.T.D.length&&Q.T.H.length?HB+10:0)+18}});
@@ -843,7 +849,7 @@ function bayPng(){   // 고른 컨테이너가 있는 베이들을 그림으로 
   var cv=document.createElement("canvas");cv.width=W*S;cv.height=H*S;var g=cv.getContext("2d");g.scale(S,S);
   g.fillStyle="#fff";g.fillRect(0,0,W,H);g.textBaseline="middle";
   var vn=(st.ship&&SHIPS&&SHIPS[st.ship]&&SHIPS[st.ship].n)||st.plan.vsl||st.ship||"";
-  g.fillStyle="#000";g.font="bold 14px Arial";g.textAlign="left";g.fillText((vn?"M/V "+vn+"  ":"")+(st.plan.voy||"")+"  -  긴급양하 요청 "+st.pick.length+" VAN",10,16);
+  g.fillStyle="#000";g.font="bold 14px Arial";g.textAlign="left";g.fillText((vn?"M/V "+vn+"  ":"")+(st.plan.voy||"")+"  -  "+(tt||"긴급양하 요청 "+st.pick.length+" VAN"),10,16);
   var y0=30;
   lines.forEach(function(L,li){var x0=10;
     L.forEach(function(k){var Q=PANELS[ids[k]],p=Q.p,rs=Q.rs,T=Q.T,x=x0+LB,y=y0;
@@ -869,10 +875,56 @@ function bayPng(){   // 고른 컨테이너가 있는 베이들을 그림으로 
       x0+=dims[k].w+GAP});
     y0+=lineH[li]+14});
   g.textAlign="left";g.font="12px Arial";var ly=H-14,lx=10;
-  [["#ff1a1a","긴급양하 요청 컨테이너"],["#c9c9c9","적재 컨테이너"]].forEach(function(L){g.fillStyle=L[0];g.fillRect(lx,ly-6,14,12);g.strokeStyle="#333";g.strokeRect(lx+.5,ly-5.5,13,11);
+  [["#ff1a1a",lg||"긴급양하 요청 컨테이너"],["#c9c9c9","적재 컨테이너"]].forEach(function(L){g.fillStyle=L[0];g.fillRect(lx,ly-6,14,12);g.strokeStyle="#333";g.strokeRect(lx+.5,ly-5.5,13,11);
     g.fillStyle="#000";g.fillText(L[1],lx+20,ly);lx+=20+g.measureText(L[1]).width+18});
   g.fillText("빗금 = 40'",lx,ly);
   return {b64:cv.toDataURL("image/png").split(",")[1],w:W,h:H};
+}
+// ---------- COD NOTICE 메일: POD를 바꾼 컨테이너를 골라서 만듦 ----------
+// 본문: POL/POD(원래) · CNTR · POSITION · COD TO(원래 POD → 바뀐 POD) + 그 베이 그림, 반영된 플랜(ASC)은 첨부.
+// 받는 사람은 항차마다 달라서 비워 둠(참조에 부산운항팀만). 고른 것 중 POD를 안 바꾼 컨테이너가 있으면 만들지 않음.
+function codMail(){
+  var f=$("bwF"),old=f.querySelector(".er");if(old)old.remove();
+  function fail(m){var e=document.createElement("div");e.className="er";e.textContent=m;f.appendChild(e)}
+  if(!st.pick.length)return;
+  if(!st.lines||!st.plan0)return fail("예시 플랜에서는 만들 수 없어요. 실제 ASC 파일을 열어 주세요.");
+  var B=st.plan.boxes,O=st.plan0.boxes,bx=st.pick.map(function(i){return B[i]}).filter(Boolean);
+  var same=bx.filter(function(b){return evOf(O[b.i],"pod")===evOf(b,"pod")});
+  if(same.length)return fail("POD를 바꾸지 않은 컨테이너가 있어서 COD 메일을 만들지 않았어요: "+same.map(function(b){return b.cntr}).join(", ")+". Container Editor에서 POD를 먼저 바꾸거나, 고른 것에서 빼 주세요.");
+  var vn=(st.ship&&SHIPS&&SHIPS[st.ship]&&SHIPS[st.ship].n)||st.plan.vsl||st.ship||"", voy=st.plan.voy||"";
+  var subj="///COD NOTICE/// "+(st.ship||vn)+(voy?" "+voy:"")+" COD 반영의 건 ("+bx.map(function(b){return b.cntr}).join(", ")+")";
+  var F="font-family: Arial, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);";
+  var dv=function(t){return '<div style="'+F+'">'+(t===""?"<br>":t)+'</div>'};
+  var img=bayPng("COD "+bx.length+" VAN","COD 컨테이너");
+  var blocks=bx.map(function(b){var o=O[b.i];
+    return dv("POL/POD : "+esc(evOf(o,"pol"))+" / "+esc(evOf(o,"pod")))+dv("CNTR : "+esc(b.cntr))+
+      dv("POSITION : "+pad(b.bay)+"-"+pad(b.row)+"-"+pad(b.tier))+
+      dv("COD TO : "+esc(evOf(o,"pod"))+" &rarr; <b>"+esc(evOf(b,"pod"))+"</b>")+dv("")}).join("");
+  var html='<html><head><meta charset="utf-8"></head><body>'+
+    dv("TO : 수신처 제위")+dv("FM : 장금상선 &amp; 흥아라인 부산운항팀")+dv("")+dv("업무에 노고 많으십니다.")+dv("")+dv("표제의 건 관련하여,")+dv("")+
+    blocks+dv("건, 상기와 같이 COD 되었으니 업무에 참고 부탁드립니다.")+dv("")+
+    '<div style="'+F+'"><img src="cid:bayplan@ascviewer" width="'+img.w+'" height="'+img.h+'" alt="Bay Plan"></div>'+dv("")+
+    dv("반영된 플랜 첨부로 같이 송부 드립니다.")+dv("")+
+    '<p style="margin:0;'+F+'">감사합니다.</p><p style="margin:0;'+F+'">&nbsp;</p><p style="margin:0;'+F+'">Thanks &amp; B.Regards</p>'+
+    '<p style="margin:0;'+F+'">==================================================</p>'+
+    '<p style="margin:0;'+F+'">장금상선&amp;흥아라인 부산운항팀<br>Sinokor&amp;Heung-A Line, Busan Operation Team<br>Team(24/7) +82-10-3720-0270 (SKR), +82-10-3596-5258 (HAL)<br>Email : <a href="mailto:bvot@sinokor.co.kr">bvot@sinokor.co.kr</a> (team)</p>'+
+    '<p style="margin:0;'+F+'">==================================================</p></body></html>';
+  var u8=function(x){return btoa(unescape(encodeURIComponent(x)))}, hw=function(x){return /^[\x20-\x7e]*$/.test(x)?x:"=?UTF-8?B?"+u8(x)+"?="};
+  var w76=function(x){return x.replace(/.{76}/g,"$&\r\n")}, t=Date.now(), M="----=_ascviewer_m_"+t, R="----=_ascviewer_r_"+t;
+  var an=(st.name||"plan.asc").replace(/[\r\n"]/g,""), asc=btoa(st.lines.join(st.eol));   // 반영된 플랜: 원래 파일 이름 그대로 첨부
+  var eml=["Cc: "+hw("부산운항팀 운항담당")+" <bvot@sinokor.co.kr>","Subject: "+hw(subj),"X-Unsent: 1","MIME-Version: 1.0",
+    'Content-Type: multipart/mixed; boundary="'+M+'"',"",
+    "--"+M,'Content-Type: multipart/related; boundary="'+R+'"; type="text/html"',"",
+    "--"+R,'Content-Type: text/html; charset="utf-8"',"Content-Transfer-Encoding: base64","",w76(u8(html)),"",
+    "--"+R,'Content-Type: image/png; name="bayplan.png"',"Content-Transfer-Encoding: base64","Content-ID: <bayplan@ascviewer>",
+    'Content-Disposition: inline; filename="bayplan.png"',"",w76(img.b64),"","--"+R+"--","",
+    "--"+M,'Content-Type: application/octet-stream; name="'+hw(an)+'"',"Content-Transfer-Encoding: base64",
+    'Content-Disposition: attachment; filename="'+hw(an)+'"',"",w76(asc),"","--"+M+"--",""].join("\r\n");
+  var a=document.createElement("a"), url=URL.createObjectURL(new Blob([eml],{type:"message/rfc822"}));
+  a.href=url;a.download="COD_"+(st.ship||"")+"_"+voy+".eml";document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(url);a.remove()},4000);
+  var o2=f.querySelector(".ok");if(!o2){o2=document.createElement("div");o2.className="ok";f.appendChild(o2)}
+  o2.textContent="COD 메일 파일을 받았어요. 다운로드 목록에서 열면 아웃룩 새 메일 창이 떠요. 받는 사람을 넣고 보내세요 (반영된 플랜 ASC도 첨부돼 있어요).";
 }
 function urgentMail(){
   if(!st.pick.length)return;
@@ -1199,6 +1251,7 @@ var BWDRAG=false, bwApply=function(){};
   window.addEventListener("resize",function(){if(!bw.hidden)bwApply()});
 })();
 $("bwM").onclick=urgentMail;
+$("bwC").onclick=codMail;
 $("bwP").onclick=function(){stepBay(1)};   // General Plan 에서 왼쪽 = 번호가 큰 베이
 $("bwN").onclick=function(){stepBay(-1)};
 document.addEventListener("keydown",function(e){if(!st.open||/^(INPUT|SELECT)$/.test(e.target.tagName))return;
