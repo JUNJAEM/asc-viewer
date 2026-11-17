@@ -207,6 +207,29 @@ i.swc{display:block;align-self:stretch}
 #sheet dd.dgv,.sd dd.dgv{color:var(--warn)}
 body.drag{outline:3px dashed var(--num);outline-offset:-6px}
 .emp{display:none}
+/* Summary 크기 조절: 좁히면 플랜 오른쪽에 세로로 붙는 포트 범례가 됨 */
+#sumWin{position:relative;container-type:inline-size;min-width:0;display:flex;flex-direction:column}
+#sumWin>#sum{flex:1 1 auto;min-height:0;overflow:auto}
+.rzl{top:0;left:-5px;width:10px;height:100%;cursor:ew-resize}
+body.static #sumWin .rz{display:none}
+.wrap.side{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start}
+.wrap.side>*{grid-column:1;min-width:0}
+.wrap.side>header{grid-column:1/-1}
+.wrap.side>#sumWin{grid-column:2;grid-row:2/span 5}
+@container (max-width:330px){
+  #sum{padding:8px}
+  #sum .kv{flex-direction:column;gap:1px}
+  #sum .kv div{flex-wrap:wrap} #sum .kv span{white-space:nowrap}
+  #sum .kv b{font-size:13.5px}
+  #sum .rot{font-size:10.5px}
+  #sum .chips{flex-direction:column;align-items:stretch;gap:4px}
+  #sum .chips em{margin:6px 0 0;align-self:flex-start}
+  #sum .chip{width:100%}
+  #sum .chipb{flex:1 1 auto;min-width:0;justify-content:flex-start;padding:3px 8px}
+  #sum .chipb b{font-size:13px}
+  #sum #sortCol{align-self:flex-start;margin:0}
+}
+@container (max-width:210px){ #sum .chipb small{display:none} #sum .kv span{font-size:10.5px} }
 /* 찾기 창 (Ctrl+F) */
 #fbox{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));z-index:40;display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;
   max-width:calc(100vw - 32px);padding:8px 10px;background:linear-gradient(#f7faff,#e3ebf6);border:1px solid #5d7fae;border-radius:8px;box-shadow:0 8px 24px rgba(0,20,60,.4);font-size:12.5px}
@@ -360,7 +383,8 @@ header.win .body{background:linear-gradient(#f7faff,#e7eef8)}
     </div>
   </header>
   <div class="note" id="note" hidden></div>
-  <section class="win"><div class="tb">Summary</div><div class="body" id="sum"></div></section>
+  <section class="win" id="sumWin"><div class="tb">Summary</div><div class="body" id="sum"></div>
+    <div class="rz rzl" data-sz="l" title="끌어서 너비 조절 (더블클릭: 원래대로)"></div><div class="rz rzr" data-sz="r" title="끌어서 너비 조절 (더블클릭: 원래대로)"></div><div class="rz rzb" data-sz="b" title="끌어서 높이 조절 (더블클릭: 원래대로)"></div><div class="rz rzc" data-sz="c" title="끌어서 크기 조절 (더블클릭: 원래대로)"></div></section>
   <div class="tools">
     <label for="ship" id="shipL">선박</label>
     <select id="ship"></select>
@@ -986,7 +1010,7 @@ function load(text,name){
   var P;try{P=parseAsc(text)}catch(e){P=null}
   if(!P||!P.boxes.length){var nt=$("note");nt.hidden=false;nt.className="note err";
     nt.textContent="“"+name+"”에서 컨테이너 줄을 찾지 못했어요. CASP ASC($609/$604) 파일이 맞는지 확인해 주세요.";return}
-  st.plan=P;st.name=name;st.example=false;pickShip(detectShip(name));st.filter=null;st.sel=-1;st.pick=[];st.lines=st.orig=st.plan0=null;st.saved="";st.open=null;st.q="";$("q").value="";$("sheet").hidden=true;
+  st.plan=P;st.name=name;st.example=false;pickShip(detectShip(name));st.filter=null;st.sel=-1;st.pick=[];st.lines=st.orig=st.plan0=null;st.saved="";sumReset();st.open=null;st.q="";$("q").value="";$("sheet").hidden=true;
   document.title=name.replace(/\.asc$/i,"")+" · ASC 베이 플랜";
   render(); if(typeof autoFit==="function")autoFit(); else toBow();
 }
@@ -1097,6 +1121,27 @@ $("gpw").addEventListener("wheel",function(e){if(e.ctrlKey){e.preventDefault();A
   function end(){if(d){d=null;document.body.classList.remove("rzing");save()}}
   win.addEventListener("pointerup",end);win.addEventListener("pointercancel",end);
   win.addEventListener("dblclick",function(e){if(e.target.dataset&&e.target.dataset.rz){apply(null);save()}});
+})();
+// Summary 창 크기: 좌·우·아래 가장자리와 모서리를 끌어서 조절. 플랜보다 충분히 좁아지면 General Plan 오른쪽에 나란히 붙음.
+// 기억하지 않음 — 파일을 새로 열면 원래 모습(가로로 넓게)으로 시작.
+var sumReset=function(){};
+(function(){
+  var win=$("sumWin"),wrap=win.parentNode,d=null;
+  function place(w){   // w = 원하는 너비(px) 또는 0(원래대로)
+    var full=wrap.clientWidth;
+    if(!w||w>=full-20){win.style.width="";wrap.classList.remove("side")}
+    else{win.style.width=Math.max(120,w)+"px";wrap.classList.toggle("side",w<=full-380)}
+  }
+  sumReset=function(){win.style.width=win.style.height="";wrap.classList.remove("side")};
+  function refit(){if(typeof autoFit==="function"&&AUTOZ)autoFit()}
+  win.addEventListener("pointerdown",function(e){var k=e.target.dataset&&e.target.dataset.sz;if(!k)return;
+    d={k:k,x:e.clientX,y:e.clientY,w:win.offsetWidth,h:win.offsetHeight};e.target.setPointerCapture(e.pointerId);document.body.classList.add("rzing");e.preventDefault()});
+  win.addEventListener("pointermove",function(e){if(!d)return;var dx=e.clientX-d.x,dy=e.clientY-d.y;
+    if(d.k==="r"||d.k==="c")place(d.w+dx); else if(d.k==="l")place(d.w-dx);
+    if(d.k==="b"||d.k==="c")win.style.height=Math.max(70,d.h+dy)+"px"});
+  function end(){if(d){d=null;document.body.classList.remove("rzing");refit()}}
+  win.addEventListener("pointerup",end);win.addEventListener("pointercancel",end);
+  win.addEventListener("dblclick",function(e){if(e.target.dataset&&e.target.dataset.sz){sumReset();refit()}});
 })();
 var TOUCH=!!(window.matchMedia&&window.matchMedia("(hover: none)").matches);
 document.addEventListener("dblclick",function(e){var mi=e.target.closest(".mini");if(mi&&!e.ctrlKey&&!e.metaKey)openBay(mi.dataset.go)});
