@@ -895,7 +895,7 @@ function stepBay(n){var i=ORD.indexOf(st.open);if(i<0)return;i+=n;if(i>=0&&i<ORD
 function showBox(i){
   st.sel=i; var b=st.plan.boxes[i], sh=$("sheet"); if(!b){sh.hidden=true;return}
   $("sCn").textContent=b.cntr||"(번호 없음)";
-  var dg=(st.plan.dg[b.dgno]||[]).map(function(d){return d.cls+"류 UN"+d.un+(d.pg?" PG"+d.pg:"")}).join(", ");
+  var dg=(st.plan.dg[b.dgno]||[]).map(function(d){return d.cls+"/"+d.un}).join(", ");
   var ovs=(b.ov||[]).some(function(v){return v>0});
   var ED=!!st.lines&&!window.__STATIC__, o=ED&&st.plan0?st.plan0.boxes[i]:null;   // ED: 편집 가능 (실제 파일을 연 경우)
   // cCASP Container Editor 와 같은 항목·순서. 네 번째 값 = 고칠 수 있는 칸의 이름. ASC 파일에 없는 항목은 빈칸
