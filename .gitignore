@@ -1,0 +1,11 @@
+# 이 PC 전용 (저작권 있는 그림)
+local/
+# 실제 플랜이 들어 있는 시험·배포 산출물
+phone-test/
+dist/
+*.asc
+*.ASC
+tools/dist-build/g_*
+tools/dist-build/guide.html
+tools/_own.json
+__pycache__/

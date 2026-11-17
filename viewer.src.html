@@ -1,0 +1,595 @@
+<title>ASC 베이 플랜 뷰어</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: CASP 방식 — General Plan(전 베이, 선수가 오른쪽)이 메인. 베이를 더블클릭하면 Bay Plan 창이 위에 뜸. 한 가지 모습으로 고정(밝은 회색 바탕). */
+:root{
+  color-scheme:light;
+  --desk:#bdbdbd; --win:#ffffff; --chrome:#d4d0c8; --edge:#000000; --shade:#808080;
+  --fg:#000000; --fg2:#3a3a3a; --num:#0000c8; --title:#000080; --title-fg:#ffffff; --warn:#d00000;
+  --p0:#ffff00; --k0:#000; --p1:#0000ff; --k1:#fff; --p2:#ff0000; --k2:#fff; --p3:#00ffff; --k3:#000;
+  --p4:#00e000; --k4:#000; --p5:#ff00ff; --k5:#000; --p6:#8000c0; --k6:#fff; --p7:#ff8000; --k7:#000;
+  --p8:#008080; --k8:#fff; --p9:#808000; --k9:#fff;
+  --sans:Arial,"Malgun Gothic","Apple SD Gothic Neo",sans-serif;
+}
+*{box-sizing:border-box}
+body{background:var(--desk);color:var(--fg);font-family:var(--sans);font-size:13px;line-height:1.4;
+  padding-block:10px 90px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:none;margin:0;display:flex;flex-direction:column;gap:10px}
+#plan{width:100%;margin:0}
+.win{background:var(--win);border:1px solid var(--edge);box-shadow:2px 2px 0 var(--shade);min-width:0}
+.tb{background:var(--title);color:var(--title-fg);font-weight:700;font-size:13px;padding:3px 8px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.tb small{font-weight:400;opacity:.9;font-variant-numeric:tabular-nums}
+.body{padding:8px 10px}
+header.win .body{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;background:var(--chrome)}
+#logo{width:56px;height:56px;object-fit:contain;background:var(--win);border:1px solid var(--edge);flex:none}
+.file{font-family:Consolas,monospace;font-size:12px;min-width:0;overflow-wrap:anywhere;flex:1 1 200px}
+.btn,.seg button,#ship,#q,.x{font:inherit;font-size:12.5px;background:var(--chrome);color:var(--fg);border:1px solid var(--edge);
+  box-shadow:inset 1px 1px 0 #fff,inset -1px -1px 0 var(--shade);padding:5px 12px;cursor:pointer;border-radius:0}
+.btn{font-weight:700}
+.btn:focus-visible,.chipb:focus-visible,.swc:focus-visible,.c:focus-visible,.mini:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--num);outline-offset:1px}
+.note{background:#ffffe1;border:1px solid var(--edge);padding:6px 10px;font-size:12.5px}
+.err{color:var(--warn)}
+.kv{display:flex;flex-wrap:wrap;gap:4px 20px;font-variant-numeric:tabular-nums}
+.kv div{display:flex;gap:5px;align-items:baseline}
+.kv span{color:var(--fg2);font-size:11.5px}
+.kv b{font-size:15px}
+.kv small{font-size:11.5px;font-weight:400}
+.rot{font-family:Consolas,monospace;font-size:11.5px;color:var(--fg2);overflow-wrap:anywhere;margin-top:6px}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.chip{display:inline-flex;align-items:stretch;border:1px solid var(--edge);background:var(--win)}
+.chip.on{box-shadow:0 0 0 2px var(--num)}
+.swc{appearance:none;-webkit-appearance:none;width:26px;min-height:24px;height:auto;padding:0;border:0;border-right:1px solid var(--edge);background:none;cursor:pointer;border-radius:0}
+.swc::-webkit-color-swatch-wrapper{padding:0}
+.swc::-webkit-color-swatch{border:0;border-radius:0}
+.swc::-moz-color-swatch{border:0;border-radius:0}
+.chipb{font:inherit;display:flex;align-items:center;gap:6px;border:0;background:none;color:var(--fg);padding:2px 8px;cursor:pointer;font-variant-numeric:tabular-nums;font-size:12px}
+.chipb small{color:var(--fg2);font-size:11px}
+.chips .x{padding:2px 8px;font-size:11.5px;margin-left:6px}
+.hint{font-size:11.5px;color:var(--fg2);margin-top:6px}
+.tools{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+.tools label{font-size:12px}
+.seg{display:inline-flex}
+.seg button{margin-right:-1px}
+.seg button[aria-pressed="true"]{box-shadow:inset 1px 1px 0 var(--shade),inset -1px -1px 0 #fff;background:var(--win);font-weight:700}
+#ship,#q{background:var(--win);box-shadow:inset 1px 1px 0 var(--shade);cursor:auto;padding:5px 7px;max-width:100%}
+#q{width:150px;font-family:Consolas,monospace;text-transform:uppercase}
+#qn{font-size:12px}
+.legend{display:flex;flex-wrap:wrap;gap:3px 14px;font-size:11.5px;align-items:center}
+.legend span{display:inline-flex;gap:5px;align-items:center}
+.lg{width:15px;height:15px;border:1px solid var(--edge);display:inline-flex;align-items:center;justify-content:center;font-size:9px;background:var(--win);line-height:1}
+.lg.f40{background:repeating-linear-gradient(135deg,rgba(0,0,0,.5) 0 1px,transparent 1px 4px),var(--p0)}
+.lg.out{outline:2px dashed var(--warn);outline-offset:-2px;background:var(--p3)}
+
+/* General Plan */
+.gpw{overflow:auto;max-height:max(300px,calc(100vh - 130px));overscroll-behavior:contain}
+.gp{display:flex;flex-wrap:nowrap;width:max-content;margin-left:auto;gap:10px 4px;padding:8px 6px;align-items:flex-start}
+.gp.wrap{flex-direction:row-reverse;flex-wrap:wrap;width:auto;margin-left:0;justify-content:flex-start;gap:18px 4px}
+.gp.wrap .gh{border-left:0;border-right:1px solid #d0d0d0}
+.zoom{display:inline-flex;gap:3px;align-items:center}
+#gpWin{position:relative;align-self:flex-start;width:100%;max-width:100%}
+.rz{position:absolute;z-index:3;touch-action:none}
+.rzr{top:0;right:-5px;width:10px;height:100%;cursor:ew-resize}
+.rzb{left:0;bottom:-5px;height:10px;width:100%;cursor:ns-resize}
+.rzc{right:-3px;bottom:-3px;width:18px;height:18px;cursor:nwse-resize;
+  background:linear-gradient(135deg,transparent 0 50%,var(--shade) 50% 58%,transparent 58% 68%,var(--shade) 68% 76%,transparent 76% 86%,var(--shade) 86% 94%,transparent 94%)}
+body.rzing{user-select:none;-webkit-user-select:none}
+.tb button,.tb select{font:inherit;font-weight:700;font-size:12px;background:var(--chrome);color:var(--fg);border:1px solid var(--edge);
+  box-shadow:inset 1px 1px 0 #fff,inset -1px -1px 0 var(--shade);min-width:26px;height:22px;padding:0 6px;cursor:pointer;border-radius:0}
+.tb .sp{flex:1}
+.gh{display:flex;flex-direction:column;gap:6px;align-items:center;padding:0 5px;border-left:1px solid #d0d0d0}
+.mini{font:inherit;background:none;border:0;padding:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--fg)}
+.mini span{font-size:9.5px;font-family:Consolas,monospace;letter-spacing:.02em}
+.mg{display:grid;grid-template-columns:repeat(var(--n),var(--ms,15px)) calc(var(--ms,15px) + 5px);padding:0 0 1px 0}
+.m{height:var(--ms,15px);border:1px solid var(--edge);margin:0 -1px -1px 0;background:var(--win);font-size:calc(var(--ms,15px) - 3px);line-height:calc(var(--ms,15px) - 3px);text-align:center;overflow:hidden}
+.m{position:relative}
+.m i{position:absolute;font-style:normal;font-weight:700;font-family:Arial,sans-serif;font-size:calc(var(--ms,15px) * .44);line-height:1;letter-spacing:-.04em}
+.m .mh{top:0;left:1px;color:var(--ck)}
+.m .md{top:0;right:0;background:#fff;color:var(--warn);padding:0 1px}
+.m .me{bottom:0;left:1px;color:var(--ck2)}
+.m .mrr{bottom:0;right:1px;color:var(--ck2)}
+.m.n{visibility:hidden}
+.m.b{background:var(--c)}
+.m.f40{background:repeating-linear-gradient(135deg,rgba(0,0,0,.55) 0 1px,transparent 1px 3px),var(--c)}
+.m.dim{opacity:.18}
+.mbar{grid-column:1/-1;height:2px;background:var(--edge);margin:3px calc(var(--ms,15px) + 5px) 2px 0}
+.mr,.mt{font-family:Arial,sans-serif;font-size:calc(var(--ms,15px) * .56);color:var(--num);line-height:1;display:flex;align-items:center;justify-content:center;letter-spacing:-.03em}
+.mr{height:calc(var(--ms,15px) * .8)}
+.mt{padding-left:3px}
+
+.m.hit{outline:2px solid var(--num);outline-offset:0;position:relative;z-index:1}
+.mini.cur span{background:var(--title);color:var(--title-fg);padding:0 4px}
+.mini:hover span{text-decoration:underline}
+.mini span{font-size:max(9px,calc(var(--ms,15px) * .73))}
+/* Bay Plan 창 */
+#bw{position:fixed;inset:0;background:rgba(0,0,0,.38);z-index:15;display:flex;align-items:center;justify-content:center;
+  padding:calc(10px + env(safe-area-inset-top,0px)) max(10px,env(safe-area-inset-right,0px)) calc(74px + env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px))}
+.bwin{width:var(--bw,600px);max-width:100%;max-height:100%;display:flex;flex-direction:column;box-shadow:4px 4px 0 rgba(0,0,0,.5)}
+.bwin .tb{align-items:center;flex-wrap:nowrap}
+.bwin .tb .sp{flex:1}
+.bwin .tb button{font:inherit;font-weight:700;font-size:12px;background:var(--chrome);color:var(--fg);border:1px solid var(--edge);
+  box-shadow:inset 1px 1px 0 #fff,inset -1px -1px 0 var(--shade);min-width:26px;height:22px;padding:0 6px;cursor:pointer;border-radius:0}
+.bwb{overflow:auto;padding:10px 12px 12px}
+.bwb .bay{max-width:none}
+/* Bay Plan */
+.bays{display:flex;flex-wrap:wrap;gap:14px 26px;align-items:flex-start;padding:8px 10px 10px}
+.bay{flex:1 1 280px;min-width:0;max-width:var(--w)}
+.bt{display:flex;justify-content:space-between;gap:8px;font-size:12px;margin:0 22px 4px 0;font-variant-numeric:tabular-nums}
+.bt b{font-size:13px}
+.g{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr)) 22px;gap:1px;font-variant-numeric:tabular-nums}
+.rl,.tl{font-size:11px;color:var(--num);display:flex;align-items:center;justify-content:center;min-width:0;height:16px}
+.tl{height:auto}
+.sw{font-size:9.5px;color:var(--fg2);display:flex;align-items:center;justify-content:center;height:13px;min-width:0}
+.sw.z{color:transparent}
+.hbar{grid-column:1/-1;height:6px;background:var(--edge);margin:4px 23px 4px 0}
+.c{font:inherit;height:34px;min-width:0;padding:0;border:1px solid var(--edge);border-radius:0;background:var(--win);position:relative;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;overflow:hidden;color:var(--fg)}
+.c.no{visibility:hidden}
+.c.xx{font-size:11px;color:var(--fg)}
+.c.b{background:var(--c);color:var(--ck);cursor:pointer}
+.c.b.f40{background:repeating-linear-gradient(135deg,rgba(0,0,0,.28) 0 1px,transparent 1px 6px),var(--c)}
+.c.b.pp{background:linear-gradient(to bottom,var(--c) 0 60%,var(--c2) 60% 100%)}
+.c.b.pp.f40{background:repeating-linear-gradient(135deg,rgba(0,0,0,.28) 0 1px,transparent 1px 6px),linear-gradient(to bottom,var(--c) 0 60%,var(--c2) 60% 100%)}
+.c.b.pp .p,.c.b.pp .r,.c.b.pp .e{color:var(--ck2);opacity:1}
+.c.b.pp .w{position:absolute;inset:0 0 40% 0;display:flex;align-items:center;justify-content:center}
+.c.b.pp .p{position:absolute;inset:60% 0 0 0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:9.5px;letter-spacing:.02em}
+.c.b.pp.f40{background:repeating-linear-gradient(135deg,rgba(0,0,0,.28) 0 1px,transparent 1px 6px) top/100% 60% no-repeat,linear-gradient(to bottom,var(--c) 0 60%,var(--c2) 60% 100%)}
+.m.b.pp{background:linear-gradient(to bottom,var(--c) 0 50%,var(--c2) 50% 100%)}
+.m.b.pp.f40{background:repeating-linear-gradient(135deg,rgba(0,0,0,.55) 0 1px,transparent 1px 3px),linear-gradient(to bottom,var(--c) 0 50%,var(--c2) 50% 100%)}
+.chips em{font-style:normal;font-weight:700;font-size:11.5px;align-self:center;margin:0 2px 0 6px}
+.c .w{font-size:11.5px}
+.c .p{font-size:8.5px;opacity:.9}
+.c .h,.c .r,.c .e{position:absolute;font-size:7.5px;font-weight:700;line-height:1}
+.c .h{top:1px;left:1px} .c .r{bottom:1px;right:1px} .c .e{bottom:1px;left:1px}
+.c .dgm{position:absolute;top:0;right:0;background:#fff;color:var(--warn);font-size:7.5px;font-weight:700;line-height:1;padding:1px;border-left:1px solid var(--edge);border-bottom:1px solid var(--edge)}
+.c.out{outline:2px dashed var(--warn);outline-offset:-3px}
+.c.rp::after{content:"R";font-size:7.5px;color:var(--shade);position:absolute;bottom:1px;right:1px}
+.c.dim{opacity:.18}
+.c.hit{outline:3px solid var(--num);outline-offset:1px;z-index:1}
+.c.sel{outline:3px solid #000;outline-offset:1px;z-index:2}
+.side{display:flex;justify-content:space-between;font-size:10px;color:var(--fg2);margin:3px 22px 0 0}
+/* 그림 전용 판 (window.__STATIC__) */
+body.static #openBtn,body.static .tools,body.static #lay,body.static .zoom,body.static .rz,body.static #resetCol,body.static #bw,body.static #sheet{display:none!important}
+/* 프로그램 없이 눌리는 동작: 칸 = :target 으로 상세 띄우기, 포트 = 숨은 라디오 + label */
+.sd{display:none;z-index:20}
+.sd:target{display:block}
+.sd a.x,a.c{text-decoration:none}
+.sd a.x{display:inline-block;color:var(--fg)}
+.fr{position:fixed;top:0;left:0;opacity:0;pointer-events:none}
+label.chipb{cursor:pointer}
+label.allb{border:1px solid var(--edge);background:var(--win);padding:4px 10px;font-weight:700}
+body.static a.c.b{cursor:pointer}
+body.static{padding-bottom:90px}
+body.static .gpw{max-height:none;overflow:visible}
+body.static a.mini{text-decoration:none}
+body.static .sbp .bwb{overflow:visible}
+body.static .sbp .bay{max-width:var(--w);margin:0 auto}
+body.static .sbp .tb a{color:inherit;font-weight:400;font-size:12px}
+body.static .c.b{cursor:default}
+i.swc{display:block;align-self:stretch}
+#sheet,.sd{position:fixed;left:0;right:0;bottom:0;background:var(--chrome);border-top:2px solid var(--title);
+  padding:8px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));z-index:20}
+#sheet .in,.sd .in{max-width:1500px;margin:0 auto;display:flex;gap:8px 18px;flex-wrap:wrap;align-items:center}
+#sheet .cn,.sd .cn{font-family:Consolas,monospace;font-size:17px;font-weight:700}
+#sheet dl,.sd dl{display:flex;flex-wrap:wrap;gap:3px 16px;margin:0;flex:1 1 300px;min-width:0}
+#sheet dl div,.sd dl div{display:flex;gap:5px;align-items:baseline}
+#sheet dt,.sd dt{font-size:11px;color:var(--fg2)}
+#sheet dd,.sd dd{margin:0;font-weight:700;font-variant-numeric:tabular-nums}
+#sheet dd.dgv,.sd dd.dgv{color:var(--warn)}
+body.drag{outline:3px dashed var(--num);outline-offset:-6px}
+@media (max-width:480px){ .c{height:31px} .c .w{font-size:10px} .c .p{font-size:7.5px} .bays{padding:8px 6px 10px} }
+</style>
+
+<div class="wrap">
+  <header class="win"><div class="tb">ASC 베이 플랜 <small id="voyT"></small></div>
+    <div class="body">
+      <img id="logo" alt="" hidden>
+      <div class="file" id="fname"></div>
+      <button class="btn" id="openBtn" type="button">ASC 파일 열기</button>
+      <input type="file" id="file" accept=".asc,.ASC,.txt" hidden>
+    </div>
+  </header>
+  <div class="note" id="note" hidden></div>
+  <section class="win"><div class="tb">Summary</div><div class="body" id="sum"></div></section>
+  <div class="tools">
+    <label for="ship" id="shipL">선박</label>
+    <select id="ship"></select>
+    <label for="q">컨테이너 번호</label>
+    <input id="q" type="search" placeholder="예: 8172320" autocomplete="off">
+    <span id="qn"></span>
+  </div>
+  <div class="legend">
+    <span><i class="lg">×</i>옆 베이 40'가 차지한 칸</span>
+    <span><i class="lg f40"></i>40' (빗금)</span>
+    <span>칸 위쪽 = 양하항(POD) 색, 아래 띠 = 선적항(POL) 색</span>
+    <span>숫자 = 무게(톤)</span>
+    <span><b>H</b> 하이큐빅</span><span><b>R</b> 냉동</span><span><b>E</b> 공컨</span><span><b>T</b> 탱크</span>
+    <span><b style="color:var(--warn)">3</b> 위험물 등급</span>
+    <span><i class="lg out"></i>선박 구조에 없는 칸</span>
+  </div>
+  <section class="win" id="gpWin"><div class="tb">General Plan <small>선수가 오른쪽 · 베이를 더블클릭하면 Bay Plan이 떠요</small><span class="sp"></span>
+    <select id="lay" aria-label="베이 배열" title="베이 배열">
+      <option value="row">한 줄로</option><option value="wrap">여러 줄로 (CASP)</option></select>
+    <span class="zoom"><button type="button" id="zO" aria-label="축소" title="축소 (Ctrl + 휠)">−</button>
+      <select id="zS" aria-label="확대 비율"></select>
+      <button type="button" id="zI" aria-label="확대" title="확대 (Ctrl + 휠)">+</button></span></div>
+    <div class="gpw" id="gpw"><div class="gp" id="gp"></div></div>
+    <div class="rz rzr" data-rz="r" title="끌어서 너비 조절 (더블클릭: 원래대로)"></div><div class="rz rzb" data-rz="b" title="끌어서 높이 조절 (더블클릭: 원래대로)"></div><div class="rz rzc" data-rz="c" title="끌어서 크기 조절 (더블클릭: 원래대로)"></div></section>
+</div>
+<div id="bw" hidden><div class="bwin win" role="dialog" aria-label="Bay Plan">
+  <div class="tb"><span id="bwT"></span><small id="bwS"></small><span class="sp"></span>
+    <button type="button" id="bwP" aria-label="왼쪽 베이" title="왼쪽 베이 (←)">◀</button><button type="button" id="bwN" aria-label="오른쪽 베이" title="오른쪽 베이 (→)">▶</button>
+    <button type="button" id="bwX" aria-label="닫기" title="닫기 (Esc)">×</button></div>
+  <div class="bwb" id="bwB"></div>
+</div></div>
+<div id="sheet" hidden><div class="in">
+  <div class="cn" id="sCn"></div><dl id="sDl"></dl>
+  <button class="x" id="sX" type="button">닫기</button>
+</div></div>
+
+<script src="ships.js"></script>
+<script>
+/*__ASC_DATA__*/
+(function(){
+"use strict";
+var $=function(id){return document.getElementById(id)};
+var st={plan:null,name:"",example:false,color:"podpol",filter:null,q:"",sel:-1,open:null,ship:"",shipBad:false};
+var SHIPS=window.ASC_SHIPS||null;
+var LAYOUT="row";try{if(localStorage.getItem("ascGpLayout")==="wrap")LAYOUT="wrap"}catch(_){}
+var BP={},ORD=[],FIRSTHIT="";   // Bay Plan 창에 넣을 그림(베이별), 베이 순서, 검색에 걸린 첫 베이
+var PAL=["#ffff00","#0000ff","#ff0000","#00ffff","#00e000","#ff00ff","#8000c0","#ff8000","#008080","#808000"];
+var CUSTOM={};try{CUSTOM=JSON.parse(localStorage.getItem("ascPortColors")||"{}")||{}}catch(_){CUSTOM={}}
+function saveColors(){try{localStorage.setItem("ascPortColors",JSON.stringify(CUSTOM))}catch(_){}}
+function ink(hex){var r=parseInt(hex.substr(1,2),16),g=parseInt(hex.substr(3,2),16),b=parseInt(hex.substr(5,2),16);
+  return (r*299+g*587+b*114)/1000>140?"#000":"#fff"}
+
+function parseAsc(text){
+  var lines=text.split(/\r?\n/), head=lines[0]||"", f604=head.indexOf("$604")===0;
+  var hp=head.slice(4).split("/").map(function(s){return s.trim()});
+  var out={voy:hp[2]||"",vsl:hp[1]||"",rotation:[],boxes:[],dg:{}}, inDg=false;
+  for(var i=1;i<lines.length;i++){
+    var l=lines[i];
+    if(/^\$60\dPORT ROTATION\//.test(l)){var s=l.split("/")[1].trim();for(var k=0;k+3<=s.length;k+=3)out.rotation.push(s.slice(k,k+3));continue}
+    if(l.indexOf("***")===0){inDg=/IMDG/i.test(l);continue}
+    if(inDg){
+      if(/^\d{6}/.test(l)){var no=l.slice(0,4),c=l.slice(6,8).trim(),un=l.slice(8,12).trim(),pg=l.slice(23,24).trim();
+        if(c.length===2)c=c[0]+"."+c[1];
+        (out.dg[no]=out.dg[no]||[]).push({cls:c,un:un,pg:pg})}
+      continue}
+    if(/^\d{6} /.test(l)&&+l.slice(0,2)>0&&l.slice(27,33).trim()){
+      var t=l.slice(44,48).trim(), w=f604?l.slice(87,92):l.slice(80,85);
+      var kg=/^\d+$/.test(w.trim())?+w:0; if(!kg)kg=(+l.slice(48,51).trim()||0)*100;
+      var bay=+l.slice(0,2), tmp=l.slice(55,60).trim();
+      // 타입 코드 두 가지: ISO(22GP·45GP·22TN) / CASP식(DC20·DCHC·TK20·RF2H·DC45)
+      var iso=/^[0-9L]/.test(t), tail=t.slice(2), size, len, hc, tk;
+      if(iso){size=t[0]==="2"?20:40;len=t[0]==="L"?45:size;hc=/^.[56]/.test(t)||t[0]==="L";tk=t[2]==="T"}
+      else if(t){size=(tail==="20"||tail==="2H")?20:(tail==="40"||tail==="HC"||tail==="45"||tail==="4H")?40:(bay%2?20:40);
+        len=tail==="45"?45:size;hc=tail==="HC"||tail==="2H"||tail==="4H"||tail==="45";tk=t.slice(0,2)==="TK"}
+      else{size=bay%2?20:40;len=size;hc=false;tk=false}
+      out.boxes.push({bay:bay,row:+l.slice(2,4),tier:+l.slice(4,6),cntr:l.slice(7,18).trim(),line:l.slice(19,27).trim(),
+        pol:l.slice(27,30).trim(),pod:l.slice(30,33).trim(),type:t,size:size,len:len,
+        hc:hc,tk:tk,rt:iso?t[2]==="R":t.slice(0,2)==="RF",fe:l.slice(51,52)==="E"?"E":"F",kg:kg,
+        rf:/C$/.test(tmp),temp:tmp,dgno:l.slice(60,64).trim()});
+    }
+  }
+  return out;
+}
+
+function example(){ // 가짜 예시 플랜 (실제 화물 아님)
+  var b=[],seed=7,r=function(){seed=(seed*9301+49297)%233280;return seed/233280};
+  var rows=[1,2,3,4,5,6,7,8], n=1000;
+  function add(bay,row,tier,pod,size,o){o=o||{};var hc=size===40&&r()>.3;
+    b.push({bay:bay,row:row,tier:tier,cntr:"EXMU"+(n++)+"000",line:["AAA","BBB","CCC"][Math.floor(r()*3)],pol:"PUS",pod:pod,
+      type:size===20?"22GP":(hc?"45GP":"42GP"),size:size,len:size,hc:hc,fe:o.e?"E":"F",kg:o.e?(size===20?2300:3900):Math.round((size===20?8:10)+r()*18)*1000,
+      rf:!!o.rf,temp:o.rf?"-18C":"",dgno:o.dg?"0001":""})}
+  [[2,"OSA"],[6,"UKB"],[10,"OSA"],[14,"UKB"]].forEach(function(h,hi){
+    rows.forEach(function(row){
+      if(hi===0&&row>6)return;
+      [2,4].forEach(function(t){add(h[0]-1,row,t,h[1],20,{dg:hi===0&&row===1&&t===2});add(h[0]+1,row,t,h[1],20)});
+      add(h[0],row,6,h[1],40);
+      [82,84].forEach(function(t){add(h[0],row,t,row>6?"HKT":h[1],40,{rf:hi===2&&row>4&&t===82})});
+      if(row<5)add(h[0],row,86,h[1],40,{e:true});
+    })});
+  return {voy:"예시",vsl:"",rotation:["PUS","OSA","UKB","HKT"],boxes:b,dg:{"0001":[{cls:"3",un:"1263",pg:"3"}]}};
+}
+
+function rowOrder(rs){ // 좌현(짝수) … 00 … 우현(홀수)
+  var mxE=0,mxO=0,zero=false;rs.forEach(function(r){if(r===0)zero=true;else if(r%2)mxO=Math.max(mxO,r);else mxE=Math.max(mxE,r)});
+  var m=Math.max(mxE,mxO+1),o=[];if(m%2)m++;
+  for(var e=m;e>=2;e-=2)o.push(e); if(zero)o.push(0); for(var d=1;d<m;d+=2)o.push(d); return o;
+}
+function tiersOf(ts){
+  var dk=ts.filter(function(t){return t>=70}),hd=ts.filter(function(t){return t<70}),D=[],H=[],t;
+  if(dk.length)for(t=Math.max.apply(0,dk);t>=Math.min(82,Math.min.apply(0,dk));t-=2)D.push(t);
+  if(hd.length)for(t=Math.max.apply(0,hd);t>=Math.min(2,Math.min.apply(0,hd));t-=2)H.push(t);
+  return {D:D,H:H};
+}
+function detectShip(name){
+  if(!SHIPS)return "";
+  var t=name.toUpperCase().replace(/\.[^.]*$/,"").split(/[^A-Z0-9]+/).filter(Boolean),i,m;
+  for(i=t.length-1;i>=0;i--)if(SHIPS[t[i]])return t[i];
+  for(i=0;i<t.length;i++){m=/^([A-Z]{4})\d/.exec(t[i])||/^([A-Z]{3})\d/.exec(t[i]);if(m&&SHIPS[m[1]])return m[1]}
+  return "";
+}
+function slotsOf(sh,bay){ // {"로우_티어": 1 일반 | 3 리퍼 플러그} 또는 null(모름)
+  var b=sh.b[bay];
+  if(!b){ if(bay%2)return null; var f=slotsOf(sh,bay-1),g=slotsOf(sh,bay+1); if(!f||!g)return null;
+    var x={},q;for(q in f)if(g[q])x[q]=1;return x }
+  var o={},r=sh.r[bay]||{},t,k;
+  for(t in b)for(k=0;k<b[t].length;k+=2)o[+b[t].substr(k,2)+"_"+t]=1;
+  for(t in r)for(k=0;k<r[t].length;k+=2)o[+r[t].substr(k,2)+"_"+t]=3;
+  return o;
+}
+function outside(sh,boxes){var n=0,c={};boxes.forEach(function(b){var s=c[b.bay]===undefined?(c[b.bay]=slotsOf(sh,b.bay)):c[b.bay];if(!s||!s[b.row+"_"+b.tier])n++});return n}
+function pickShip(code){ // 구조가 플랜과 너무 안 맞으면(3% 넘게 벗어나면) 쓰지 않음
+  st.ship=code;st.shipBad=false;
+  if(code&&SHIPS&&SHIPS[code]&&st.plan&&st.plan.boxes.length&&outside(SHIPS[code],st.plan.boxes)>st.plan.boxes.length*.03)st.shipBad=true;
+}
+function curShip(){return SHIPS&&st.ship&&!st.shipBad&&SHIPS[st.ship]||null}
+function hatches(boxes,sh){
+  var all={},ev={},cnt={0:0,2:0},k;
+  boxes.forEach(function(b){all[b.bay]=1}); if(sh)for(k in sh.b)all[+k]=1;
+  for(k in all)if(k%2===0){ev[+k]=1;cnt[k%4]++}
+  var ph=cnt[0]>cnt[2]?0:2, m={};
+  function hOf(y){if(y%2===0)return y;var a=ev[y+1],c=ev[y-1];
+    return a&&!c?y+1:c&&!a?y-1:((y+1)%4===ph?y+1:y-1)}
+  for(k in all){var h=hOf(+k);(m[h]=m[h]||{h:h,boxes:[],bays:[]}).bays.push(+k)}
+  boxes.forEach(function(b){m[hOf(b.bay)].boxes.push(b)});
+  return Object.keys(m).map(Number).sort(function(a,b){return a-b}).map(function(h){return m[h]});
+}
+var pad=function(n){return (n<10?"0":"")+n}, ton=function(kg){return (kg/1000).toFixed(1)};
+function keyOf(b){return st.color==="podpol"?b.pod:st.color==="line"?(b.line||"-"):st.color==="pol"?b.pol:b.pod}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+
+// 해치 하나를 CASP처럼 두 장으로: 앞 20' 베이(fore) / 뒤 20' 베이 + 40'(aft, "03(02)")
+function panels(H,sh){
+  var map={},rset={},tset={},SL={};
+  H.boxes.forEach(function(b){(map[b.bay]=map[b.bay]||{})[b.row+"_"+b.tier]=b;rset[b.row]=1;tset[b.tier]=1});
+  var f=H.h-1,a=H.h+1,h=H.h;
+  if(sh)[f,h,a].forEach(function(y){var s=SL[y]=slotsOf(sh,y);if(s&&(H.bays.indexOf(y)>=0||y===h))for(var q in s){var p=q.split("_");rset[p[0]]=1;tset[p[1]]=1}});
+  var has=function(y){return !!map[y]||H.bays.indexOf(y)>=0};
+  var P=[],mF=map[f]||{},mA=map[a]||{},m4=map[h]||{};
+  function mk(kind){
+    var fore=kind==="f", own=fore?mF:mA, S=fore?SL[f]:(SL[a]||SL[h]), n=0,kg=0,k;
+    for(k in own){n++;kg+=own[k].kg} if(!fore)for(k in m4){n++;kg+=m4[k].kg}
+    return {kind:kind,id:"bp"+h+kind,name:fore?pad(f):(has(a)?pad(a)+"("+pad(h)+")":"("+pad(h)+")"),n:n,kg:kg,
+      cell:function(r,t){var key=r+"_"+t,b=own[key]||(!fore&&m4[key])||null,sv=S?S[key]:1;
+        if(b){var Sb=b.bay===h?SL[h]:S;return {b:b,f40:b.bay===h,out:!!(Sb&&!Sb[key])}}
+        if(fore&&m4[key])return {x:1};
+        return {slot:sv||0}}};
+  }
+  if(has(f)||(!has(a)&&map[h]))P.push(mk("f"));
+  if(has(a)||map[h]||(!P.length))P.push(mk("a"));
+  return {P:P,rs:rowOrder(Object.keys(rset).map(Number)),T:tiersOf(Object.keys(tset).map(Number))};
+}
+
+function render(){
+  var P=st.plan; if(!P)return;
+  var B=P.boxes, groups={}, order=[];
+  B.forEach(function(b,i){b.i=i;var k=keyOf(b);if(!groups[k]){groups[k]={k:k,n20:0,n40:0,kg:0};order.push(k)}
+    var g=groups[k]; if(b.size===20)g.n20++;else g.n40++; g.kg+=b.kg});
+  if(st.color==="pod"){var ro=P.rotation;order.sort(function(a,b){var x=ro.lastIndexOf(a),y=ro.lastIndexOf(b);return (x<0?99:x)-(y<0?99:y)||(a<b?-1:1)})}
+  else order.sort(function(a,b){return groups[b].kg-groups[a].kg});
+  var hex={},col={},taken={},free=PAL.slice(),k0;
+  // 양하항·선적항이 같은 코드면 같은 색. 내가 고른 색이 먼저, 나머지는 기본 색을 차례로
+  var ports=order.slice();B.forEach(function(b){if(ports.indexOf(b.pol)<0)ports.push(b.pol)});
+  ports.forEach(function(k){if(CUSTOM[k])taken[CUSTOM[k].toLowerCase()]=1});
+  free=free.filter(function(c){return !taken[c]});
+  ports.forEach(function(k,i){hex[k]=CUSTOM[k]||free.shift()||PAL[i%10]});
+  order.forEach(function(k){col[k]="--c:"+hex[k]+";--ck:"+ink(hex[k])});
+  var PP=st.color==="podpol", pols={}, polOrder=[];
+  if(PP){B.forEach(function(b){var g=pols[b.pol];if(!g){g=pols[b.pol]={n20:0,n40:0,kg:0};polOrder.push(b.pol)}
+      if(b.size===20)g.n20++;else g.n40++;g.kg+=b.kg});
+    var ro2=P.rotation;polOrder.sort(function(a,b){var x=ro2.indexOf(a),y=ro2.indexOf(b);return (x<0?99:x)-(y<0?99:y)||(a<b?-1:1)});
+    polOrder.forEach(function(k){pols[k].css="--c2:"+hex[k]+";--ck2:"+ink(hex[k])})}
+  function sty(b){return col[keyOf(b)]+(PP?";"+pols[b.pol].css:"")}
+  if(st.filter&&(st.filter[0]==="@"?!(PP&&pols[st.filter.slice(1)]):!groups[st.filter]))st.filter=null;
+
+  var sh=curShip(), nout=sh?outside(sh,B):0;
+  var n20=0,n40=0,kg=0,dg=0,rf=0,em=0;
+  B.forEach(function(b){if(b.size===20)n20++;else n40++;kg+=b.kg;if(b.dgno)dg++;if(b.rf)rf++;if(b.fe==="E")em++});
+  var rot=P.rotation.filter(function(p,i,a){return p!==a[i-1]}).join(" › ");
+  $("voyT").textContent=(sh?st.ship+" ":"")+(P.voy||"");
+  $("sum").innerHTML='<div class="kv">'+
+    (sh?'<div><span>선박</span><b>'+esc(st.ship)+(sh.n?' <small>'+esc(sh.n)+'</small>':'')+'</b></div>':'')+
+    '<div><span>항차</span><b>'+esc(P.voy||"-")+'</b></div>'+
+    '<div><span>컨테이너</span><b>'+B.length+'개</b></div>'+
+    '<div><span>20\' / 40\'</span><b>'+n20+' / '+n40+'</b></div>'+
+    '<div><span>TEU</span><b>'+(n20+n40*2)+'</b></div>'+
+    '<div><span>무게</span><b>'+Math.round(kg/1000).toLocaleString()+' t</b></div>'+
+    '<div><span>DG</span><b>'+dg+'</b></div><div><span>RF</span><b>'+rf+'</b></div><div><span>Empty</span><b>'+em+'</b></div>'+
+    (nout?'<div><span>구조에 없는 칸</span><b style="color:var(--warn)">'+nout+'</b></div>':'')+'</div>'+
+    (rot?'<div class="rot">Port Rotation: '+esc(rot)+'</div>':'')+
+    '<div class="chips"><em>POD</em>'+order.map(function(k){return chip(k,k,groups[k])}).join("")+
+      '<em>POL</em>'+polOrder.map(function(k){return chip(k,"@"+k,pols[k])}).join("")+
+      (Object.keys(CUSTOM).length?'<button type="button" class="x" id="resetCol">색 초기화</button>':'')+'</div>'+
+    '<div class="hint">색 네모를 누르면 색을 바꿀 수 있고, 포트 이름을 누르면 그 포트만 진하게 보여요.</div>';
+  function chip(k,f,g){return '<span class="chip'+(st.filter===f?' on':'')+'">'+
+    '<input type="color" class="swc" id="col-'+esc(f)+'" data-port="'+esc(k)+'" value="'+hex[k]+'" aria-label="'+esc(k)+' 색 바꾸기" title="색 바꾸기">'+
+    '<button type="button" class="chipb" data-f="'+esc(f)+'" aria-pressed="'+(st.filter===f)+'"><b>'+esc(k)+'</b>'+
+    '<small>20\' '+g.n20+' · 40\' '+g.n40+' · '+Math.round(g.kg/1000).toLocaleString()+'t</small></button></span>'}
+
+  var q=st.q, hits=0, GH=[];
+  BP={};ORD=[];FIRSTHIT="";
+  function kc(b){return ' k'+b.pod.replace(/\W/g,"_")+' l'+b.pol.replace(/\W/g,"_")}
+  function dimmed(b){return (st.filter&&(st.filter[0]==="@"?b.pol!==st.filter.slice(1):keyOf(b)!==st.filter))||(q&&b.cntr.indexOf(q)<0)}
+  function marks(b){var d=b.dgno?((P.dg[b.dgno]||[])[0]||{}).cls||"DG":"";   // General Plan 칸 구석 표시 (Bay Plan 과 같은 자리)
+    return (b.hc?'<i class="mh">H</i>':'')+(d?'<i class="md">'+esc(d)+'</i>':'')+
+      (b.tk||b.fe==="E"?'<i class="me">'+(b.tk?"T":"")+(b.fe==="E"?"E":"")+'</i>':'')+(b.rf?'<i class="mrr">R</i>':'')}
+  hatches(B,sh).forEach(function(H){
+    var X=panels(H,sh), rs=X.rs, T=X.T, hk=0,teu=0;
+    H.boxes.forEach(function(b){hk+=b.kg;teu+=b.size===20?1:2});
+    // General Plan (축소)
+    GH.push('<div class="gh">'+X.P.map(function(p){
+      function line(ts){return ts.map(function(t){return rs.map(function(r){var c=p.cell(r,t);
+        if(c.b){var mh=q&&c.b.cntr.indexOf(q)>=0;if(mh&&!FIRSTHIT)FIRSTHIT=p.id;
+          return '<div class="m b'+(PP?' pp':'')+(c.f40?' f40':'')+(mh?' hit':'')+(dimmed(c.b)?' dim':'')+kc(c.b)+'" style="'+sty(c.b)+'">'+marks(c.b)+'</div>'}
+        return c.x?'<div class="m">×</div>':'<div class="m'+(c.slot?'':' n')+'"></div>'}).join("")+'<div class="mt">'+pad(t)+'</div>'}).join("")}
+      var mrow=rs.map(function(r){return '<div class="mr">'+pad(r)+'</div>'}).join("")+'<div class="mr"></div>';
+      return '<button type="button" class="mini'+(p.id===st.open?' cur':'')+'" data-go="'+p.id+'" aria-label="BAY '+p.name+'"><span>BAY '+p.name+'</span><div class="mg" style="--n:'+rs.length+'">'+
+        mrow+line(T.D)+(T.D.length&&T.H.length?'<div class="mbar"></div>':'')+line(T.H)+mrow+'</div></button>'}).join("")+'</div>');
+    // Bay Plan (창에 띄울 큰 그림)
+    X.P.forEach(function(p){
+      var rowL=rs.map(function(r){return '<div class="rl">'+pad(r)+'</div>'}).join("")+'<div class="rl"></div>';
+      function sums(ts){return rs.map(function(r){var s=0;ts.forEach(function(t){var c=p.cell(r,t);if(c.b)s+=c.b.kg});
+        return '<div class="sw'+(s?'':' z')+'">'+(s?ton(s):'0')+'</div>'}).join("")+'<div class="sw">t</div>'}
+      function tierRows(ts){return ts.map(function(t){return rs.map(function(r){
+        var c=p.cell(r,t),b=c.b;
+        if(!b)return c.x?'<div class="c xx">×</div>':'<div class="c'+(!c.slot?' no':c.slot===3?' rp':'')+'"></div>';
+        var cls="c b"+(PP?" pp":"")+(c.f40?" f40":"")+(c.out?" out":"")+kc(b), hit=q&&b.cntr.indexOf(q)>=0;
+        if(hit){cls+=" hit";hits++} if(dimmed(b))cls+=" dim"; if(b.i===st.sel)cls+=" sel";
+        var d=b.dgno?((P.dg[b.dgno]||[])[0]||{}).cls||"DG":"";
+        return '<button type="button" class="'+cls+'" data-i="'+b.i+'" style="'+sty(b)+'" aria-label="'+esc(b.cntr+" "+b.pod)+'">'+
+          (b.hc?'<span class="h">H</span>':'')+(d?'<span class="dgm">'+esc(d)+'</span>':'')+(b.rf?'<span class="r">R</span>':'')+(b.tk||b.fe==="E"?'<span class="e">'+(b.tk?"T":"")+(b.fe==="E"?"E":"")+'</span>':'')+
+          '<span class="w">'+ton(b.kg)+'</span><span class="p">'+esc(st.color==="line"?(b.line||"-").slice(0,4):PP?b.pol:b.pod)+'</span></button>'
+      }).join("")+'<div class="tl">'+pad(t)+'</div>'}).join("")}
+      var g='<div class="bay" id="'+p.id+'" style="--w:'+(rs.length*48+24)+'px"><div class="g" style="--n:'+rs.length+'">';
+      if(T.D.length)g+=rowL+sums(T.D)+tierRows(T.D);
+      if(T.D.length&&T.H.length)g+='<div class="hbar"></div>';
+      if(T.H.length)g+=tierRows(T.H)+sums(T.H)+rowL;
+      BP[p.id]={name:p.name,sub:p.n+'개 · '+ton(p.kg)+' t',w:rs.length*52+60,html:g+'</div><div class="side"><span>◀ PORT</span><span>STBD ▶</span></div></div>'};
+      ORD.push(p.id);
+    });
+  });
+  // 배열: 한 줄(선수가 오른쪽 끝, 가로 스크롤) / 여러 줄(CASP처럼 창 폭에 맞춰 접힘, 줄마다 오른쪽부터)
+  $("gp").className="gp"+(LAYOUT==="wrap"?" wrap":"");
+  $("gp").innerHTML=LAYOUT==="wrap"?GH.join(""):GH.slice().reverse().join(""); drawWin();
+  var mh2=q?B.filter(function(b){return b.cntr.indexOf(q)>=0}).length:0;
+  $("qn").textContent=q?(mh2?mh2+"개 찾았어요 · Enter를 누르면 그 베이가 열려요":"없어요"):"";
+  $("fname").textContent=st.name||"(예시)";
+  var nt=$("note");
+  if(st.example){nt.hidden=false;nt.className="note";nt.textContent="지금 보이는 건 가짜 예시 플랜이에요. ‘ASC 파일 열기’를 누르거나 파일을 이 화면에 끌어다 놓으면 실제 플랜으로 바뀌어요. 파일은 이 기기 안에서만 읽고 어디에도 올리지 않아요."}
+  else if(st.shipBad){nt.hidden=false;nt.className="note";nt.textContent=st.ship+" 구조 파일이 이 플랜과 맞지 않아서, 실린 칸 기준으로 그렸어요. 선박이 다르면 ‘선박’ 칸에서 골라 주세요."}
+  else if(SHIPS&&!st.ship){nt.hidden=false;nt.className="note";nt.textContent="파일 이름에서 선박을 찾지 못해 실린 칸 기준으로 그렸어요. ‘선박’ 칸에서 고르면 실제 선박 모양으로 보여요."}
+  else nt.hidden=true;
+  $("ship").value=st.ship;
+}
+
+function drawWin(){
+  var w=$("bw"),d=BP[st.open];
+  if(!d){st.open=null;w.hidden=true;return}
+  $("bwT").textContent="Bay Plan - "+d.name; $("bwS").textContent=d.sub;
+  var sc=$("bwB").scrollTop; $("bwB").innerHTML=d.html; $("bwB").scrollTop=sc;
+  w.firstElementChild.style.setProperty("--bw",d.w+"px"); w.hidden=false;
+}
+function openBay(id){st.open=id;st.sel=-1;$("sheet").hidden=true;render()}
+function closeBay(){st.open=null;st.sel=-1;$("sheet").hidden=true;render()}
+function stepBay(n){var i=ORD.indexOf(st.open);if(i<0)return;i+=n;if(i>=0&&i<ORD.length)openBay(ORD[i])}
+function showBox(i){
+  st.sel=i; var b=st.plan.boxes[i], sh=$("sheet"); if(!b){sh.hidden=true;return}
+  $("sCn").textContent=b.cntr||"(번호 없음)";
+  var dg=(st.plan.dg[b.dgno]||[]).map(function(d){return d.cls+"류 UN"+d.un+(d.pg?" PG"+d.pg:"")}).join(", ");
+  var rowsD=[["Position",pad(b.bay)+"-"+pad(b.row)+"-"+pad(b.tier)],["POL → POD",b.pol+" → "+b.pod],["Operator",b.line||"-"],
+    ["Type",(b.type||"-")+" ("+b.len+"'"+(b.hc?" HC":"")+(b.tk?" TANK":"")+")"],["Weight",ton(b.kg)+" t"],["F/E",b.fe]];
+  if(b.rf){var tv=/^(-?\d+)C$/.exec(b.temp);rowsD.push(["Temp",tv?(+tv[1]/10).toFixed(1)+" °C":b.temp])} // ASC 온도는 소수점 없이 적힘 (-250C = -25.0°C)
+  if(b.dgno)rowsD.push(["IMDG",dg||("No."+b.dgno),1]);
+  $("sDl").innerHTML=rowsD.map(function(r){return '<div><dt>'+r[0]+'</dt><dd'+(r[2]?' class="dgv"':'')+'>'+esc(r[1])+'</dd></div>'}).join("");
+  sh.hidden=false;
+}
+
+function load(text,name){
+  var P;try{P=parseAsc(text)}catch(e){P=null}
+  if(!P||!P.boxes.length){var nt=$("note");nt.hidden=false;nt.className="note err";
+    nt.textContent="“"+name+"”에서 컨테이너 줄을 찾지 못했어요. CASP ASC($609/$604) 파일이 맞는지 확인해 주세요.";return}
+  st.plan=P;st.name=name;st.example=false;pickShip(detectShip(name));st.filter=null;st.sel=-1;st.open=null;st.q="";$("q").value="";$("sheet").hidden=true;
+  document.title=name.replace(/\.asc$/i,"")+" · ASC 베이 플랜";
+  render(); toBow();
+}
+function toBow(){var w=$("gpw");w.scrollLeft=w.scrollWidth;w.scrollTop=0}
+function readFile(f){var r=new FileReader();r.onload=function(){load(String(r.result),f.name)};r.readAsText(f)}
+
+$("openBtn").onclick=function(){$("file").click()};
+$("file").onchange=function(e){if(e.target.files[0])readFile(e.target.files[0]);e.target.value=""};
+document.addEventListener("dragover",function(e){e.preventDefault();document.body.classList.add("drag")});
+document.addEventListener("dragleave",function(){document.body.classList.remove("drag")});
+document.addEventListener("drop",function(e){e.preventDefault();document.body.classList.remove("drag");
+  var f=e.dataTransfer&&e.dataTransfer.files[0];if(f)readFile(f)});
+document.addEventListener("click",function(e){
+  var c=e.target.closest(".c.b"),ch=e.target.closest(".chipb"),mi=e.target.closest(".mini");
+  if(c){showBox(+c.dataset.i);render()}
+  else if(mi){if(e.detail===0||TOUCH)openBay(mi.dataset.go)}   // 키보드(Enter)·터치 화면은 한 번에 열림
+  else if(e.target.id==="bw")closeBay();
+  else if(ch){st.filter=st.filter===ch.dataset.f?null:ch.dataset.f;render()}
+
+});
+if(SHIPS){$("ship").innerHTML='<option value="">자동 (실린 칸 기준)</option>'+Object.keys(SHIPS).sort().map(function(c){
+    return '<option value="'+esc(c)+'">'+esc(c+(SHIPS[c].n?" · "+SHIPS[c].n:"")+(SHIPS[c].s?" ("+SHIPS[c].s+")":""))+'</option>'}).join("");
+  $("ship").onchange=function(e){pickShip(e.target.value);render()}}
+else{$("ship").hidden=true;$("shipL").hidden=true}
+document.addEventListener("change",function(e){var t=e.target;
+  if(t.classList&&t.classList.contains("swc")){CUSTOM[t.dataset.port]=t.value;saveColors();render()}});
+document.addEventListener("click",function(e){if(e.target.id==="resetCol"){CUSTOM={};saveColors();render()}});
+var ZS=[40,50,60,75,100,125,150,200,250,300], zoom=window.innerWidth<600?60:100;
+try{var zz=+localStorage.getItem("ascZoom");if(zz>=30&&zz<=400)zoom=zz}catch(_){}
+function setZoom(z){var w=$("gpw"),fx=w.scrollWidth?(w.scrollLeft+w.clientWidth/2)/w.scrollWidth:1,fy=w.scrollHeight?(w.scrollTop+w.clientHeight/2)/w.scrollHeight:0;
+  zoom=Math.max(ZS[0],Math.min(ZS[ZS.length-1],z));try{localStorage.setItem("ascZoom",zoom)}catch(_){}
+  $("gp").style.setProperty("--ms",(15*zoom/100).toFixed(2)+"px");
+  if(ZS.indexOf(zoom)<0){ZS.push(zoom);ZS.sort(function(a,b){return a-b})}
+  $("zS").innerHTML=ZS.map(function(v){return '<option value="'+v+'"'+(v===zoom?' selected':'')+'>'+v+'%</option>'}).join("");
+  w.scrollLeft=fx*w.scrollWidth-w.clientWidth/2; w.scrollTop=fy*w.scrollHeight-w.clientHeight/2}   // 보던 자리를 가운데로 유지
+function stepZoom(d){var i=ZS.indexOf(zoom);setZoom(ZS[Math.max(0,Math.min(ZS.length-1,i+d))])}
+$("lay").value=LAYOUT;
+$("lay").onchange=function(e){LAYOUT=e.target.value;try{localStorage.setItem("ascGpLayout",LAYOUT)}catch(_){}render();toBow()};
+$("zO").onclick=function(){stepZoom(-1)}; $("zI").onclick=function(){stepZoom(1)};
+$("zS").onchange=function(e){setZoom(+e.target.value)};
+$("gpw").addEventListener("wheel",function(e){if(e.ctrlKey){e.preventDefault();stepZoom(e.deltaY<0?1:-1)}},{passive:false});
+// General Plan 창 크기: 오른쪽·아래 가장자리, 오른쪽 아래 모서리를 끌어서 조절
+(function(){
+  var win=$("gpWin"),gw=$("gpw"),d=null;
+  function apply(z){if(z&&z.w)win.style.width=z.w+"px";else win.style.width="";
+    if(z&&z.h){gw.style.height=z.h+"px";gw.style.maxHeight="none"}else{gw.style.height="";gw.style.maxHeight=""}}
+  function save(){try{localStorage.setItem("ascGpSize",JSON.stringify({w:win.style.width?parseInt(win.style.width,10):0,h:gw.style.height?parseInt(gw.style.height,10):0}))}catch(_){}}
+  try{apply(JSON.parse(localStorage.getItem("ascGpSize")||"null"))}catch(_){}
+  win.addEventListener("pointerdown",function(e){var k=e.target.dataset&&e.target.dataset.rz;if(!k)return;
+    d={k:k,x:e.clientX,y:e.clientY,w:win.offsetWidth,h:gw.offsetHeight};e.target.setPointerCapture(e.pointerId);document.body.classList.add("rzing");e.preventDefault()});
+  win.addEventListener("pointermove",function(e){if(!d)return;
+    if(d.k!=="b")win.style.width=Math.max(300,d.w+e.clientX-d.x)+"px";
+    if(d.k!=="r"){gw.style.height=Math.max(140,d.h+e.clientY-d.y)+"px";gw.style.maxHeight="none"}});
+  function end(){if(d){d=null;document.body.classList.remove("rzing");save()}}
+  win.addEventListener("pointerup",end);win.addEventListener("pointercancel",end);
+  win.addEventListener("dblclick",function(e){if(e.target.dataset&&e.target.dataset.rz){apply(null);save()}});
+})();
+var TOUCH=!!(window.matchMedia&&window.matchMedia("(hover: none)").matches);
+document.addEventListener("dblclick",function(e){var mi=e.target.closest(".mini");if(mi)openBay(mi.dataset.go)});
+$("bwX").onclick=closeBay;
+$("bwP").onclick=function(){stepBay(1)};   // General Plan 에서 왼쪽 = 번호가 큰 베이
+$("bwN").onclick=function(){stepBay(-1)};
+document.addEventListener("keydown",function(e){if(!st.open||/^(INPUT|SELECT)$/.test(e.target.tagName))return;
+  if(e.key==="Escape")closeBay();else if(e.key==="ArrowLeft")stepBay(1);else if(e.key==="ArrowRight")stepBay(-1)});
+$("q").addEventListener("keydown",function(e){if(e.key==="Enter"&&FIRSTHIT)openBay(FIRSTHIT)});
+$("sX").onclick=function(){st.sel=-1;$("sheet").hidden=true;render()};
+$("q").addEventListener("input",function(e){st.q=e.target.value.trim().toUpperCase();render()});
+
+setZoom(zoom);
+if(window.__ICON__){$("logo").src=window.__ICON__;$("logo").hidden=false}   // 이 PC 전용 그림 (실행 파일이 넣어 줌)
+var E=window.__ASC__;
+if(E&&E.b64){var bin=atob(E.b64),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
+  load(new TextDecoder("utf-8").decode(u),E.name||"plan.asc")}
+if(!st.plan){st.plan=example();st.name="";st.example=true;render();toBow()}
+if(window.__STATIC__){
+  LAYOUT="wrap";zoom=100;st.open=null;render();
+  document.body.classList.add("static");
+  $("gpWin").querySelector(".tb small").textContent="선수가 오른쪽 · 아래에 베이별 Bay Plan이 이어져요";
+  var sh2="";ORD.forEach(function(id){var d=BP[id];
+    sh2+='<section class="win sbp" id="bp-'+id+'"><div class="tb">Bay Plan - '+d.name+' <small>'+d.sub+'</small><span class="sp"></span><a href="#gpWin">▲ 위로</a></div><div class="bwb">'+d.html+'</div></section>'});
+  $("gpWin").insertAdjacentHTML("afterend",sh2);
+  [].forEach.call(document.querySelectorAll(".mini"),function(b){var a=document.createElement("a");a.className=b.className;a.href="#bp-"+b.dataset.go;a.innerHTML=b.innerHTML;b.parentNode.replaceChild(a,b)});
+  [].forEach.call(document.querySelectorAll("input.swc"),function(b){var a=document.createElement("i");a.className="swc";a.style.background=b.value;b.parentNode.replaceChild(a,b)});
+  // 칸 누르기: 칸을 링크로, 컨테이너마다 상세 판을 미리 만들어 둠
+  var sd="";st.plan.boxes.forEach(function(b){showBox(b.i);
+    sd+='<div class="sd" id="d'+b.i+'"><div class="in"><div class="cn">'+esc($("sCn").textContent)+'</div><dl>'+$("sDl").innerHTML+'</dl><a class="x" href="#x0">닫기</a></div></div>'});
+  $("sheet").hidden=true;st.sel=-1;
+  document.body.insertAdjacentHTML("beforeend",sd);
+  [].forEach.call(document.querySelectorAll("button.c.b"),function(b){var a=document.createElement("a");a.className=b.className.replace(" sel","");a.href="#d"+b.dataset.i;
+    a.setAttribute("style",b.getAttribute("style")||"");a.setAttribute("aria-label",b.getAttribute("aria-label")||"");a.innerHTML=b.innerHTML;b.parentNode.replaceChild(a,b)});
+  // 포트 고르기: 숨은 라디오 + label
+  var fr='<input class="fr" type="radio" name="f" id="f-all" checked>',css="";
+  [].forEach.call(document.querySelectorAll("button.chipb"),function(b){var f=b.dataset.f,pol=f[0]==="@",k=(pol?f.slice(1):f).replace(/\W/g,"_"),id="f-"+(pol?"l":"k")+k;
+    fr+='<input class="fr" type="radio" name="f" id="'+id+'">';
+    css+='#'+id+':checked~.wrap .b:not(.'+(pol?"l":"k")+k+'){opacity:.18}#'+id+':checked~.wrap label[for="'+id+'"]{box-shadow:0 0 0 2px var(--num)}';
+    var a=document.createElement("label");a.className="chipb";a.htmlFor=id;a.innerHTML=b.innerHTML;b.parentNode.replaceChild(a,b)});
+  document.querySelector(".chips").insertAdjacentHTML("beforeend",'<label class="chipb allb" for="f-all">전체 보기</label>');
+  document.body.insertAdjacentHTML("afterbegin",fr+'<style>'+css+'</style>');
+  var hn=document.querySelector("#sum .hint");if(hn)hn.textContent="포트 이름을 누르면 그 포트만 진하게 보이고, Bay Plan의 칸을 누르면 컨테이너 번호와 상세가 떠요.";
+}
+})();
+</script>
