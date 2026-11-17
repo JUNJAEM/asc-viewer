@@ -61,8 +61,12 @@ def main():
             ships[code] = s
         except Exception as e:
             fail.append("%s (%s)" % (code, e))
+    ports = {}
+    pp = os.path.join(HERE, "ports_3to5.json")   # 3글자 -> 5글자 포트 (tools/build_ports.py), 긴급양하 메일 표에 씀
+    if os.path.exists(pp): ports = json.load(open(pp, encoding="utf-8"))
     with open(OUT, "w", encoding="utf-8", newline="\n") as f:
         f.write("window.ASC_SHIPS=" + json.dumps(ships, ensure_ascii=False, separators=(",", ":")) + ";\n")
+        f.write("window.ASC_PORTS=" + json.dumps(ports, ensure_ascii=False, separators=(",", ":"), sort_keys=True) + ";\n")
     print("ships", len(ships), "| size KB", os.path.getsize(OUT) // 1024, "| fail", fail)
     print("no service:", sorted(c for c in ships if not ships[c]["s"]))
 

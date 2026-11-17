@@ -147,6 +147,16 @@ body.rzing{user-select:none;-webkit-user-select:none}
 .c.dim{opacity:.18}
 .c.hit{outline:3px solid var(--num);outline-offset:1px;z-index:1}
 .c.sel{outline:3px solid #000;outline-offset:1px;z-index:2}
+/* 긴급양하: 고른 컨테이너 (Ctrl+클릭으로 여러 개) */
+.c.pk{outline:3px solid #e00000;outline-offset:-3px;z-index:3}
+.c.pk::before{content:"";position:absolute;inset:0;background:rgba(255,0,0,.38);pointer-events:none}
+.m.pk{outline:2px solid #e00000;outline-offset:-1px;position:relative;z-index:2}
+#bwM{margin-right:8px;padding:0 8px;background:#fff0f0;color:#b00000;border-color:#b00000}
+#bwM:disabled{opacity:.45;cursor:default}
+.bwf{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;padding:6px 12px 8px;border-top:1px solid var(--edge);font-size:12px;background:var(--chrome)}
+.bwf .pkl{font-family:Consolas,monospace;font-weight:700;color:#b00000;word-break:break-all}
+.bwf button{font:inherit;font-size:11.5px;border:1px solid var(--edge);background:var(--win);padding:1px 8px;cursor:pointer}
+.bwf .ok{flex-basis:100%;color:#0a6b00;font-weight:700}
 .side{display:flex;justify-content:space-between;font-size:10px;color:var(--fg2);margin:3px 22px 0 0}
 /* 그림 전용 판 (window.__STATIC__) */
 body.static #openBtn,body.static .tools,body.static #lay,body.static .zoom,body.static .rz,body.static #resetCol,body.static #bw,body.static #sheet{display:none!important}
@@ -218,9 +228,11 @@ body.drag{outline:3px dashed var(--num);outline-offset:-6px}
 </div>
 <div id="bw" hidden><div class="bwin win" role="dialog" aria-label="Bay Plan">
   <div class="tb"><span id="bwT"></span><small id="bwS"></small><span class="sp"></span>
+    <button type="button" id="bwM" title="고른 컨테이너로 BPT 긴급양하 요청 메일을 만들어요" disabled>긴급양하 메일 생성</button>
     <button type="button" id="bwP" aria-label="왼쪽 베이" title="왼쪽 베이 (←)">◀</button><button type="button" id="bwN" aria-label="오른쪽 베이" title="오른쪽 베이 (→)">▶</button>
     <button type="button" id="bwX" aria-label="닫기" title="닫기 (Esc)">×</button></div>
   <div class="bwb" id="bwB"></div>
+  <div class="bwf" id="bwF"></div>
 </div></div>
 <div id="sheet" hidden><div class="in">
   <div class="cn" id="sCn"></div><dl id="sDl"></dl>
@@ -233,10 +245,10 @@ body.drag{outline:3px dashed var(--num);outline-offset:-6px}
 (function(){
 "use strict";
 var $=function(id){return document.getElementById(id)};
-var st={plan:null,name:"",example:false,color:"podpol",filter:null,q:"",sel:-1,open:null,ship:"",shipBad:false};
+var st={plan:null,name:"",example:false,color:"podpol",filter:null,q:"",sel:-1,open:null,ship:"",shipBad:false,pick:[]};
 var SHIPS=window.ASC_SHIPS||null;
 var LAYOUT="row";try{if(localStorage.getItem("ascGpLayout")==="wrap")LAYOUT="wrap"}catch(_){}
-var BP={},ORD=[],FIRSTHIT="";   // Bay Plan 창에 넣을 그림(베이별), 베이 순서, 검색에 걸린 첫 베이
+var BP={},ORD=[],FIRSTHIT="",PANELS={},BOXP={};   // PANELS·BOXP: 긴급양하 메일 그림용 (베이 그림 재료, 컨테이너가 있는 베이)   // Bay Plan 창에 넣을 그림(베이별), 베이 순서, 검색에 걸린 첫 베이
 // 양하항 기본 색 (기항 순서대로): 노랑 파랑 빨강 초록 주황 하늘 분홍 보라 연두 갈색 청록 살구
 var PAL=["#ffeb00","#2f7bff","#ff4136","#2ecc40","#ff9f1a","#5fd8ff","#ff85e0","#a66bff","#c3f53c","#b98555","#19c2b0","#ffd0b0"];
 // 선적항 기본 색: 양하항 색과 겹치지 않게 무채색. 북항 PUS = 검정, 신항 PNC = 흰색, 그 밖은 회색
@@ -270,7 +282,7 @@ function parseAsc(text){
         len=tail==="45"?45:size;hc=tail==="HC"||tail==="2H"||tail==="4H"||tail==="45";tk=t.slice(0,2)==="TK"}
       else{size=bay%2?20:40;len=size;hc=false;tk=false}
       out.boxes.push({bay:bay,row:+l.slice(2,4),tier:+l.slice(4,6),cntr:l.slice(7,18).trim(),line:l.slice(19,27).trim(),
-        pol:l.slice(27,30).trim(),pod:l.slice(30,33).trim(),type:t,size:size,len:len,
+        pol:l.slice(27,30).trim(),pod:l.slice(30,33).trim(),dest:l.slice(39,44).trim(),type:t,size:size,len:len,
         hc:hc,tk:tk,rt:iso?t[2]==="R":t.slice(0,2)==="RF",fe:l.slice(51,52)==="E"?"E":"F",kg:kg,
         rf:/C$/.test(tmp),temp:tmp,dgno:l.slice(60,64).trim()});
     }
@@ -417,7 +429,7 @@ function render(){
     '<small>20\' '+g.n20+' · 40\' '+g.n40+' · '+Math.round(g.kg/1000).toLocaleString()+'t</small></button></span>'}
 
   var q=st.q, hits=0, GH=[];
-  BP={};ORD=[];FIRSTHIT="";
+  BP={};ORD=[];FIRSTHIT="";PANELS={};BOXP={};
   function kc(b){return ' k'+b.pod.replace(/\W/g,"_")+' l'+b.pol.replace(/\W/g,"_")}
   function dimmed(b){return (st.filter&&(st.filter[0]==="@"?b.pol!==st.filter.slice(1):keyOf(b)!==st.filter))||(q&&b.cntr.indexOf(q)<0)}
   function marks(b){var d=b.dgno?((P.dg[b.dgno]||[])[0]||{}).cls||"DG":"";   // General Plan 칸 구석 표시 (Bay Plan 과 같은 자리)
@@ -430,7 +442,7 @@ function render(){
     GH.push('<div class="gh">'+X.P.map(function(p){
       function line(ts){return ts.map(function(t){return rs.map(function(r){var c=p.cell(r,t);
         if(c.b){var mh=q&&c.b.cntr.indexOf(q)>=0;if(mh&&!FIRSTHIT)FIRSTHIT=p.id;
-          return '<div class="m b'+(PP?' pp':'')+(c.f40?' f40':'')+(mh?' hit':'')+(dimmed(c.b)?' dim':'')+kc(c.b)+'" style="'+sty(c.b)+'">'+marks(c.b)+'</div>'}
+          return '<div class="m b'+(PP?' pp':'')+(c.f40?' f40':'')+(mh?' hit':'')+(dimmed(c.b)?' dim':'')+(st.pick.indexOf(c.b.i)>=0?' pk':'')+kc(c.b)+'" style="'+sty(c.b)+'">'+marks(c.b)+'</div>'}
         return c.x?'<div class="m">×</div>':'<div class="m'+(c.slot?'':' n')+'"></div>'}).join("")+'<div class="mt">'+pad(t)+'</div>'}).join("")}
       var mrow=rs.map(function(r){return '<div class="mr">'+pad(r)+'</div>'}).join("")+'<div class="mr"></div>';
       return '<button type="button" class="mini'+(p.id===st.open?' cur':'')+'" data-go="'+p.id+'" aria-label="BAY '+p.name+'"><span>BAY '+p.name+'</span><div class="mg" style="--n:'+rs.length+'">'+
@@ -444,7 +456,8 @@ function render(){
         var c=p.cell(r,t),b=c.b;
         if(!b)return c.x?'<div class="c xx">×</div>':'<div class="c'+(!c.slot?' no':c.slot===3?' rp':'')+'"></div>';
         var cls="c b"+(PP?" pp":"")+(c.f40?" f40":"")+(c.out?" out":"")+kc(b), hit=q&&b.cntr.indexOf(q)>=0;
-        if(hit){cls+=" hit";hits++} if(dimmed(b))cls+=" dim"; if(b.i===st.sel)cls+=" sel";
+        if(hit){cls+=" hit";hits++} if(dimmed(b))cls+=" dim"; if(b.i===st.sel)cls+=" sel"; if(st.pick.indexOf(b.i)>=0)cls+=" pk";
+        if(!(b.i in BOXP))BOXP[b.i]=p.id;
         var d=b.dgno?((P.dg[b.dgno]||[])[0]||{}).cls||"DG":"";
         return '<button type="button" class="'+cls+'" data-i="'+b.i+'" style="'+sty(b)+'" aria-label="'+esc(b.cntr+" "+b.pod)+'">'+
           (b.hc?'<span class="h">H</span>':'')+(d?'<span class="dgm">'+esc(d)+'</span>':'')+(b.rf?'<span class="r">R</span>':'')+(b.tk||b.fe==="E"?'<span class="e">'+(b.tk?"T":"")+(b.fe==="E"?"E":"")+'</span>':'')+
@@ -455,7 +468,7 @@ function render(){
       if(T.D.length&&T.H.length)g+='<div class="hbar"></div>';
       if(T.H.length)g+=tierRows(T.H)+sums(T.H)+rowL;
       BP[p.id]={name:p.name,sub:p.n+'개 · '+ton(p.kg)+' t',w:rs.length*52+60,html:g+'</div><div class="side"><span>◀ PORT</span><span>STBD ▶</span></div></div>'};
-      ORD.push(p.id);
+      ORD.push(p.id); PANELS[p.id]={p:p,rs:rs,T:T};
     });
   });
   // 배열: 한 줄(선수가 오른쪽 끝, 가로 스크롤) / 여러 줄(CASP처럼 창 폭에 맞춰 접힘, 줄마다 오른쪽부터)
@@ -478,6 +491,109 @@ function drawWin(){
   $("bwT").textContent="Bay Plan - "+d.name; $("bwS").textContent=d.sub;
   var sc=$("bwB").scrollTop; $("bwB").innerHTML=d.html; $("bwB").scrollTop=sc;
   w.firstElementChild.style.setProperty("--bw",d.w+"px"); w.hidden=false;
+  pickBar();
+}
+// ---------- 긴급양하 메일 ----------
+function pickBar(){
+  var n=st.pick.length, B=st.plan?st.plan.boxes:[];
+  $("bwM").disabled=!n; $("bwM").textContent="긴급양하 메일 생성"+(n?" ("+n+")":"");
+  var f=$("bwF"), keep=f.querySelector(".ok");
+  f.innerHTML=(n?'<span>고른 컨테이너 '+n+'개:</span><span class="pkl">'+st.pick.map(function(i){return esc((B[i]||{}).cntr||"?")}).join(", ")+'</span><button type="button" id="pkC">선택 지우기</button>'
+    :'<span>칸을 누르면 고르고, <b>Ctrl</b>을 누른 채 누르면 여러 개 골라요 (다른 베이로 넘어가도 유지돼요).</span>');
+  if(keep&&n)f.appendChild(keep);
+}
+function svcOf(){
+  var sv=st.ship&&SHIPS&&SHIPS[st.ship]?String(SHIPS[st.ship].s||"").split("\u00b7").filter(Boolean):[];
+  var t=(st.name||"").toUpperCase().split(/[^A-Z0-9]+/);
+  for(var i=0;i<sv.length;i++)if(t.indexOf(sv[i])>=0)return sv[i];
+  return sv.length===1?sv[0]:"";
+}
+function port5(c){   // ASC 3글자 -> 5글자 (그 플랜의 DEST 칸이 먼저, 없으면 회사 포트 표)
+  if(!c||c.length===5)return c||"";
+  var B=st.plan.boxes;for(var i=0;i<B.length;i++){var d=B[i].dest;if(d&&d.length===5&&d.slice(2)===c)return d}
+  return (window.ASC_PORTS||{})[c]||c;
+}
+function bayPng(){   // 고른 컨테이너가 있는 베이들을 그림으로 (고른 칸 = 빨강)
+  var ids=[];ORD.forEach(function(id){st.pick.forEach(function(i){if(BOXP[i]===id&&ids.indexOf(id)<0)ids.push(id)})});
+  var S=2,CW=24,CH=19,LB=26,TOP=40,GAP=34,HB=8,PER=4;
+  var dims=ids.map(function(id){var Q=PANELS[id];return {w:LB*2+Q.rs.length*CW,h:TOP+16+(Q.T.D.length+Q.T.H.length)*CH+(Q.T.D.length&&Q.T.H.length?HB+10:0)+18}});
+  var lines=[],cur=[];ids.forEach(function(id,k){cur.push(k);if(cur.length===PER){lines.push(cur);cur=[]}});if(cur.length)lines.push(cur);
+  var W=Math.max.apply(null,lines.map(function(L){return L.reduce(function(a,k){return a+dims[k].w+GAP},-GAP)}))+20;
+  var lineH=lines.map(function(L){return Math.max.apply(null,L.map(function(k){return dims[k].h}))});
+  var H=30+lineH.reduce(function(a,b){return a+b+14},0)+26;
+  var cv=document.createElement("canvas");cv.width=W*S;cv.height=H*S;var g=cv.getContext("2d");g.scale(S,S);
+  g.fillStyle="#fff";g.fillRect(0,0,W,H);g.textBaseline="middle";
+  var vn=(st.ship&&SHIPS&&SHIPS[st.ship]&&SHIPS[st.ship].n)||st.plan.vsl||st.ship||"";
+  g.fillStyle="#000";g.font="bold 14px Arial";g.textAlign="left";g.fillText((vn?"M/V "+vn+"  ":"")+(st.plan.voy||"")+"  -  긴급양하 요청 "+st.pick.length+" VAN",10,16);
+  var y0=30;
+  lines.forEach(function(L,li){var x0=10;
+    L.forEach(function(k){var Q=PANELS[ids[k]],p=Q.p,rs=Q.rs,T=Q.T,x=x0+LB,y=y0;
+      g.textAlign="center";g.fillStyle="#000";g.font="bold 15px Arial";g.fillText("Bay "+p.name,x0+dims[k].w/2,y+12);
+      y+=TOP-12;g.font="11px Arial";g.fillStyle="#1a3fbf";
+      rs.forEach(function(r,j){g.fillText(pad(r),x+j*CW+CW/2,y)});y+=10;
+      function tiers(ts){ts.forEach(function(t){
+        g.fillStyle="#1a3fbf";g.font="11px Arial";g.fillText(pad(t),x0+LB/2,y+CH/2);g.fillText(pad(t),x+rs.length*CW+LB/2,y+CH/2);
+        rs.forEach(function(r,j){var c=p.cell(r,t),cx=x+j*CW,pk=c.b&&st.pick.indexOf(c.b.i)>=0;
+          if(c.b){g.fillStyle=pk?"#ff1a1a":"#c9c9c9";g.fillRect(cx,y,CW,CH);
+            if(c.f40){g.save();g.beginPath();g.rect(cx,y,CW,CH);g.clip();g.strokeStyle=pk?"rgba(255,255,255,.8)":"rgba(0,0,0,.45)";g.lineWidth=1;
+              for(var d=-CH;d<CW;d+=5){g.beginPath();g.moveTo(cx+d,y+CH);g.lineTo(cx+d+CH,y);g.stroke()}g.restore()}
+            g.strokeStyle="#333";g.lineWidth=1;g.strokeRect(cx+.5,y+.5,CW-1,CH-1);
+            if(pk){g.strokeStyle="#7a0000";g.lineWidth=2;g.strokeRect(cx+1,y+1,CW-2,CH-2)}}
+          else if(c.x){g.fillStyle="#eee";g.fillRect(cx,y,CW,CH);g.strokeStyle="#999";g.lineWidth=1;g.strokeRect(cx+.5,y+.5,CW-1,CH-1);
+            g.fillStyle="#666";g.font="11px Arial";g.fillText("×",cx+CW/2,y+CH/2)}
+          else if(c.slot){g.strokeStyle="#999";g.lineWidth=1;g.strokeRect(cx+.5,y+.5,CW-1,CH-1)}});
+        y+=CH})}
+      tiers(T.D);
+      if(T.D.length&&T.H.length){y+=5;g.fillStyle="#000";g.fillRect(x-2,y,rs.length*CW+4,HB-3);y+=HB+5}
+      tiers(T.H);
+      y+=10;g.fillStyle="#1a3fbf";g.font="11px Arial";rs.forEach(function(r,j){g.fillText(pad(r),x+j*CW+CW/2,y)});
+      x0+=dims[k].w+GAP});
+    y0+=lineH[li]+14});
+  g.textAlign="left";g.font="12px Arial";var ly=H-14,lx=10;
+  [["#ff1a1a","긴급양하 요청 컨테이너"],["#c9c9c9","적재 컨테이너"]].forEach(function(L){g.fillStyle=L[0];g.fillRect(lx,ly-6,14,12);g.strokeStyle="#333";g.strokeRect(lx+.5,ly-5.5,13,11);
+    g.fillStyle="#000";g.fillText(L[1],lx+20,ly);lx+=20+g.measureText(L[1]).width+18});
+  g.fillText("빗금 = 40'",lx,ly);
+  return {b64:cv.toDataURL("image/png").split(",")[1],w:W,h:H};
+}
+function urgentMail(){
+  if(!st.pick.length)return;
+  var B=st.plan.boxes, bx=st.pick.map(function(i){return B[i]}).filter(Boolean);
+  var vn=(st.ship&&SHIPS&&SHIPS[st.ship]&&SHIPS[st.ship].n)||st.plan.vsl||st.ship||"", voy=st.plan.voy||"", sv=svcOf();
+  var cn=bx.map(function(b){return b.cntr});
+  var subj=(sv?sv+" - ":"")+"M/V "+vn+(voy?" "+voy:"")+" 긴급양하 요청의 건 ("+cn.join(", ")+")";
+  var F="font-family: Arial, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);";
+  var C="font-family: Calibri, Arial, Helvetica, sans-serif; font-size: 12pt; color: rgb(0, 0, 0);";
+  var dv=function(st_,t){return '<div style="'+st_+'">'+(t===""?"<br>":t)+'</div>'};
+  var td=function(t,h){return '<td style="white-space: nowrap; border: 2px solid rgb(0, 0, 0); padding: 1px 5px; vertical-align: middle;'+(h?' text-align: center;':'')+'"><div style="'+C+(h?' text-align: center;':'')+'">'+esc(t)+'</div></td>'};
+  var hd=["Cntr No","POSITION","POL","POD","OPR","DEST","SzTp","WGT","FE"];
+  var rows=bx.map(function(b){return '<tr>'+[b.cntr,pad(b.bay)+pad(b.row)+pad(b.tier),port5(b.pol),port5(b.pod),b.line||"",b.dest||port5(b.pod),b.type||"",b.kg.toLocaleString("en-US"),b.fe].map(function(v){return td(v)}).join("")+'</tr>'}).join("");
+  var tot={},to=[];bx.forEach(function(b){var k=b.type||"-";if(!tot[k]){tot[k]=0;to.push(k)}tot[k]++});
+  var img=bayPng();
+  var html='<html><head><meta charset="utf-8"></head><body>'+
+    dv(F,"TO : BPT 플래너실")+dv(F,"CC : 참조처 제위")+dv(F,"FM : 장금상선 / 흥아라인 부산운항팀")+dv(F,"")+
+    dv(F,"격무에 노고 많으십니다.")+dv(F,"")+dv(F,"표제의 건과 관련하여, 당사 수입 화주로 부터 하기와 같이 긴급 양하 요청을 받아 이에 전달 드립니다")+dv(F,"")+
+    '<div style="'+F+'"><img src="cid:bayplan@ascviewer" width="'+img.w+'" height="'+img.h+'" alt="Bay Plan"></div>'+dv(C,"")+
+    dv(C,"선명/항차 : M/V "+esc(vn)+(voy?" / "+esc(voy):"")+"&nbsp;")+dv(C,"터미널 :&nbsp;")+dv(C,"CNTR INFO :&nbsp;")+dv(C,"")+
+    '<table cellspacing="0" cellpadding="0" border="0" style="border-collapse: collapse; border-spacing: 0px;"><tbody><tr>'+hd.map(function(h){return td(h,1)}).join("")+'</tr>'+rows+'</tbody></table>'+
+    dv(C,"TOTAL : "+to.map(function(k){return esc(k)+" X "+tot[k]+" VAN"}).join(" / ")+"&nbsp;")+dv(C,"")+dv(F,"")+
+    '<p style="margin:0;'+F+'">감사합니다.</p><p style="margin:0;'+F+'">&nbsp;</p><p style="margin:0;'+F+'">Thanks &amp; B.Regards</p>'+
+    '<p style="margin:0;'+F+'">==================================================</p>'+
+    '<p style="margin:0;'+F+'">장금상선&amp;흥아라인 부산운항팀<br>Sinokor&amp;Heung-A Line, Busan Operation Team<br>Team(24/7) +82-10-3720-0270 (SKR), +82-10-3596-5258 (HAL)<br>Email : <a href="mailto:bvot@sinokor.co.kr">bvot@sinokor.co.kr</a> (team)</p>'+
+    '<p style="margin:0;'+F+'">==================================================</p></body></html>';
+  var u8=function(x){return btoa(unescape(encodeURIComponent(x)))}, hw=function(x){return /^[\x20-\x7e]*$/.test(x)?x:"=?UTF-8?B?"+u8(x)+"?="};
+  var w76=function(x){return x.replace(/.{76}/g,"$&\r\n")}, bd="----=_ascviewer_"+Date.now();
+  var eml=["To: bptplan@bptc.co.kr, planner@bptc.co.kr, "+hw("BPT 감만 플래너")+" <plan@bptc.co.kr>",
+    "Cc: "+hw("부산운항팀 운항담당")+" <bvot@sinokor.co.kr>",
+    "Subject: "+hw(subj),"X-Unsent: 1","MIME-Version: 1.0",
+    'Content-Type: multipart/related; boundary="'+bd+'"; type="text/html"',"",
+    "--"+bd,'Content-Type: text/html; charset="utf-8"',"Content-Transfer-Encoding: base64","",w76(u8(html)),"",
+    "--"+bd,'Content-Type: image/png; name="bayplan.png"',"Content-Transfer-Encoding: base64","Content-ID: <bayplan@ascviewer>",
+    'Content-Disposition: inline; filename="bayplan.png"',"",w76(img.b64),"","--"+bd+"--",""].join("\r\n");
+  var a=document.createElement("a"), url=URL.createObjectURL(new Blob([eml],{type:"message/rfc822"}));
+  a.href=url;a.download="긴급양하_"+(st.ship||"")+"_"+voy+".eml";document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(url);a.remove()},4000);
+  var f=$("bwF"),o=f.querySelector(".ok");if(!o){o=document.createElement("div");o.className="ok";f.appendChild(o)}
+  o.textContent="메일 파일을 받았어요. 브라우저의 다운로드 목록에서 열면 아웃룩 새 메일 창이 떠요. 터미널 칸만 채우고 보내기를 누르세요.";
 }
 function openBay(id){st.open=id;st.sel=-1;$("sheet").hidden=true;render()}
 function closeBay(){st.open=null;st.sel=-1;$("sheet").hidden=true;render()}
@@ -498,7 +614,7 @@ function load(text,name){
   var P;try{P=parseAsc(text)}catch(e){P=null}
   if(!P||!P.boxes.length){var nt=$("note");nt.hidden=false;nt.className="note err";
     nt.textContent="“"+name+"”에서 컨테이너 줄을 찾지 못했어요. CASP ASC($609/$604) 파일이 맞는지 확인해 주세요.";return}
-  st.plan=P;st.name=name;st.example=false;pickShip(detectShip(name));st.filter=null;st.sel=-1;st.open=null;st.q="";$("q").value="";$("sheet").hidden=true;
+  st.plan=P;st.name=name;st.example=false;pickShip(detectShip(name));st.filter=null;st.sel=-1;st.pick=[];st.open=null;st.q="";$("q").value="";$("sheet").hidden=true;
   document.title=name.replace(/\.asc$/i,"")+" · ASC 베이 플랜";
   render(); toBow();
 }
@@ -513,7 +629,11 @@ document.addEventListener("drop",function(e){e.preventDefault();document.body.cl
   var f=e.dataTransfer&&e.dataTransfer.files[0];if(f)readFile(f)});
 document.addEventListener("click",function(e){
   var c=e.target.closest(".c.b"),ch=e.target.closest(".chipb"),mi=e.target.closest(".mini");
-  if(c){showBox(+c.dataset.i);render()}
+  if(c){var ci=+c.dataset.i;
+    if(e.ctrlKey||e.metaKey){var k=st.pick.indexOf(ci);if(k<0)st.pick.push(ci);else st.pick.splice(k,1)}
+    else st.pick=[ci];
+    showBox(ci);render()}
+  else if(e.target.id==="pkC"){st.pick=[];render()}
   else if(mi){if(e.detail===0||TOUCH)openBay(mi.dataset.go)}   // 키보드(Enter)·터치 화면은 한 번에 열림
   else if(e.target.id==="bw")closeBay();
   else if(ch){st.filter=st.filter===ch.dataset.f?null:ch.dataset.f;render()}
@@ -559,6 +679,7 @@ $("gpw").addEventListener("wheel",function(e){if(e.ctrlKey){e.preventDefault();s
 var TOUCH=!!(window.matchMedia&&window.matchMedia("(hover: none)").matches);
 document.addEventListener("dblclick",function(e){var mi=e.target.closest(".mini");if(mi)openBay(mi.dataset.go)});
 $("bwX").onclick=closeBay;
+$("bwM").onclick=urgentMail;
 $("bwP").onclick=function(){stepBay(1)};   // General Plan 에서 왼쪽 = 번호가 큰 베이
 $("bwN").onclick=function(){stepBay(-1)};
 document.addEventListener("keydown",function(e){if(!st.open||/^(INPUT|SELECT)$/.test(e.target.tagName))return;
