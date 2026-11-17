@@ -614,7 +614,7 @@ function render(){
     GH.push('<div class="gh">'+X.P.map(function(p){
       function line(ts){return ts.map(function(t){return rs.map(function(r){var c=p.cell(r,t);
         if(c.b){var mh=q&&c.b.cntr.indexOf(q)>=0;if(mh&&!FIRSTHIT)FIRSTHIT=p.id;
-          return '<div class="m b'+(PP?' pp':'')+(c.f40?' f40':'')+(mh?' hit':'')+(dimmed(c.b)?' dim':'')+(st.pick.indexOf(c.b.i)>=0?' pk':'')+kc(c.b)+'" style="'+sty(c.b)+'">'+marks(c.b)+'</div>'}
+          return '<div class="m b'+(PP?' pp':'')+(c.f40?' f40':'')+(mh?' hit':'')+(dimmed(c.b)?' dim':'')+(st.pick.indexOf(c.b.i)>=0?' pk':'')+kc(c.b)+'" data-i="'+c.b.i+'" style="'+sty(c.b)+'">'+marks(c.b)+'</div>'}
         return c.x?'<div class="m">×</div>':'<div class="m'+(c.slot?'':' n')+'"></div>'}).join("")+'<div class="mt">'+pad(t)+'</div>'}).join("")}
       var mrow=rs.map(function(r){return '<div class="mr">'+pad(r)+'</div>'}).join("")+'<div class="mr"></div>';
       return '<button type="button" class="mini'+(p.id===st.open?' cur':'')+'" data-go="'+p.id+'" aria-label="BAY '+p.name+'"><span>BAY '+p.name+'</span><div class="mg" style="--n:'+rs.length+'">'+
@@ -1010,7 +1010,11 @@ document.addEventListener("dragleave",function(){document.body.classList.remove(
 document.addEventListener("drop",function(e){e.preventDefault();document.body.classList.remove("drag");
   var f=e.dataTransfer&&e.dataTransfer.files[0];if(f)readFile(f)});
 document.addEventListener("click",function(e){
-  var c=e.target.closest(".c.b"),ch=e.target.closest(".chipb"),mi=e.target.closest(".mini");
+  var c=e.target.closest(".c.b"),ch=e.target.closest(".chipb"),mi=e.target.closest(".mini"),mc=e.target.closest(".m.b");
+  if(mc&&(e.ctrlKey||e.metaKey)&&mc.dataset.i!=null){   // General Plan: Ctrl+클릭 = 표식 넣기·지우기 (Bay Plan 과 같음)
+    var gi=+mc.dataset.i,gk=st.pick.indexOf(gi);
+    if(gk<0){st.pick.push(gi);showBox(gi)}else{st.pick.splice(gk,1);unmark(gi)}
+    render();return}
   if(c){var ci=+c.dataset.i;
     var off=false;
     if(e.ctrlKey||e.metaKey){var k=st.pick.indexOf(ci);if(k<0)st.pick.push(ci);else{st.pick.splice(k,1);off=true}}
@@ -1095,7 +1099,7 @@ $("gpw").addEventListener("wheel",function(e){if(e.ctrlKey){e.preventDefault();A
   win.addEventListener("dblclick",function(e){if(e.target.dataset&&e.target.dataset.rz){apply(null);save()}});
 })();
 var TOUCH=!!(window.matchMedia&&window.matchMedia("(hover: none)").matches);
-document.addEventListener("dblclick",function(e){var mi=e.target.closest(".mini");if(mi)openBay(mi.dataset.go)});
+document.addEventListener("dblclick",function(e){var mi=e.target.closest(".mini");if(mi&&!e.ctrlKey&&!e.metaKey)openBay(mi.dataset.go)});
 $("bwX").onclick=closeBay;
 // Bay Plan 창: 제목줄을 끌어 옮기기, 가장자리·모서리를 끌어 크기 조절, □·제목줄 더블클릭 = 최대화/이전 크기
 // 자리·크기는 기억됨(ascBwBox). 손잡이를 더블클릭하면 처음 자리(가운데)로.
