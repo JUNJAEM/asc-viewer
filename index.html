@@ -210,7 +210,9 @@ i.swc{display:block;align-self:stretch}
 body.drag{outline:3px dashed var(--num);outline-offset:-6px}
 .emp{display:none}
 /* Editor(목록) / Pivot */
-body.static #edWin{display:none}
+body.static #edWin,body.static #edBtn{display:none}
+#edBtn{margin-right:6px}
+#edBtn[aria-pressed="true"]{background:var(--title);color:var(--title-fg);box-shadow:inset 1px 1px 0 rgba(0,0,0,.5)}
 #edWin .tb{align-items:center;gap:6px}
 .etab button{font:inherit;font-weight:700;font-size:12px;border:1px solid var(--edge);background:var(--chrome);color:var(--fg);height:22px;padding:0 12px;cursor:pointer;border-radius:0;opacity:.75}
 .etab button.on{background:#fff;opacity:1;box-shadow:inset 0 -3px 0 var(--num)}
@@ -272,10 +274,11 @@ dd.chg .ei,dd.chg{background:#fff3a6}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">ASC 베이 플랜 <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-17 16:40 판</small></div>
+  <header class="win"><div class="tb">ASC 베이 플랜 <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-17 16:45 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
+      <button class="btn" id="edBtn" type="button" aria-pressed="false" title="컨테이너 목록(Editor)과 집계표(Pivot) 창을 켜고 꺼요">EDITOR / PIVOT</button>
       <button class="btn" id="saveBtn" type="button" hidden>ASC 저장</button>
       <button class="btn" id="openBtn" type="button">ASC 파일 열기</button>
       <input type="file" id="file" hidden>
@@ -307,7 +310,7 @@ dd.chg .ei,dd.chg{background:#fff3a6}
       <button type="button" id="zI" aria-label="확대" title="확대 (Ctrl + 휠)">+</button></span></div>
     <div class="gpw" id="gpw"><div class="gp" id="gp"></div></div>
     <div class="rz rzr" data-rz="r" title="끌어서 너비 조절 (더블클릭: 원래대로)"></div><div class="rz rzb" data-rz="b" title="끌어서 높이 조절 (더블클릭: 원래대로)"></div><div class="rz rzc" data-rz="c" title="끌어서 크기 조절 (더블클릭: 원래대로)"></div></section>
-  <section class="win" id="edWin"><div class="tb"><span class="etab"><button type="button" id="tabE">Editor</button><button type="button" id="tabP">Pivot</button></span>
+  <section class="win" id="edWin" hidden><div class="tb"><span class="etab"><button type="button" id="tabE">Editor</button><button type="button" id="tabP">Pivot</button></span>
       <small id="edCnt"></small><span class="sp"></span>
       <label class="fo" title="고른 컨테이너만 진하게, 나머지는 흐리게 (cCASP의 Highlight · Fade Out)"><input type="checkbox" id="edFade"> Fade Out</label>
       <button type="button" id="edCS" title="정렬 지우기 (Clear Sorters)">정렬 지우기</button><button type="button" id="edCF" title="조건 지우기 (Clear Filters)">조건 지우기</button></div>
@@ -589,7 +592,8 @@ function drawWin(){
 // ---------- Editor(목록) / Pivot — cCASP Stowage Edit · Pivot 과 같은 쓰임 ----------
 // Editor: 열 제목 = 정렬(Shift+클릭 = 여러 열), 둘째 줄 = 조건, 줄 클릭 = 고르기(Ctrl 여러 개), 더블클릭 = 그 베이 열기
 // Pivot : 행·열 항목과 값을 골라 집계, 칸을 누르면 그 컨테이너들이 골라짐
-var ES={tab:"E",sort:[],flt:{},fade:false,pr:"pod",pc:"type",pv:"van"};
+var ES={on:false,tab:"E",sort:[],flt:{},fade:false,pr:"pod",pc:"type",pv:"van"};
+try{ES.on=localStorage.getItem("ascEdOn")==="1"}catch(_){}
 function dg0(b){return (b.dgno&&st.plan.dg[b.dgno]&&st.plan.dg[b.dgno][0])||{}}
 var EF=[   // [키, 제목, 숫자?, 값, 목록에 보임?, 피벗 항목?]
   ["pos","Position",0,function(b){return pad(b.bay)+pad(b.row)+pad(b.tier)},1,0],
@@ -637,6 +641,8 @@ function edRows(){
 }
 function edDraw(){
   if(!st.plan||window.__STATIC__)return;
+  $("edWin").hidden=!ES.on;$("edBtn").setAttribute("aria-pressed",ES.on?"true":"false");
+  if(!ES.on)return;   // 꺼져 있으면 그리지 않음
   $("tabE").className=ES.tab==="E"?"on":"";$("tabP").className=ES.tab==="P"?"on":"";$("edFade").checked=ES.fade;
   var body=$("edBody");
   if(ES.tab==="E"){
@@ -669,6 +675,9 @@ function edDraw(){
 }
 (function(){
   var W=$("edWin");
+  $("edBtn").onclick=function(){ES.on=!ES.on;try{localStorage.setItem("ascEdOn",ES.on?"1":"0")}catch(_){}
+    if(!ES.on&&ES.fade){ES.fade=false;render()}else edDraw();
+    if(ES.on)W.scrollIntoView({block:"nearest"})};
   $("tabE").onclick=function(){ES.tab="E";edDraw()};$("tabP").onclick=function(){ES.tab="P";edDraw()};
   $("edFade").onchange=function(e){ES.fade=e.target.checked;render()};
   $("edCS").onclick=function(){ES.sort=[];edDraw()};$("edCF").onclick=function(){ES.flt={};edDraw()};
