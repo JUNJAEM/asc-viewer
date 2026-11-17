@@ -420,7 +420,7 @@ var BP={},ORD=[],FIRSTHIT="",PANELS={},BOXP={};   // PANELS·BOXP: 긴급양하 
 // (tools/pick_colors.py: CIEDE2000 + 적록 색약 시뮬레이션 + 선적항 흑백 띠와의 거리로 계산, 2·3개는 가장 익숙한 노랑·파랑·빨강)
 // 노랑 파랑 빨강 청록 분홍 주황 초록 보라 연두 하늘 갈색 살구
 var PAL=["#ffeb00","#2f7bff","#ff4136","#19c2b0","#ff85e0","#ff9f1a","#2ecc40","#a66bff","#c3f53c","#5fd8ff","#b98555","#ffd0b0"];
-// 선적항 고정 색 (준재님 지정): 북항 PUS = 파랑, 신항 PNC = 노랑. 그 밖은 회색.
+// 고정 색 (준재님 지정): 북항 PUS = 파랑, 신항 PNC = 노랑 — 선적항(POL)일 때도 양하항(POD)일 때도 같은 색. 그 밖의 선적항은 회색.
 // 파랑·노랑은 선적항 전용이라 양하항 색에서는 뺌 → 양하항은 빨강 청록 분홍 주황 초록 보라 연두 하늘 갈색 살구 순서
 var POLFIX={PUS:"#2f7bff",PNC:"#ffeb00"},POLGR=["#8c8c8c","#d9d9d9","#4d4d4d","#b3b3b3"];
 var CUSTOM={};try{CUSTOM=JSON.parse(localStorage.getItem("ascPortColors")||"{}")||{}}catch(_){CUSTOM={}}
@@ -567,7 +567,7 @@ function render(){
   B.forEach(function(b){var c=CUSTOM[b.pol]||POLFIX[b.pol];if(c)taken[c.toLowerCase()]=1});
   Object.keys(POLFIX).forEach(function(k){taken[POLFIX[k]]=1});   // 파랑·노랑은 선적항 전용 — 북항·신항 플랜에서 양하항 색이 서로 같게
   free=free.filter(function(c){return !taken[c]});
-  order.forEach(function(k,i){hex[k]=CUSTOM[k]||free.shift()||PAL[i%PAL.length]});
+  order.forEach(function(k,i){hex[k]=CUSTOM[k]||POLFIX[k]||free.shift()||PAL[i%PAL.length]});   // PUS·PNC 는 양하항일 때도 고정 색
   order.forEach(function(k){col[k]="--c:"+hex[k]+";--ck:"+ink(hex[k])});
   var PP=st.color==="podpol", pols={}, polOrder=[];
   if(PP){B.forEach(function(b){var g=pols[b.pol];if(!g){g=pols[b.pol]={n20:0,n40:0,kg:0};polOrder.push(b.pol)}
