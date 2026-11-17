@@ -411,17 +411,7 @@ header.win .body{background:linear-gradient(#f7faff,#e7eef8)}
 .shot{position:absolute;left:-99999px;top:0;width:max-content;background:#fff;font-family:var(--sans);font-size:13px;line-height:1.4;color:#000}
 .shot .gpx{flex-direction:row}.shot .gi{display:block;width:292px;border-top:0;border-right:1px solid #c9d3e2;align-self:flex-start}
 #imgBtn{font:inherit;font-size:12px;font-weight:700;padding:1px 9px;margin-right:6px;cursor:pointer;border:1px solid var(--edge);background:var(--chrome);color:var(--fg);border-radius:3px;white-space:nowrap}
-/* 처음 화면: 예시 없이 비워 두고 'ASC 파일 열기'만 크게 */
-#start{display:none}
-body.empty #start{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:56vh;margin-top:12px;padding:24px 16px;
-  border:2px dashed #6f8fbd;border-radius:14px;background:rgba(255,255,255,.4);text-align:center}
-#startBtn{font:inherit;font-size:22px;font-weight:700;padding:16px 38px;border-radius:10px;cursor:pointer;color:#fff;border:1px solid #0b3f94;
-  background:linear-gradient(#5b9bf0,#2468d6 50%,#1757c4 52%,#3f83e6);text-shadow:0 1px 2px rgba(0,20,60,.6);box-shadow:0 6px 18px rgba(20,60,130,.35);animation:stp 1.8s ease-in-out infinite}
-#startBtn:hover{filter:brightness(1.08)}
-@keyframes stp{0%,100%{box-shadow:0 6px 18px rgba(20,60,130,.35),0 0 0 0 rgba(36,104,214,.55)}50%{box-shadow:0 6px 18px rgba(20,60,130,.35),0 0 0 14px rgba(36,104,214,0)}}
-@media (prefers-reduced-motion:reduce){#startBtn{animation:none}}
-#start .s1{margin:6px 0 0;font-size:16px;font-weight:700;color:#12305f}
-#start .s2{margin:0;font-size:12.5px;color:var(--fg2);max-width:420px}
+/* 처음 화면: 예시 없이 비워 둠. 위쪽 IMPORT PLAN 버튼만 파랗게 강조 */
 body.empty #sumWin,body.empty .tools,body.empty .legend,body.empty #gpWin,body.empty #edWin,body.empty #edBtn,body.empty #saveBtn{display:none!important}
 body.empty #openBtn{color:#fff;border-color:#0b3f94;background:linear-gradient(#5b9bf0,#2468d6 50%,#1757c4 52%,#3f83e6);text-shadow:0 1px 2px rgba(0,20,60,.6)}
 .cr{margin-top:26px;text-align:center;font-size:11px;letter-spacing:.18em;text-transform:lowercase;color:rgba(20,45,90,.5);user-select:none;-webkit-user-select:none}
@@ -436,14 +426,11 @@ body.static .cr{display:none}
       <button class="btn" id="edBtn" type="button" aria-pressed="false" title="컨테이너 목록(Editor)과 집계표(Pivot) 창을 켜고 꺼요 (Ctrl + E)">EDITOR / PIVOT</button>
       <button class="btn" id="saveBtn" type="button" hidden>ASC 저장</button>
       <button class="btn" id="instBtn" type="button" hidden title="이 기기에 앱으로 설치해요 (홈 화면에 아이콘이 생겨요)">앱 설치</button>
-      <button class="btn" id="openBtn" type="button">ASC · EDI 파일 열기</button>
+      <button class="btn" id="openBtn" type="button" title="ASC · EDI 플랜 파일을 열어요 (파일을 화면에 끌어다 놓아도 돼요)">IMPORT PLAN</button>
       <input type="file" id="file" accept="application/octet-stream,text/plain,.asc,.edi" hidden>
     </div>
   </header>
   <div class="note" id="note" hidden></div>
-  <section id="start"><button type="button" id="startBtn">ASC · EDI 파일 열기</button>
-    <p class="s1">여기부터 시작하세요</p>
-    <p class="s2">파일을 이 화면에 끌어다 놓아도 열려요. 파일은 이 기기 안에서만 읽고 어디에도 올리지 않아요.</p></section>
   <section class="win" id="sumWin"><div class="tb">Summary</div><div class="body" id="sum"></div>
     <div class="rz rzl" data-sz="l" title="끌어서 너비 조절 (더블클릭: 원래대로)"></div><div class="rz rzr" data-sz="r" title="끌어서 너비 조절 (더블클릭: 원래대로)"></div><div class="rz rzb" data-sz="b" title="끌어서 높이 조절 (더블클릭: 원래대로)"></div><div class="rz rzc" data-sz="c" title="끌어서 크기 조절 (더블클릭: 원래대로)"></div></section>
   <div class="tools">
@@ -1452,7 +1439,6 @@ var E=window.__ASC__;
 if(E&&E.b64){var bin=atob(E.b64),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
   loadBytes(u,E.name||"plan.asc")}
 if(!st.plan)document.body.classList.add("empty");   // 처음 화면은 비워 둠 (예시 플랜을 보여 주지 않음)
-$("startBtn").onclick=function(){$("file").click()};
 // ---------- 앱(설치판): 깃허브 페이지에서만 켜짐 (manifest 가 연결돼 있을 때) ----------
 // 안드로이드 크롬: '앱 설치' 버튼 → 홈 화면 아이콘. 설치하면 아웃룩 등에서 .asc 를 '공유 → PLAN VIEWER'로 바로 열 수 있음.
 if(!window.__STATIC__&&document.querySelector('link[rel="manifest"]')&&"serviceWorker" in navigator){
