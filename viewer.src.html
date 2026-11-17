@@ -207,6 +207,14 @@ i.swc{display:block;align-self:stretch}
 #sheet dd.dgv,.sd dd.dgv{color:var(--warn)}
 body.drag{outline:3px dashed var(--num);outline-offset:-6px}
 .emp{display:none}
+/* 찾기 창 (Ctrl+F) */
+#fbox{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));z-index:40;display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;
+  max-width:calc(100vw - 32px);padding:8px 10px;background:linear-gradient(#f7faff,#e3ebf6);border:1px solid #5d7fae;border-radius:8px;box-shadow:0 8px 24px rgba(0,20,60,.4);font-size:12.5px}
+#fbox b{font-size:12.5px}
+#fbox #q{width:170px;padding:4px 7px}
+#fbox #qn{font-size:12px;min-width:0}
+#fbox #fX{font:inherit;font-weight:700;border:1px solid #707f96;border-radius:3px;background:var(--btn,#eee);width:24px;height:24px;cursor:pointer;padding:0}
+body.static #fbox{display:none}
 /* 폰: Bay Plan 창은 화면 가득 */
 #bw.full{display:block;padding:0}
 #bw.full .bwin{position:absolute;left:0;top:0;width:100%!important;height:100%!important;max-width:none;max-height:none;border-radius:0;border:0}
@@ -345,7 +353,7 @@ header.win .body{background:linear-gradient(#f7faff,#e7eef8)}
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
-      <button class="btn" id="edBtn" type="button" aria-pressed="false" title="컨테이너 목록(Editor)과 집계표(Pivot) 창을 켜고 꺼요">EDITOR / PIVOT</button>
+      <button class="btn" id="edBtn" type="button" aria-pressed="false" title="컨테이너 목록(Editor)과 집계표(Pivot) 창을 켜고 꺼요 (Ctrl + E)">EDITOR / PIVOT</button>
       <button class="btn" id="saveBtn" type="button" hidden>ASC 저장</button>
       <button class="btn" id="openBtn" type="button">ASC 파일 열기</button>
       <input type="file" id="file" hidden>
@@ -356,9 +364,7 @@ header.win .body{background:linear-gradient(#f7faff,#e7eef8)}
   <div class="tools">
     <label for="ship" id="shipL">선박</label>
     <select id="ship"></select>
-    <label for="q">컨테이너 번호</label>
-    <input id="q" type="search" placeholder="예: 8172320" autocomplete="off">
-    <span id="qn"></span>
+    <button type="button" class="x" id="findBtn" title="컨테이너 번호 찾기 (Ctrl + F)">찾기</button>
   </div>
   <div class="legend">
     <span><i class="lg">×</i>옆 베이 40'가 차지한 칸</span>
@@ -392,6 +398,9 @@ header.win .body{background:linear-gradient(#f7faff,#e7eef8)}
   <div class="bwb" id="bwB"></div>
   <div class="bwf" id="bwF"></div>
 </div></div>
+<div id="fbox" hidden role="search"><b>컨테이너 찾기</b>
+  <input id="q" type="search" placeholder="번호 일부 (예: 8172320)" autocomplete="off" aria-label="컨테이너 번호">
+  <span id="qn"></span><button type="button" id="fX" aria-label="닫기" title="닫기 (Ctrl + F 또는 Esc)">×</button></div>
 <div id="sheet" hidden><div class="edt"><span>Container Editor</span><small>보기 전용</small></div><div class="in">
   <div class="cn" id="sCn"></div><dl id="sDl"></dl><div id="eMsg"></div>
   <button class="x" id="sX" type="button">닫기</button>
@@ -1142,6 +1151,17 @@ $("bwN").onclick=function(){stepBay(-1)};
 document.addEventListener("keydown",function(e){if(!st.open||/^(INPUT|SELECT)$/.test(e.target.tagName))return;
   if(e.key==="Escape")closeBay();else if(e.key==="ArrowLeft")stepBay(1);else if(e.key==="ArrowRight")stepBay(-1)});
 $("q").addEventListener("keydown",function(e){if(e.key==="Enter"&&FIRSTHIT)openBay(FIRSTHIT)});
+// 찾기 창: Ctrl+F 로 열고 닫음(닫으면 검색도 지움), Ctrl+E = EDITOR / PIVOT 켜고 끄기
+function findBox(on){var f=$("fbox");if(on==null)on=f.hidden;f.hidden=!on;
+  if(on){$("q").focus();$("q").select()}else{$("q").value="";if(st.q){st.q="";render()}$("q").blur()}}
+$("findBtn").onclick=function(){findBox()};$("fX").onclick=function(){findBox(false)};
+document.addEventListener("keydown",function(e){
+  if(window.__STATIC__)return;
+  if((e.ctrlKey||e.metaKey)&&!e.altKey&&!e.shiftKey){var k=e.key.toLowerCase();
+    if(k==="f"){e.preventDefault();findBox()}
+    else if(k==="e"){e.preventDefault();$("edBtn").click()}}
+  else if(e.key==="Escape"&&!$("fbox").hidden&&document.activeElement===$("q")){e.stopPropagation();findBox(false)}
+},true);
 $("sX").onclick=function(){st.sel=-1;$("sheet").hidden=true;render()};
 $("q").addEventListener("input",function(e){st.q=e.target.value.trim().toUpperCase();render()});
 

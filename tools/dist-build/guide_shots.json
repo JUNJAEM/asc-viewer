@@ -2,7 +2,7 @@
  "main": {
   "w": 1300,
   "h": 700,
-  "js": "var m=document.querySelectorAll('.mini');CO([['#openBtn','① 다른 ASC 파일을 직접 열 때',-250,-6],[document.querySelector('.chip .swc'),'② 색 네모 = 포트 색 바꾸기',-10,34],[document.querySelectorAll('.chipb')[1],'③ 포트 이름 = 그 포트만 진하게 보기',10,34],['#ship','④ 선박이 다르게 잡혔으면 여기서 고르기',-36,38],['#q','⑤ 컨테이너 번호로 찾기',250,-4],['#lay','⑥ 베이 배열: 한 줄 / 여러 줄(CASP)',-290,-40],['.zoom','⑦ 확대·축소 (Ctrl + 휠)',-80,-78],[m[6],'⑧ 베이를 <u>더블클릭</u>하면<br>Bay Plan 창이 떠요',-60,-62,2],['.rzc','⑨ 가장자리·모서리를 끌면 창 크기 조절',-290,-44,1]])"
+  "js": "var m=document.querySelectorAll('.mini');CO([['#openBtn','① 다른 ASC 파일을 직접 열 때',-250,-6],[document.querySelector('.chip .swc'),'② 색 네모 = 포트 색 바꾸기',-10,34],[document.querySelectorAll('.chipb')[1],'③ 포트 이름 = 그 포트만 진하게 보기',10,34],['#ship','④ 선박이 다르게 잡혔으면 여기서 고르기',-36,38],['#findBtn','⑤ 컨테이너 번호 찾기 (Ctrl + F)',80,-4],['#lay','⑥ 베이 배열: 한 줄 / 여러 줄(CASP)',-290,-40],['.zoom','⑦ 확대·축소 (Ctrl + 휠)',-80,-78],[m[6],'⑧ 베이를 <u>더블클릭</u>하면<br>Bay Plan 창이 떠요',-60,-62,2],['.rzc','⑨ 가장자리·모서리를 끌면 창 크기 조절',-290,-44,1]])"
  },
  "bay": {
   "w": 1300,

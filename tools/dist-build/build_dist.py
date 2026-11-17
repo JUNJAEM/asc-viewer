@@ -107,7 +107,7 @@ kbd{border:1px solid #777;border-radius:3px;padding:0 4px;background:#f2f2f2;fon
 <tr><th>아무것도 안 떠요</th><td>asc-viewer 폴더를 옮기거나 이름을 바꿨는지 확인하고, <kbd>install.bat</kbd>을 다시 더블클릭하세요.</td></tr>
 <tr><th>포트 색이 헷갈려요 / 바꾼 색을 되돌리고 싶어요</th><td>Summary의 <b>색정렬</b> 버튼을 누르세요. 양하항 개수에 맞춰 가장 잘 구분되는 색으로 다시 칠해요. 직접 바꾼 색은 내 PC 브라우저에만 저장돼요.</td></tr>
 <tr><th>화면이 작아요 / 커요</th><td>General Plan 제목줄의 <b>− % +</b> 또는 <kbd>Ctrl</kbd> + 휠. 창 오른쪽 · 아래 가장자리를 끌면 창 크기도 바뀌어요(더블클릭 = 원래대로).</td></tr>
-<tr><th>컨테이너를 찾고 싶어요</th><td><b>컨테이너 번호</b> 칸에 번호 일부만 넣어도 돼요. <kbd>Enter</kbd>를 누르면 그 베이가 열려요.</td></tr>
+<tr><th>컨테이너를 찾고 싶어요</th><td><kbd>Ctrl</kbd> + <kbd>F</kbd>(또는 <b>찾기</b> 버튼)를 누르면 찾기 창이 떠요. 번호 일부만 넣어도 돼요. <kbd>Enter</kbd>를 누르면 그 베이가 열려요.</td></tr>
 </table>
 </div><div>
 <h3 style="margin-top:0">선박 모양이 들어 있는 배 (SKR · HAS 운용 %(n)d척)</h3>
