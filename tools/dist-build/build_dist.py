@@ -11,7 +11,7 @@ for f in ["viewer.src.html", "ships.js", "open-asc.ps1", "install.bat", "uninsta
 
 ships = io.open(os.path.join(V, "ships.js"), encoding="utf-8").read()
 codes = re.findall(r'"?([A-Z0-9]{4})"?:\{"?n"?:"([^"]*)"', ships)
-shiplist = " · ".join("%s (%s)" % (c, n if u"동형선" in n else n.title()) for c, n in codes)
+shiplist = " · ".join(c for c, n in codes)
 def img(k): return "data:image/png;base64," + base64.b64encode(open(os.path.join(SP, "g_%s.png" % k), "rb").read()).decode()
 
 html = u'''<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>ASC 뷰어 사용 설명서</title>
@@ -110,10 +110,9 @@ kbd{border:1px solid #777;border-radius:3px;padding:0 4px;background:#f2f2f2;fon
 <tr><th>컨테이너를 찾고 싶어요</th><td><b>컨테이너 번호</b> 칸에 번호 일부만 넣어도 돼요. <kbd>Enter</kbd>를 누르면 그 베이가 열려요.</td></tr>
 </table>
 </div><div>
-<h3 style="margin-top:0">선박 모양이 들어 있는 배 (대일선 %(n)d척)</h3>
-<p style="margin:0 0 8px">%(ships)s</p>
-<div class="box">동형선은 같은 구조를 써요: HAHP · HAKT · HAXM / HSWH · HKEP · MJEP / HTVY · VTVY · OSVY.<br>
-플랜의 칸이 선박 구조와 3%% 넘게 안 맞으면 구조를 쓰지 않고 실린 칸 기준으로 그려요.</div>
+<h3 style="margin-top:0">선박 모양이 들어 있는 배 (SKR · HAS 운용 %(n)d척)</h3>
+<p style="margin:0 0 8px;font-size:10px;line-height:1.45">%(ships)s</p>
+<div class="box">선박 구조는 cCASP에서 받아 온 거예요. 플랜의 칸이 선박 구조와 3%% 넘게 안 맞으면 구조를 쓰지 않고 실린 칸 기준으로 그려요.</div>
 <h3>칸 표시 한눈에</h3>
 <table>
 <tr><th>가운데 숫자</th><td>무게(톤)</td></tr>
