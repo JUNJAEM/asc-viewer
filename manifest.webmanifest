@@ -1,7 +1,7 @@
 {
  "id": "./",
- "name": "ASC 베이 플랜 뷰어",
- "short_name": "ASC 뷰어",
+ "name": "PLAN VIEWER MADE BY JUNJAE",
+ "short_name": "PLAN VIEWER",
  "description": "CASP 스토이지 플랜(.asc)을 바로 여는 뷰어",
  "lang": "ko",
  "start_url": "./",

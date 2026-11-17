@@ -1,6 +1,6 @@
 <!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="ASC 뷰어"><link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" type="image/png" href="icon-180.png"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#000080"><meta name="mobile-web-app-capable" content="yes"><style>body{margin:0}[hidden]{display:none!important}</style></head><body>
-<title>ASC 베이 플랜 뷰어</title>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="PLAN VIEWER"><link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" type="image/png" href="icon-180.png"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#000080"><meta name="mobile-web-app-capable" content="yes"><style>body{margin:0}[hidden]{display:none!important}</style></head><body>
+<title>PLAN VIEWER MADE BY JUNJAE</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
 /* Layout: CASP 방식 — General Plan(전 베이, 선수가 오른쪽)이 메인. 베이를 더블클릭하면 Bay Plan 창이 위에 뜸. 한 가지 모습으로 고정(밝은 회색 바탕). */
@@ -386,10 +386,25 @@ header.win .body{background:linear-gradient(#f7faff,#e7eef8)}
 .et.pv .tot{background:#edf2f9}
 .pvc{background:linear-gradient(#f7faff,#e7eef8);border-bottom-color:#b9c7dc}
 .rzc,.wr.se{opacity:.7}
+/* 처음 화면: 예시 없이 비워 두고 'ASC 파일 열기'만 크게 */
+#start{display:none}
+body.empty #start{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:56vh;margin-top:12px;padding:24px 16px;
+  border:2px dashed #6f8fbd;border-radius:14px;background:rgba(255,255,255,.4);text-align:center}
+#startBtn{font:inherit;font-size:22px;font-weight:700;padding:16px 38px;border-radius:10px;cursor:pointer;color:#fff;border:1px solid #0b3f94;
+  background:linear-gradient(#5b9bf0,#2468d6 50%,#1757c4 52%,#3f83e6);text-shadow:0 1px 2px rgba(0,20,60,.6);box-shadow:0 6px 18px rgba(20,60,130,.35);animation:stp 1.8s ease-in-out infinite}
+#startBtn:hover{filter:brightness(1.08)}
+@keyframes stp{0%,100%{box-shadow:0 6px 18px rgba(20,60,130,.35),0 0 0 0 rgba(36,104,214,.55)}50%{box-shadow:0 6px 18px rgba(20,60,130,.35),0 0 0 14px rgba(36,104,214,0)}}
+@media (prefers-reduced-motion:reduce){#startBtn{animation:none}}
+#start .s1{margin:6px 0 0;font-size:16px;font-weight:700;color:#12305f}
+#start .s2{margin:0;font-size:12.5px;color:var(--fg2);max-width:420px}
+body.empty #sumWin,body.empty .tools,body.empty .legend,body.empty #gpWin,body.empty #edWin,body.empty #edBtn,body.empty #saveBtn{display:none!important}
+body.empty #openBtn{color:#fff;border-color:#0b3f94;background:linear-gradient(#5b9bf0,#2468d6 50%,#1757c4 52%,#3f83e6);text-shadow:0 1px 2px rgba(0,20,60,.6)}
+.cr{margin-top:26px;text-align:center;font-size:11px;letter-spacing:.18em;text-transform:lowercase;color:rgba(20,45,90,.5);user-select:none;-webkit-user-select:none}
+body.static .cr{display:none}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">ASC 베이 플랜 <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-17 22:38 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-17 22:49 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -401,6 +416,9 @@ header.win .body{background:linear-gradient(#f7faff,#e7eef8)}
     </div>
   </header>
   <div class="note" id="note" hidden></div>
+  <section id="start"><button type="button" id="startBtn">ASC 파일 열기</button>
+    <p class="s1">여기부터 시작하세요</p>
+    <p class="s2">파일을 이 화면에 끌어다 놓아도 열려요. 파일은 이 기기 안에서만 읽고 어디에도 올리지 않아요.</p></section>
   <section class="win" id="sumWin"><div class="tb">Summary</div><div class="body" id="sum"></div>
     <div class="rz rzl" data-sz="l" title="끌어서 너비 조절 (더블클릭: 원래대로)"></div><div class="rz rzr" data-sz="r" title="끌어서 너비 조절 (더블클릭: 원래대로)"></div><div class="rz rzb" data-sz="b" title="끌어서 높이 조절 (더블클릭: 원래대로)"></div><div class="rz rzc" data-sz="c" title="끌어서 크기 조절 (더블클릭: 원래대로)"></div></section>
   <div class="tools">
@@ -454,6 +472,7 @@ header.win .body{background:linear-gradient(#f7faff,#e7eef8)}
 
 <script src="ships.js"></script>
 <script src="mail-config.js"></script>
+<div class="cr">copyright by junjae</div>
 <script>
 /*__ASC_DATA__*/
 (function(){
@@ -1112,8 +1131,9 @@ function load(text,name){
   var P;try{P=parseAsc(text)}catch(e){P=null}
   if(!P||!P.boxes.length){var nt=$("note");nt.hidden=false;nt.className="note err";
     nt.textContent="“"+name+"”에서 컨테이너 줄을 찾지 못했어요. CASP ASC($609/$604) 파일이 맞는지 확인해 주세요.";return}
+  document.body.classList.remove("empty");
   st.plan=P;st.name=name;st.example=false;pickShip(detectShip(name));st.filter=null;st.sel=-1;st.pick=[];st.lines=st.orig=st.plan0=null;st.saved="";sumReset();st.open=null;st.q="";$("q").value="";$("sheet").hidden=true;
-  document.title=name.replace(/\.asc$/i,"")+" · ASC 베이 플랜";
+  document.title=name.replace(/\.asc$/i,"")+" · PLAN VIEWER";
   render(); if(typeof autoFit==="function")autoFit(); else toBow();
 }
 function toBow(){var w=$("gpw");w.scrollLeft=w.scrollWidth;w.scrollTop=0}
@@ -1321,6 +1341,7 @@ $("findBtn").onclick=function(){findBox()};$("fX").onclick=function(){findBox(fa
 document.addEventListener("keydown",function(e){
   if(window.__STATIC__)return;
   if((e.ctrlKey||e.metaKey)&&!e.altKey&&!e.shiftKey){var k=e.key.toLowerCase();
+    if(!st.plan)return;
     if(k==="f"){e.preventDefault();findBox()}
     else if(k==="e"){e.preventDefault();$("edBtn").click()}}
   else if(e.key==="Escape"&&!$("fbox").hidden&&document.activeElement===$("q")){e.stopPropagation();findBox(false)}
@@ -1333,7 +1354,8 @@ if(window.__ICON__){$("logo").src=window.__ICON__;$("logo").hidden=false}   // �
 var E=window.__ASC__;
 if(E&&E.b64){var bin=atob(E.b64),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
   loadBytes(u,E.name||"plan.asc")}
-if(!st.plan){st.plan=example();st.name="";st.example=true;render();autoFit()}
+if(!st.plan)document.body.classList.add("empty");   // 처음 화면은 비워 둠 (예시 플랜을 보여 주지 않음)
+$("startBtn").onclick=function(){$("file").click()};
 // ---------- 앱(설치판): 깃허브 페이지에서만 켜짐 (manifest 가 연결돼 있을 때) ----------
 // 안드로이드 크롬: '앱 설치' 버튼 → 홈 화면 아이콘. 설치하면 아웃룩 등에서 .asc 를 '공유 → ASC 뷰어'로 바로 열 수 있음.
 if(!window.__STATIC__&&document.querySelector('link[rel="manifest"]')&&"serviceWorker" in navigator){
