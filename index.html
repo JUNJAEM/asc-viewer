@@ -169,7 +169,7 @@ body.rzing{user-select:none;-webkit-user-select:none}
 .c.dim{opacity:.18}
 .c.hit{outline:3px solid var(--num);outline-offset:1px;z-index:1}
 .c.sel{outline:3px solid #000;outline-offset:1px;z-index:2}
-/* 긴급양하: 고른 컨테이너 (Alt+클릭으로 여러 개) */
+/* 긴급양하: 고른 컨테이너 (Ctrl+클릭으로 여러 개) */
 .c.pk{outline:3px solid #e00000;outline-offset:-3px;z-index:3}
 .c.pk::before{content:"";position:absolute;inset:0;background:rgba(255,0,0,.38);pointer-events:none}
 .m.pk{outline:2px solid #e00000;outline-offset:-1px;position:relative;z-index:2}
@@ -431,7 +431,7 @@ body.static .cr{display:none}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-18 08:52 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-18 08:56 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -486,17 +486,7 @@ body.static .cr{display:none}
 </div></div>
 <div id="help" hidden><div class="win hwin" role="dialog" aria-label="도움말">
   <div class="tb">도움말 · 단축키<span class="sp"></span><button type="button" id="hX" aria-label="닫기">×</button></div>
-  <div class="body"><table>
-    <tr><td><kbd>F1</kbd></td><td>도움말 열기 · 닫기</td></tr>
-    <tr><td><kbd>Alt</kbd> + <kbd>E</kbd></td><td>EDITOR / PIVOT 켜기 · 끄기</td></tr>
-    <tr><td><kbd>Alt</kbd> + <kbd>F</kbd></td><td>컨테이너 찾기 열기 · 닫기</td></tr>
-    <tr><td><kbd>Alt</kbd> + 클릭</td><td>컨테이너 여러 개 고르기 (다시 누르면 빨간 표식 지우기)</td></tr>
-    <tr><td><kbd>Shift</kbd> + 클릭</td><td>Editor 목록에서 범위로 고르기 · 열 제목은 여러 열 정렬</td></tr>
-    <tr><td><kbd>Alt</kbd> + 휠</td><td>General Plan 확대 · 축소</td></tr>
-    <tr><td>더블클릭</td><td>베이를 Bay Plan 창으로 열기</td></tr>
-    <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>Bay Plan 창에서 옆 베이로 넘기기</td></tr>
-    <tr><td><kbd>Enter</kbd></td><td>찾은 컨테이너의 베이 열기 · 고친 값 반영</td></tr>
-    <tr><td><kbd>Esc</kbd></td><td>열려 있는 창 닫기</td></tr>
+  <div class="body"><table id="helpT">
   </table></div></div></div>
 <div id="fbox" hidden role="search"><b>컨테이너 찾기</b>
   <input id="q" type="search" placeholder="번호 일부 (예: 8172320)" autocomplete="off" aria-label="컨테이너 번호">
@@ -831,7 +821,7 @@ function drawWin(){
   pickBar();
 }
 // ---------- Editor(목록) / Pivot — cCASP Stowage Edit · Pivot 과 같은 쓰임 ----------
-// Editor: 열 제목 = 정렬(Shift+클릭 = 여러 열), 둘째 줄 = 조건, 줄 클릭 = 고르기(Alt 여러 개), 더블클릭 = 그 베이 열기
+// Editor: 열 제목 = 정렬(Shift+클릭 = 여러 열), 둘째 줄 = 조건, 줄 클릭 = 고르기(Ctrl 여러 개), 더블클릭 = 그 베이 열기
 // Pivot : 행·열 항목과 값을 골라 집계, 칸을 누르면 그 컨테이너들이 골라짐
 var ES={on:false,tab:"E",sort:[],flt:{},fade:false,pr:"pod",pc:"type",pv:"van"};
 try{ES.on=localStorage.getItem("ascEdOn")==="1"}catch(_){}
@@ -933,7 +923,7 @@ function edDraw(){
       edDraw();return}
     if(tr){var bi=+tr.dataset.i;
       var off2=false;
-      if(e.altKey||e.metaKey){var x=st.pick.indexOf(bi);if(x<0)st.pick.push(bi);else{st.pick.splice(x,1);off2=true}}
+      if(e.ctrlKey||e.metaKey){var x=st.pick.indexOf(bi);if(x<0)st.pick.push(bi);else{st.pick.splice(x,1);off2=true}}
       else if(e.shiftKey&&st.sel>=0){var ids=[].map.call($("edTb").querySelectorAll("tr[data-i]"),function(r){return +r.dataset.i}),a=ids.indexOf(st.sel),b2=ids.indexOf(bi);
         if(a>=0&&b2>=0)st.pick=ids.slice(Math.min(a,b2),Math.max(a,b2)+1);else st.pick=[bi]}
       else st.pick=[bi];
@@ -953,7 +943,7 @@ function pickBar(){
   var f=$("bwF"), keep=f.querySelector(".ok");
   f.innerHTML=(n?'<span>고른 컨테이너 '+n+'개:</span><span class="pkl">'+st.pick.map(function(i){return esc((B[i]||{}).cntr||"?")}).join(", ")+'</span><button type="button" id="pkC">선택 지우기</button>'
     :(TOUCH?'<span>칸을 누르면 고르고, <b>여러 개 고르기</b>를 켜면 누르는 대로 여러 개 골라요 (다른 베이로 넘어가도 유지돼요).</span>'
-      :'<span>칸을 누르면 고르고, <b>Alt</b>를 누른 채 누르면 여러 개 골라요 (다른 베이로 넘어가도 유지돼요).</span>'));
+      :'<span>칸을 누르면 고르고, <b>Ctrl</b>을 누른 채 누르면 여러 개 골라요 (다른 베이로 넘어가도 유지돼요).</span>'));
   if(keep&&n)f.appendChild(keep);
 }
 function svcOf(){
@@ -1243,16 +1233,16 @@ document.addEventListener("drop",function(e){e.preventDefault();document.body.cl
   var f=e.dataTransfer&&e.dataTransfer.files[0];if(f)readFile(f)});
 document.addEventListener("click",function(e){
   var c=e.target.closest(".c.b"),ch=e.target.closest(".chipb"),mi=e.target.closest(".mini"),mc=e.target.closest(".m.b");
-  if(mc&&(e.altKey||e.metaKey)&&mc.dataset.i!=null){   // General Plan: Alt+클릭 = 표식 넣기·지우기 (Bay Plan 과 같음)
+  if(mc&&(e.ctrlKey||e.metaKey)&&mc.dataset.i!=null){   // General Plan: Ctrl+클릭 = 표식 넣기·지우기 (Bay Plan 과 같음)
     var gi=+mc.dataset.i,gk=st.pick.indexOf(gi);
     if(gk<0){st.pick.push(gi);showBox(gi)}else{st.pick.splice(gk,1);unmark(gi)}
     render();return}
   if(c){var ci=+c.dataset.i;
     var off=false;
-    if(e.altKey||e.metaKey||MULTI){var k=st.pick.indexOf(ci);if(k<0)st.pick.push(ci);else{st.pick.splice(k,1);off=true}}
+    if(e.ctrlKey||e.metaKey||MULTI){var k=st.pick.indexOf(ci);if(k<0)st.pick.push(ci);else{st.pick.splice(k,1);off=true}}
     else st.pick=[ci];
     if(off)unmark(ci);else showBox(ci);
-    if(MULTI){st.sel=-1;$("sheet").hidden=true}   // 여러 개 고르는 중에는 상세 창을 띄우지 않음 (고른 목록이 가려져서)   // Alt+클릭으로 표식을 지우면 그 컨테이너의 상세·테두리도 같이 걷음
+    if(MULTI){st.sel=-1;$("sheet").hidden=true}   // 여러 개 고르는 중에는 상세 창을 띄우지 않음 (고른 목록이 가려져서)   // Ctrl+클릭으로 표식을 지우면 그 컨테이너의 상세·테두리도 같이 걷음
     render()}
   else if(e.target.id==="pkC"){st.pick=[];render()}
   else if(mi){if(e.detail===0||TOUCH)openBay(mi.dataset.go)}   // 키보드(Enter)·터치 화면은 한 번에 열림
@@ -1380,9 +1370,9 @@ var sumReset=function(){};
   win.addEventListener("pointerup",end);win.addEventListener("pointercancel",end);
   win.addEventListener("dblclick",function(e){if(e.target.dataset&&e.target.dataset.sz){sumReset();refit()}});
 })();
-var MULTI=false;   // 터치 화면: Alt 대신 '여러 개 고르기' 버튼
+var MULTI=false;   // 터치 화면: Ctrl 대신 '여러 개 고르기' 버튼
 var TOUCH=!!(window.matchMedia&&window.matchMedia("(hover: none)").matches);
-document.addEventListener("dblclick",function(e){var mi=e.target.closest(".mini");if(mi&&!e.altKey&&!e.metaKey)openBay(mi.dataset.go)});
+document.addEventListener("dblclick",function(e){var mi=e.target.closest(".mini");if(mi&&!e.ctrlKey&&!e.metaKey)openBay(mi.dataset.go)});
 $("bwX").onclick=closeBay; $("bwX2").onclick=closeBay;
 $("bwP2").onclick=function(){$("bwP").click()}; $("bwN2").onclick=function(){$("bwN").click()};
 $("bwMul").onclick=function(){MULTI=!MULTI;this.setAttribute("aria-pressed",MULTI);this.textContent=MULTI?"여러 개 고르는 중":"여러 개 고르기"};
@@ -1449,14 +1439,32 @@ $("q").addEventListener("keydown",function(e){if(e.key==="Enter"&&FIRSTHIT)openB
 function findBox(on){var f=$("fbox");if(on==null)on=f.hidden;f.hidden=!on;
   if(on){$("q").focus();$("q").select()}else{$("q").value="";if(st.q){st.q="";render()}$("q").blur()}}
 $("findBtn").onclick=function(){findBox()};$("fX").onclick=function(){findBox(false)};
+// ---------- 단축키 표: 여기 한 줄을 넣으면 단축키가 생기고 도움말(F1)에도 자동으로 나옴 ----------
+// keys = 도움말에 보이는 글, d = 설명. 키보드 단축키는 code(자판 위치)·alt/ctrl/shift·fn(할 일)·plan(플랜이 열려 있을 때만)을 같이 적음.
+// code 가 없는 줄은 마우스 동작처럼 다른 곳에서 처리하는 것 — 도움말에만 나옴.
+var KEYS=[
+  {keys:["F1"],d:"도움말 열기 · 닫기",code:"F1",fn:function(){helpBox()}},
+  {keys:["Alt","E"],d:"EDITOR / PIVOT 켜기 · 끄기",code:"KeyE",alt:1,plan:1,fn:function(){$("edBtn").click()}},
+  {keys:["Alt","F"],d:"컨테이너 찾기 열기 · 닫기",code:"KeyF",alt:1,plan:1,fn:function(){findBox()}},
+  {keys:["Ctrl","클릭"],d:"컨테이너 여러 개 고르기 (다시 누르면 빨간 표식 지우기)"},
+  {keys:["Shift","클릭"],d:"Editor 목록에서 범위로 고르기 · 열 제목은 여러 열 정렬"},
+  {keys:["Alt","휠"],d:"General Plan 확대 · 축소"},
+  {keys:["더블클릭"],d:"베이를 Bay Plan 창으로 열기"},
+  {keys:["←"],or:["→"],d:"Bay Plan 창에서 옆 베이로 넘기기"},
+  {keys:["Enter"],d:"찾은 컨테이너의 베이 열기 · 고친 값 반영"},
+  {keys:["Esc"],d:"열려 있는 창 닫기"}
+];
+function helpDraw(){
+  function kb(a){return a.map(function(x){return /^(클릭|휠|더블클릭)$/.test(x)?x:"<kbd>"+esc(x)+"</kbd>"}).join(" + ")}
+  $("helpT").innerHTML=KEYS.map(function(K){return "<tr><td>"+kb(K.keys)+(K.or?" "+kb(K.or):"")+"</td><td>"+esc(K.d)+"</td></tr>"}).join("")}
+helpDraw();
 document.addEventListener("keydown",function(e){
   if(window.__STATIC__)return;
-  if(e.key==="F1"){e.preventDefault();helpBox();return}
-  if(e.key==="Alt"){e.preventDefault();return}   // Alt 만 누르면 브라우저 메뉴로 넘어가는 것을 막음 (Alt+클릭을 쓰므로)
-  if(e.altKey&&!e.ctrlKey&&!e.metaKey&&!e.shiftKey){var k=e.code;   // 한글 입력 상태에서도 되게 자판 위치로 봄
-    if(k!=="KeyF"&&k!=="KeyE")return;
-    e.preventDefault();if(!st.plan)return;
-    if(k==="KeyF")findBox();else $("edBtn").click()}
+  if(e.key==="Alt"){e.preventDefault();return}   // Alt 만 눌렀다 떼면 브라우저 메뉴로 넘어가는 것을 막음
+  for(var ki=0;ki<KEYS.length;ki++){var K=KEYS[ki];   // 단축키 표에서 찾아 실행 (한글 입력 상태에서도 되게 자판 위치 e.code 로 봄)
+    if(K.code&&K.code===e.code&&!!K.alt===e.altKey&&!!K.ctrl===(e.ctrlKey||e.metaKey)&&!!K.shift===e.shiftKey){
+      e.preventDefault();if(K.plan&&!st.plan)return;K.fn();return}}
+  if(e.key==="Escape"&&!$("help").hidden){e.stopPropagation();helpBox(false)}
   else if(e.key==="Escape"&&!$("help").hidden){e.stopPropagation();helpBox(false)}
   else if(e.key==="Escape"&&!$("fbox").hidden&&document.activeElement===$("q")){e.stopPropagation();findBox(false)}
 },true);
