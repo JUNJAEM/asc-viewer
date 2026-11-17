@@ -378,7 +378,7 @@ header.win .body{background:linear-gradient(#f7faff,#e7eef8)}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">ASC 베이 플랜 <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-17 17:47 판</small></div>
+  <header class="win"><div class="tb">ASC 베이 플랜 <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-17 17:51 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -438,6 +438,7 @@ header.win .body{background:linear-gradient(#f7faff,#e7eef8)}
 </div></div>
 
 <script src="ships.js"></script>
+<script src="mail-config.js"></script>
 <script>
 /*__ASC_DATA__*/
 (function(){
@@ -882,6 +883,14 @@ function bayPng(tt,lg){   // 고른 컨테이너가 있는 베이들을 그림�
   g.fillText("빗금 = 40'",lx,ly);
   return {b64:cv.toDataURL("image/png").split(",")[1],w:W,h:H};
 }
+// 받는 사람·참조 줄: mail-config.js (window.ASC_MAIL) 의 고정값. 그 파일이 없으면(깃허브 페이지 등) 비워 둠 — 메일 주소를 공개 코드에 넣지 않으려고.
+function mailTo(kind){
+  var c=(window.ASC_MAIL||{})[kind]||{},out=[];
+  function line(L){return (L||[]).map(function(x){var m=/^(.*)<([^>]+)>\s*$/.exec(x),n=m?m[1].trim():"";
+    return m?(n?(/^[\x20-\x7e]*$/.test(n)?n:"=?UTF-8?B?"+btoa(unescape(encodeURIComponent(n)))+"?=")+" <"+m[2].trim()+">":m[2].trim()):x.trim()}).join(", ")}
+  if(c.to&&c.to.length)out.push("To: "+line(c.to)); if(c.cc&&c.cc.length)out.push("Cc: "+line(c.cc));
+  return out;
+}
 // ---------- COD NOTICE 메일: POD를 바꾼 컨테이너를 골라서 만듦 ----------
 // 본문: POL/POD(원래) · CNTR · POSITION · COD TO(원래 POD → 바뀐 POD) + 그 베이 그림, 반영된 플랜(ASC)은 첨부.
 // 받는 사람은 항차마다 달라서 비워 둠(참조에 부산운항팀만). 고른 것 중 POD를 안 바꾼 컨테이너가 있으면 만들지 않음.
@@ -914,19 +923,19 @@ function codMail(){
   var u8=function(x){return btoa(unescape(encodeURIComponent(x)))}, hw=function(x){return /^[\x20-\x7e]*$/.test(x)?x:"=?UTF-8?B?"+u8(x)+"?="};
   var w76=function(x){return x.replace(/.{76}/g,"$&\r\n")}, t=Date.now(), M="----=_ascviewer_m_"+t, R="----=_ascviewer_r_"+t;
   var an=(st.name||"plan.asc").replace(/[\r\n"]/g,""), asc=btoa(st.lines.join(st.eol));   // 반영된 플랜: 원래 파일 이름 그대로 첨부
-  var eml=["Cc: "+hw("부산운항팀 운항담당")+" <bvot@sinokor.co.kr>","Subject: "+hw(subj),"X-Unsent: 1","MIME-Version: 1.0",
+  var eml=mailTo("cod").concat(["Subject: "+hw(subj),"X-Unsent: 1","MIME-Version: 1.0",
     'Content-Type: multipart/mixed; boundary="'+M+'"',"",
     "--"+M,'Content-Type: multipart/related; boundary="'+R+'"; type="text/html"',"",
     "--"+R,'Content-Type: text/html; charset="utf-8"',"Content-Transfer-Encoding: base64","",w76(u8(html)),"",
     "--"+R,'Content-Type: image/png; name="bayplan.png"',"Content-Transfer-Encoding: base64","Content-ID: <bayplan@ascviewer>",
     'Content-Disposition: inline; filename="bayplan.png"',"",w76(img.b64),"","--"+R+"--","",
     "--"+M,'Content-Type: application/octet-stream; name="'+hw(an)+'"',"Content-Transfer-Encoding: base64",
-    'Content-Disposition: attachment; filename="'+hw(an)+'"',"",w76(asc),"","--"+M+"--",""].join("\r\n");
+    'Content-Disposition: attachment; filename="'+hw(an)+'"',"",w76(asc),"","--"+M+"--",""]).join("\r\n");
   var a=document.createElement("a"), url=URL.createObjectURL(new Blob([eml],{type:"message/rfc822"}));
   a.href=url;a.download="COD_"+(st.ship||"")+"_"+voy+".eml";document.body.appendChild(a);a.click();
   setTimeout(function(){URL.revokeObjectURL(url);a.remove()},4000);
   var o2=f.querySelector(".ok");if(!o2){o2=document.createElement("div");o2.className="ok";f.appendChild(o2)}
-  o2.textContent="COD 메일 파일을 받았어요. 다운로드 목록에서 열면 아웃룩 새 메일 창이 떠요. 받는 사람을 넣고 보내세요 (반영된 플랜 ASC도 첨부돼 있어요).";
+  o2.textContent="COD 메일 파일을 받았어요. 다운로드 목록에서 열면 아웃룩 새 메일 창이 떠요"+(window.ASC_MAIL?"":" (받는 사람은 직접 넣어 주세요)")+". 반영된 플랜 ASC도 첨부돼 있어요.";
 }
 function urgentMail(){
   if(!st.pick.length)return;
@@ -955,13 +964,11 @@ function urgentMail(){
     '<p style="margin:0;'+F+'">==================================================</p></body></html>';
   var u8=function(x){return btoa(unescape(encodeURIComponent(x)))}, hw=function(x){return /^[\x20-\x7e]*$/.test(x)?x:"=?UTF-8?B?"+u8(x)+"?="};
   var w76=function(x){return x.replace(/.{76}/g,"$&\r\n")}, bd="----=_ascviewer_"+Date.now();
-  var eml=["To: bptplan@bptc.co.kr, planner@bptc.co.kr, "+hw("BPT 감만 플래너")+" <plan@bptc.co.kr>",
-    "Cc: "+hw("부산운항팀 운항담당")+" <bvot@sinokor.co.kr>",
-    "Subject: "+hw(subj),"X-Unsent: 1","MIME-Version: 1.0",
+  var eml=mailTo("urgent").concat(["Subject: "+hw(subj),"X-Unsent: 1","MIME-Version: 1.0",
     'Content-Type: multipart/related; boundary="'+bd+'"; type="text/html"',"",
     "--"+bd,'Content-Type: text/html; charset="utf-8"',"Content-Transfer-Encoding: base64","",w76(u8(html)),"",
     "--"+bd,'Content-Type: image/png; name="bayplan.png"',"Content-Transfer-Encoding: base64","Content-ID: <bayplan@ascviewer>",
-    'Content-Disposition: inline; filename="bayplan.png"',"",w76(img.b64),"","--"+bd+"--",""].join("\r\n");
+    'Content-Disposition: inline; filename="bayplan.png"',"",w76(img.b64),"","--"+bd+"--",""]).join("\r\n");
   var a=document.createElement("a"), url=URL.createObjectURL(new Blob([eml],{type:"message/rfc822"}));
   a.href=url;a.download="긴급양하_"+(st.ship||"")+"_"+voy+".eml";document.body.appendChild(a);a.click();
   setTimeout(function(){URL.revokeObjectURL(url);a.remove()},4000);

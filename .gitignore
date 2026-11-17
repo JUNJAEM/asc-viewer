@@ -13,3 +13,5 @@ __pycache__/
 tools/ccasp/
 # 전산 접속 경로가 들어 있는 갱신 스크립트 (이 PC 전용)
 tools/update_ports.py
+# 메일 받는 사람 주소 (공개 저장소에 올리지 않음)
+mail-config.js

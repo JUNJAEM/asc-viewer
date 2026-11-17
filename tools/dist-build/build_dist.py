@@ -6,7 +6,8 @@ CH = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
 DIST = os.path.join(V, "dist"); PK = os.path.join(DIST, "asc-viewer")
 if os.path.exists(DIST): shutil.rmtree(DIST)
 os.makedirs(PK)
-for f in ["viewer.src.html", "ships.js", "open-asc.ps1", "install.bat", "uninstall.bat"]:
+for f in ["viewer.src.html", "ships.js", "open-asc.ps1", "install.bat", "uninstall.bat", "mail-config.js"]:
+    if not os.path.exists(os.path.join(V, f)): continue   # mail-config.js 는 이 PC 에만 있음(깃허브 제외)
     shutil.copy2(os.path.join(V, f), os.path.join(PK, f))
 
 ships = io.open(os.path.join(V, "ships.js"), encoding="utf-8").read()
@@ -57,6 +58,7 @@ kbd{border:1px solid #777;border-radius:3px;padding:0 4px;background:#f2f2f2;fon
 <div class="row">open-asc.ps1 <span>건드리지 않음</span></div>
 <div class="row">viewer.src.html <span>건드리지 않음</span></div>
 <div class="row">ships.js <span>건드리지 않음 (선박 구조)</span></div>
+<div class="row">mail-config.js <span>메일 받는 사람 고정값</span></div>
 <div class="row">설명서.pdf <span>이 문서</span></div></div>
 "Windows의 PC 보호" 파란 창이 뜨면 <b>추가 정보 → 실행</b>을 누르세요.</li>
 <li><b>검은 창에 <span class="tag">Done.</span> 이 보이면 아무 키나 눌러 닫으세요.</b>

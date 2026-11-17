@@ -16,6 +16,8 @@ if ($Path -and (Test-Path -LiteralPath $Path)) {
 }
 $shipsUrl = ([Uri](Join-Path $dir 'ships.js')).AbsoluteUri
 $tpl = $tpl.Replace('src="ships.js"', 'src="' + $shipsUrl + '"')
+$mailCfg = Join-Path $dir 'mail-config.js'   # fixed mail recipients (not on GitHub); optional
+if (Test-Path $mailCfg) { $tpl = $tpl.Replace('src="mail-config.js"', 'src="' + ([Uri]$mailCfg).AbsoluteUri + '"') }
 $fav = ''
 $ico = Join-Path $dir 'local\icon.png'   # this PC only (not part of the shared viewer)
 if ((Test-Path $ico) -and -not $Static) { $b64i = [Convert]::ToBase64String([IO.File]::ReadAllBytes($ico)); $fav = '<link rel="icon" type="image/png" href="data:image/png;base64,' + $b64i + '"><script>window.__ICON__="data:image/png;base64,' + $b64i + '"</script>' }
