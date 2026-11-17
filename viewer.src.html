@@ -45,7 +45,7 @@ header.win .body{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;bac
 .chipb{font:inherit;display:flex;align-items:center;gap:6px;border:0;background:none;color:var(--fg);padding:2px 8px;cursor:pointer;font-variant-numeric:tabular-nums;font-size:12px}
 .chipb small{color:var(--fg2);font-size:11px}
 .chips .x{padding:2px 8px;font-size:11.5px;margin-left:6px}
-.chips #sortCol{margin:0 4px 0 0;font-weight:700;background:linear-gradient(90deg,#ffeb00 0 25%,#2f7bff 25% 50%,#ff4136 50% 75%,#19c2b0 75%) bottom/100% 4px no-repeat,var(--chrome);padding-bottom:5px}
+.chips #sortCol{margin:0 4px 0 0;font-weight:700;background:linear-gradient(90deg,#ff4136 0 25%,#19c2b0 25% 50%,#ff85e0 50% 75%,#ff9f1a 75%) bottom/100% 4px no-repeat,var(--chrome);padding-bottom:5px}
 .hint{font-size:11.5px;color:var(--fg2);margin-top:6px}
 .tools{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
 .tools label{font-size:12px}
@@ -306,7 +306,7 @@ header.win .body{background:linear-gradient(#f7faff,#e7eef8)}
 #bwM:hover,#saveBtn:hover{background:linear-gradient(#fff,#ffcbc6);border-color:#8c1d16}
 #bwX{background:linear-gradient(#f0b3ad 0,#d9615a 48%,#c13229 52%,#dc6a62 100%);color:#fff;border-color:#7a1c16;font-weight:700;min-width:38px;text-shadow:0 1px 1px rgba(0,0,0,.5)}
 #bwX:hover{background:linear-gradient(#ffc9c4 0,#f07068 48%,#d8382e 52%,#f4837b 100%);border-color:#5e120d}
-.chips #sortCol{background:linear-gradient(90deg,#ffeb00 0 25%,#2f7bff 25% 50%,#ff4136 50% 75%,#19c2b0 75%) bottom/100% 4px no-repeat,var(--btn);border-radius:3px}
+.chips #sortCol{background:linear-gradient(90deg,#ff4136 0 25%,#19c2b0 25% 50%,#ff85e0 50% 75%,#ff9f1a 75%) bottom/100% 4px no-repeat,var(--btn);border-radius:3px}
 /* 입력칸 */
 #ship,#q,.tb select,.pvc select,.ef,.ei{border:1px solid #9aa7ba;border-radius:3px;box-shadow:inset 0 1px 2px rgba(0,0,0,.08);background:#fff}
 #ship:hover,#q:hover,.tb select:hover,.pvc select:hover{border-color:#3c7fb1}
@@ -411,8 +411,9 @@ var BP={},ORD=[],FIRSTHIT="",PANELS={},BOXP={};   // PANELS·BOXP: 긴급양하 
 // (tools/pick_colors.py: CIEDE2000 + 적록 색약 시뮬레이션 + 선적항 흑백 띠와의 거리로 계산, 2·3개는 가장 익숙한 노랑·파랑·빨강)
 // 노랑 파랑 빨강 청록 분홍 주황 초록 보라 연두 하늘 갈색 살구
 var PAL=["#ffeb00","#2f7bff","#ff4136","#19c2b0","#ff85e0","#ff9f1a","#2ecc40","#a66bff","#c3f53c","#5fd8ff","#b98555","#ffd0b0"];
-// 선적항 기본 색: 양하항 색과 겹치지 않게 무채색. 북항 PUS = 검정, 신항 PNC = 흰색, 그 밖은 회색
-var POLFIX={PUS:"#000000",PNC:"#ffffff"},POLGR=["#8c8c8c","#d9d9d9","#4d4d4d","#b3b3b3"];
+// 선적항 고정 색 (준재님 지정): 북항 PUS = 파랑, 신항 PNC = 노랑. 그 밖은 회색.
+// 파랑·노랑은 선적항 전용이라 양하항 색에서는 뺌 → 양하항은 빨강 청록 분홍 주황 초록 보라 연두 하늘 갈색 살구 순서
+var POLFIX={PUS:"#2f7bff",PNC:"#ffeb00"},POLGR=["#8c8c8c","#d9d9d9","#4d4d4d","#b3b3b3"];
 var CUSTOM={};try{CUSTOM=JSON.parse(localStorage.getItem("ascPortColors")||"{}")||{}}catch(_){CUSTOM={}}
 function saveColors(){try{localStorage.setItem("ascPortColors",JSON.stringify(CUSTOM))}catch(_){}}
 function ink(hex){var r=parseInt(hex.substr(1,2),16),g=parseInt(hex.substr(3,2),16),b=parseInt(hex.substr(5,2),16);
@@ -554,6 +555,8 @@ function render(){
   var hex={},hexL={},col={},taken={},free=PAL.slice();
   // 내가 고른 색이 먼저(양하항·선적항 공통), 나머지는 기본 색
   order.forEach(function(k){if(CUSTOM[k])taken[CUSTOM[k].toLowerCase()]=1});
+  B.forEach(function(b){var c=CUSTOM[b.pol]||POLFIX[b.pol];if(c)taken[c.toLowerCase()]=1});
+  Object.keys(POLFIX).forEach(function(k){taken[POLFIX[k]]=1});   // 파랑·노랑은 선적항 전용 — 북항·신항 플랜에서 양하항 색이 서로 같게
   free=free.filter(function(c){return !taken[c]});
   order.forEach(function(k,i){hex[k]=CUSTOM[k]||free.shift()||PAL[i%PAL.length]});
   order.forEach(function(k){col[k]="--c:"+hex[k]+";--ck:"+ink(hex[k])});
@@ -583,7 +586,7 @@ function render(){
     (rot?'<div class="rot">Port Rotation: '+esc(rot)+'</div>':'')+
     '<div class="chips"><button type="button" class="x" id="sortCol" title="양하항 '+order.length+'개에 맞춰 가장 잘 구분되는 색으로 다시 칠해요">색정렬</button><em>POD</em>'+order.map(function(k){return chip(k,k,groups[k])}).join("")+
       '<em>POL</em>'+polOrder.map(function(k){return chip(k,"@"+k,pols[k])}).join("")+'</div>'+
-    '<div class="hint">색정렬 = 양하항 개수에 맞춰 가장 잘 구분되는 색을 기항 순서대로 (선적항은 북항 PUS 검정 · 신항 PNC 흰색). 색 네모 = 색 바꾸기, 포트 이름 = 그 포트만 진하게.</div>';
+    '<div class="hint">색정렬 = 양하항 개수에 맞춰 가장 잘 구분되는 색을 기항 순서대로 (선적항은 북항 PUS 파랑 · 신항 PNC 노랑 고정). 색 네모 = 색 바꾸기, 포트 이름 = 그 포트만 진하게.</div>';
   function chip(k,f,g){return '<span class="chip'+(st.filter===f?' on':'')+'">'+
     '<input type="color" class="swc" id="col-'+esc(f)+'" data-port="'+esc(k)+'" value="'+(f[0]==="@"?hexL[k]:hex[k])+'" aria-label="'+esc(k)+' 색 바꾸기" title="색 바꾸기">'+
     '<button type="button" class="chipb" data-f="'+esc(f)+'" aria-pressed="'+(st.filter===f)+'"><b>'+esc(k)+'</b>'+
@@ -1017,7 +1020,7 @@ document.addEventListener("change",function(e){var t=e.target;
 // 색정렬: 이 플랜의 포트에 직접 고른 색을 지우고 기본 규칙(양하항 개수별 최적 색, 선적항 흑백)으로 다시 칠함
 document.addEventListener("click",function(e){if(e.target.id==="sortCol"&&st.plan){
   st.plan.boxes.forEach(function(b){delete CUSTOM[b.pod];delete CUSTOM[b.pol]});saveColors();st.filter=null;render()}});
-var ZS=[40,50,60,75,100,125,150,200,250,300], zoom=window.innerWidth<600?60:100;
+var ZS=[25,30,40,50,60,75,100,125,150,200,250,300], zoom=window.innerWidth<600?60:100;
 try{var zz=+localStorage.getItem("ascZoom");if(zz>=30&&zz<=400)zoom=zz}catch(_){}
 function setZoom(z){var w=$("gpw"),fx=w.scrollWidth?(w.scrollLeft+w.clientWidth/2)/w.scrollWidth:1,fy=w.scrollHeight?(w.scrollTop+w.clientHeight/2)/w.scrollHeight:0;
   zoom=Math.max(ZS[0],Math.min(ZS[ZS.length-1],z));try{localStorage.setItem("ascZoom",zoom)}catch(_){}
@@ -1036,21 +1039,25 @@ function autoFit(){
   if(!st.plan||window.__STATIC__)return;
   var w=$("gpw"),g=$("gp"),W=window.innerWidth,phone=W<700,want=LAYSET?LAYOUT:(phone?"wrap":"row");
   function lay(v){if(LAYOUT!==v){LAYOUT=v;$("lay").value=v;render()}}
-  function avH(){return w.style.height?w.clientHeight:Math.max(240,window.innerHeight-(w.getBoundingClientRect().top+window.scrollY)-18)}
+  // 쓸 수 있는 높이: PC는 창 아래까지, 폰은 General Plan 을 화면 위로 올렸을 때의 높이(위쪽 요약은 밀어 올려 봄)
+  function avH(){return w.style.height?w.clientHeight:phone?Math.max(300,window.innerHeight-130):Math.max(240,window.innerHeight-(w.getBoundingClientRect().top+window.scrollY)-18)}
   lay(want);setZoom(100);
   var z=100,aw=w.clientWidth-2;
   if(LAYOUT==="row"){
     z=Math.min(aw/g.scrollWidth,avH()/g.scrollHeight)*100;
     if(z<65&&!LAYSET){lay("wrap");setZoom(100)}
   }
-  if(LAYOUT==="wrap"){
-    var gh=g.querySelector(".gh"),c=gh?gh.offsetWidth+6:200,pad2=16;
-    if(phone){z=(aw-pad2)/(2*c)*100;if(z<70)z=Math.min(170,(aw-pad2)/c*100)}
-    else z=Math.min(110,(aw-pad2)/c*100);
+  if(LAYOUT==="wrap"){   // 여러 줄: 모든 베이가 창 안에 한 번에 보이게 — 한 줄에 몇 해치를 놓을 때 가장 크게 보이는지 골라서
+    var ghs=g.querySelectorAll(".gh"),N=ghs.length||1,c=0,h=0,i,pad2=14;
+    for(i=0;i<N;i++){c=Math.max(c,ghs[i].offsetWidth+4);h=Math.max(h,ghs[i].offsetHeight+18)}
+    var ah=avH()-16,best=0;
+    for(var n=1;n<=N;n++){var zz=Math.min((aw-pad2)/(n*c),ah/(Math.ceil(N/n)*h))*100;if(zz>best)best=zz}
+    z=Math.min(phone?170:130,best);
   }
-  z=Math.max(40,Math.min(300,Math.floor(z/5)*5));setZoom(z);
-  if(LAYOUT==="row"){var n=0;while((g.scrollWidth>w.clientWidth+1||(!w.style.height&&g.scrollHeight>avH()+1))&&z>40&&n++<12){z-=5;setZoom(z)}}
+  z=Math.max(ZS[0],Math.min(300,Math.floor(z/5)*5));setZoom(z);
+  var n2=0;while((g.scrollWidth>w.clientWidth+1||(!w.style.height&&g.scrollHeight>avH()+1))&&z>ZS[0]&&n2++<20){z-=5;setZoom(z)}
   AUTOZ=true;toBow();
+  if(phone&&!st.example)$("gpWin").scrollIntoView({block:"start"});   // 폰: 파일을 열면 General Plan 이 바로 보이게
 }
 $("lay").onchange=function(e){LAYOUT=e.target.value;LAYSET=true;try{localStorage.setItem("ascGpLayout",LAYOUT)}catch(_){}render();if(AUTOZ)autoFit();else toBow()};
 $("zO").onclick=function(){AUTOZ=false;stepZoom(-1)}; $("zI").onclick=function(){AUTOZ=false;stepZoom(1)};
