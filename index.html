@@ -91,7 +91,7 @@ body.rzing{user-select:none;-webkit-user-select:none}
 .m .mrr{bottom:0;right:1px;color:var(--ck2)}
 .m.n{visibility:hidden}
 .m.b{background:var(--c)}
-.m.f40{background:repeating-linear-gradient(135deg,rgba(0,0,0,.55) 0 1px,transparent 1px 3px),var(--c)}
+.m.f40{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--ck,#000) 62%,transparent) 0 1px,transparent 1px 3px),var(--c)}
 .m.dim{opacity:.18}
 .mbar{grid-column:1/-1;height:2px;background:var(--edge);margin:3px calc(var(--ms,15px) + 5px) 2px 0}
 .mr,.mt{font-family:Arial,sans-serif;font-size:calc(var(--ms,15px) * .56);color:var(--num);line-height:1;display:flex;align-items:center;justify-content:center;letter-spacing:-.03em}
@@ -128,15 +128,16 @@ body.rzing{user-select:none;-webkit-user-select:none}
 .c.no{visibility:hidden}
 .c.xx{font-size:11px;color:var(--fg)}
 .c.b{background:var(--c);color:var(--ck);cursor:pointer}
-.c.b.f40{background:repeating-linear-gradient(135deg,rgba(0,0,0,.28) 0 1px,transparent 1px 6px),var(--c)}
+.c.b.f40{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--ck,#000) 38%,transparent) 0 1px,transparent 1px 6px),var(--c)}
 .c.b.pp{background:linear-gradient(to bottom,var(--c) 0 60%,var(--c2) 60% 100%)}
-.c.b.pp.f40{background:repeating-linear-gradient(135deg,rgba(0,0,0,.28) 0 1px,transparent 1px 6px),linear-gradient(to bottom,var(--c) 0 60%,var(--c2) 60% 100%)}
 .c.b.pp .p,.c.b.pp .r,.c.b.pp .e{color:var(--ck2);opacity:1}
 .c.b.pp .w{position:absolute;inset:0 0 40% 0;display:flex;align-items:center;justify-content:center}
 .c.b.pp .p{position:absolute;inset:60% 0 0 0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:9.5px;letter-spacing:.02em}
-.c.b.pp.f40{background:repeating-linear-gradient(135deg,rgba(0,0,0,.28) 0 1px,transparent 1px 6px) top/100% 60% no-repeat,linear-gradient(to bottom,var(--c) 0 60%,var(--c2) 60% 100%)}
+.c.b.pp.f40{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--ck,#000) 38%,transparent) 0 1px,transparent 1px 6px) top/100% 60% no-repeat,linear-gradient(to bottom,var(--c) 0 60%,var(--c2) 60% 100%)}
 .m.b.pp{background:linear-gradient(to bottom,var(--c) 0 50%,var(--c2) 50% 100%)}
-.m.b.pp.f40{background:repeating-linear-gradient(135deg,rgba(0,0,0,.55) 0 1px,transparent 1px 3px),linear-gradient(to bottom,var(--c) 0 50%,var(--c2) 50% 100%)}
+.m.b.pp.f40{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--ck,#000) 62%,transparent) 0 1px,transparent 1px 3px) top/100% 50% no-repeat,
+  repeating-linear-gradient(135deg,color-mix(in srgb,var(--ck2,#000) 62%,transparent) 0 1px,transparent 1px 3px) bottom/100% 50% no-repeat,
+  linear-gradient(to bottom,var(--c) 0 50%,var(--c2) 50% 100%)}
 .chips em{font-style:normal;font-weight:700;font-size:11.5px;align-self:center;margin:0 2px 0 6px}
 .c .w{font-size:11.5px}
 .c .p{font-size:8.5px;opacity:.9}
@@ -182,7 +183,7 @@ body.drag{outline:3px dashed var(--num);outline-offset:-6px}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">ASC 베이 플랜 <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-17 14:42 판</small></div>
+  <header class="win"><div class="tb">ASC 베이 플랜 <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-17 14:45 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
