@@ -110,7 +110,23 @@ body.rzing{user-select:none;-webkit-user-select:none}
 .bwin .tb .sp{flex:1}
 .bwin .tb button{font:inherit;font-weight:700;font-size:12px;background:var(--chrome);color:var(--fg);border:1px solid var(--edge);
   box-shadow:inset 1px 1px 0 #fff,inset -1px -1px 0 var(--shade);min-width:26px;height:22px;padding:0 6px;cursor:pointer;border-radius:0}
-.bwb{overflow:auto;padding:10px 12px 12px}
+.bwb{overflow:auto;padding:10px 12px 12px;flex:1 1 auto;min-height:0}
+/* Bay Plan 창 옮기기·크기 조절 (윈도우 창처럼) */
+.bwin{position:relative}
+.bwin .tb{cursor:move;user-select:none;-webkit-user-select:none;touch-action:none}
+.bwin .tb button{cursor:pointer}
+#bw.free{display:block}
+#bw.free .bwin{position:absolute;max-width:none;max-height:none}
+.wr{position:absolute;z-index:6;touch-action:none}
+.wr.n{top:-4px;left:8px;right:8px;height:8px;cursor:ns-resize}
+.wr.s{bottom:-4px;left:8px;right:8px;height:8px;cursor:ns-resize}
+.wr.e{right:-4px;top:8px;bottom:8px;width:8px;cursor:ew-resize}
+.wr.w{left:-4px;top:8px;bottom:8px;width:8px;cursor:ew-resize}
+.wr.nw{left:-5px;top:-5px;width:13px;height:13px;cursor:nwse-resize}
+.wr.ne{right:-5px;top:-5px;width:13px;height:13px;cursor:nesw-resize}
+.wr.sw{left:-5px;bottom:-5px;width:13px;height:13px;cursor:nesw-resize}
+.wr.se{right:-5px;bottom:-5px;width:16px;height:16px;cursor:nwse-resize;
+  background:linear-gradient(135deg,transparent 0 50%,var(--shade) 50% 58%,transparent 58% 68%,var(--shade) 68% 76%,transparent 76% 86%,var(--shade) 86% 94%,transparent 94%)}
 .bwb .bay{max-width:none}
 /* Bay Plan */
 .bays{display:flex;flex-wrap:wrap;gap:14px 26px;align-items:flex-start;padding:8px 10px 10px}
@@ -193,7 +209,7 @@ body.drag{outline:3px dashed var(--num);outline-offset:-6px}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">ASC 베이 플랜 <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-17 15:41 판</small></div>
+  <header class="win"><div class="tb">ASC 베이 플랜 <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-17 16:06 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -232,7 +248,7 @@ body.drag{outline:3px dashed var(--num);outline-offset:-6px}
   <div class="tb"><span id="bwT"></span><small id="bwS"></small><span class="sp"></span>
     <button type="button" id="bwM" title="고른 컨테이너로 BPT 긴급양하 요청 메일을 만들어요" disabled>긴급양하 메일 생성</button>
     <button type="button" id="bwP" aria-label="왼쪽 베이" title="왼쪽 베이 (←)">◀</button><button type="button" id="bwN" aria-label="오른쪽 베이" title="오른쪽 베이 (→)">▶</button>
-    <button type="button" id="bwX" aria-label="닫기" title="닫기 (Esc)">×</button></div>
+    <button type="button" id="bwZ" aria-label="최대화" title="최대화 / 이전 크기 (제목줄 더블클릭)">□</button><button type="button" id="bwX" aria-label="닫기" title="닫기 (Esc)">×</button></div>
   <div class="bwb" id="bwB"></div>
   <div class="bwf" id="bwF"></div>
 </div></div>
@@ -492,7 +508,7 @@ function drawWin(){
   if(!d){st.open=null;w.hidden=true;return}
   $("bwT").textContent="Bay Plan - "+d.name; $("bwS").textContent=d.sub;
   var sc=$("bwB").scrollTop; $("bwB").innerHTML=d.html; $("bwB").scrollTop=sc;
-  w.firstElementChild.style.setProperty("--bw",d.w+"px"); w.hidden=false;
+  w.firstElementChild.style.setProperty("--bw",d.w+"px"); w.hidden=false; bwApply();
   pickBar();
 }
 // ---------- 긴급양하 메일 ----------
@@ -637,7 +653,7 @@ document.addEventListener("click",function(e){
     showBox(ci);render()}
   else if(e.target.id==="pkC"){st.pick=[];render()}
   else if(mi){if(e.detail===0||TOUCH)openBay(mi.dataset.go)}   // 키보드(Enter)·터치 화면은 한 번에 열림
-  else if(e.target.id==="bw")closeBay();
+  else if(e.target.id==="bw"&&!BWDRAG)closeBay();
   else if(ch){st.filter=st.filter===ch.dataset.f?null:ch.dataset.f;render()}
 
 });
@@ -681,6 +697,56 @@ $("gpw").addEventListener("wheel",function(e){if(e.ctrlKey){e.preventDefault();s
 var TOUCH=!!(window.matchMedia&&window.matchMedia("(hover: none)").matches);
 document.addEventListener("dblclick",function(e){var mi=e.target.closest(".mini");if(mi)openBay(mi.dataset.go)});
 $("bwX").onclick=closeBay;
+// Bay Plan 창: 제목줄을 끌어 옮기기, 가장자리·모서리를 끌어 크기 조절, □·제목줄 더블클릭 = 최대화/이전 크기
+// 자리·크기는 기억됨(ascBwBox). 손잡이를 더블클릭하면 처음 자리(가운데)로.
+var BWDRAG=false, bwApply=function(){};
+(function(){
+  var bw=$("bw"),win=bw.firstElementChild,d=null,box=null,maxed=false;
+  try{var sv=JSON.parse(localStorage.getItem("ascBwBox")||"null");if(sv){box=sv.b||null;maxed=!!sv.m}}catch(_){}
+  win.insertAdjacentHTML("beforeend",["n","s","e","w","nw","ne","sw","se"].map(function(k){
+    return '<div class="wr '+k+'" data-wr="'+k+'" title="끌어서 크기 조절 (더블클릭: 처음 자리로)"></div>'}).join(""));
+  function save(){try{localStorage.setItem("ascBwBox",JSON.stringify({b:box,m:maxed}))}catch(_){}}
+  function fit(b){var W=window.innerWidth,H=window.innerHeight;
+    b.w=Math.max(Math.min(320,W),Math.min(b.w,W));b.h=Math.max(Math.min(200,H),Math.min(b.h,H));
+    b.x=Math.max(120-b.w,Math.min(b.x,W-120));b.y=Math.max(0,Math.min(b.y,H-40));return b}
+  function put(b){win.style.left=b.x+"px";win.style.top=b.y+"px";win.style.width=b.w+"px";win.style.height=b.h+"px"}
+  bwApply=function(){
+    if(maxed){bw.classList.add("free");put({x:0,y:0,w:window.innerWidth,h:window.innerHeight})}
+    else if(box){bw.classList.add("free");put(fit(box))}
+    else{bw.classList.remove("free");win.style.left=win.style.top=win.style.width=win.style.height=""}
+    $("bwZ").textContent=maxed?"❐":"□";
+  };
+  function cur(){var r=win.getBoundingClientRect();return {x:r.left,y:r.top,w:r.width,h:r.height}}
+  win.addEventListener("pointerdown",function(e){
+    if(e.button!==0)return;
+    var k=e.target.dataset&&e.target.dataset.wr;
+    if(!k){if(!e.target.closest(".tb")||e.target.closest("button"))return;k="move"}
+    if(maxed){ if(k!=="move")return;   // 최대화 상태에서 제목줄을 끌면 이전 크기로 돌아오며 따라옴
+      var w0=(box&&box.w)||Math.min(700,window.innerWidth),h0=(box&&box.h)||Math.min(600,window.innerHeight);
+      maxed=false;box={x:e.clientX-w0/2,y:Math.max(0,e.clientY-12),w:w0,h:h0};bwApply()}
+    else if(!box){box=cur();bw.classList.add("free");put(box)}
+    d={k:k,x:e.clientX,y:e.clientY,b:{x:box.x,y:box.y,w:box.w,h:box.h},moved:false};
+    e.target.setPointerCapture(e.pointerId);document.body.classList.add("rzing");e.preventDefault()});
+  win.addEventListener("pointermove",function(e){if(!d)return;
+    var dx=e.clientX-d.x,dy=e.clientY-d.y,b=d.b,n={x:b.x,y:b.y,w:b.w,h:b.h},k=d.k,MW=320,MH=200;
+    if(Math.abs(dx)+Math.abs(dy)>3)d.moved=true;
+    if(k==="move"){n.x=b.x+dx;n.y=b.y+dy}
+    else{
+      if(k.indexOf("e")>=0)n.w=Math.max(MW,b.w+dx);
+      if(k.indexOf("s")>=0)n.h=Math.max(MH,b.h+dy);
+      if(k.indexOf("w")>=0){n.w=Math.max(MW,b.w-dx);n.x=b.x+b.w-n.w}
+      if(k.indexOf("n")>=0){n.h=Math.max(MH,b.h-dy);n.y=b.y+b.h-n.h}}
+    box=fit(n);put(box)});
+  function end(){if(!d)return;if(d.moved){BWDRAG=true;setTimeout(function(){BWDRAG=false},0)}
+    d=null;document.body.classList.remove("rzing");save()}
+  win.addEventListener("pointerup",end);win.addEventListener("pointercancel",end);
+  function toggleMax(){maxed=!maxed;bwApply();save()}
+  $("bwZ").onclick=toggleMax;
+  win.addEventListener("dblclick",function(e){
+    if(e.target.dataset&&e.target.dataset.wr){box=null;maxed=false;bwApply();save();return}
+    if(e.target.closest(".tb")&&!e.target.closest("button"))toggleMax()});
+  window.addEventListener("resize",function(){if(!bw.hidden)bwApply()});
+})();
 $("bwM").onclick=urgentMail;
 $("bwP").onclick=function(){stepBay(1)};   // General Plan 에서 왼쪽 = 번호가 큰 베이
 $("bwN").onclick=function(){stepBay(-1)};
