@@ -404,7 +404,7 @@ body.static .cr{display:none}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-17 22:49 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-17 23:26 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -1045,25 +1045,22 @@ function showBox(i){
   var dg=(st.plan.dg[b.dgno]||[]).map(function(d){return d.cls+"/"+d.un}).join(", ");
   var ovs=(b.ov||[]).some(function(v){return v>0});
   var ED=!!st.lines&&!window.__STATIC__, o=ED&&st.plan0?st.plan0.boxes[i]:null;   // ED: 편집 가능 (실제 파일을 연 경우)
-  // cCASP Container Editor 와 같은 항목·순서. 네 번째 값 = 고칠 수 있는 칸의 이름. ASC 파일에 없는 항목은 빈칸
+  // 기본 9개 항목만 보여 줌(2026-11 사용자 요청). 냉동 온도·위험물·OverDim·Cargo Type 은 그 컨테이너에 값이 있을 때만 덧붙임.
+  // 네 번째 값 = 고칠 수 있는 칸의 이름. 화면에서만 뺀 것이고 파일의 다른 칸은 그대로 남음(저장해도 안 바뀜)
   var rowsD=[["Container No.",b.cntr,0,"cntr"],
     ["Position",pad(b.bay)+pad(b.row)+pad(b.tier)],
     ["OPR",b.line||"",0,"line"],
     ["POL",evOf(b,"pol"),0,"pol"],
     ["POD",evOf(b,"pod"),0,"pod"],
-    ["Block Stow",""],["POD2",""],["Final POD",""],
     ["DEST",b.dest||"",0,"dest"],
     ["SzTp",ED?b.type:(b.type||"")+(b.type?"  ("+b.len+"'"+(b.hc?" HC":"")+(b.tk?" TANK":"")+")":""),0,"type"],
     ["Weight",ED?String(b.kg||0):(b.kg?b.kg.toLocaleString("en-US"):""),0,"kg"],
     ["F/E",b.fe,0,"fe"],
     ["Cargo Type",b.lab||""],
     ["Reefer Temp.",ED?evOf(b,"temp"):(evOf(b,"temp")?evOf(b,"temp")+"C":""),0,"temp"],
-    ["RZ",""],
     ["IMDG/UNno/PG",b.dgno?(dg||("No."+b.dgno)):"",b.dgno?1:0],
-    ["OverDim(H/P/S/F/A)",ovs?b.ov.join(" / "):""],
-    ["OOG Type",""],["BBK Group ID",""],["BBK Dim(L/W/H)",""],
-    ["HI1",""],["HI2",""],["HI3",""],["HI4",""],["HI5",""],["HI6",""],["HI7",""],["HI8",""],["HI9",""],
-    ["Special Remark",""],["Violated DG Rules",""]];
+    ["OverDim(H/P/S/F/A)",ovs?b.ov.join(" / "):""]];
+  rowsD=rowsD.filter(function(r,j){return j<9||r[1]!==""});
   $("sDl").innerHTML=rowsD.map(function(r){var k=r[3],ch=o&&k&&evOf(o,k)!==evOf(b,k);
     return '<div class="'+(r[1]===""&&!(ED&&k)?'emp':'')+(k==="cntr"?' cnrow':'')+'"><dt>'+r[0]+'</dt><dd class="'+(r[2]?'dgv':'')+(ch?' chg':'')+'"'+(ch?' title="원래 값: '+esc(evOf(o,k)||"(빈칸)")+'"':'')+'>'+
       (ED&&k?'<input class="ei" data-k="'+k+'" value="'+esc(evOf(b,k))+'" autocomplete="off" spellcheck="false" aria-label="'+r[0]+'">':esc(r[1]))+'</dd></div>'}).join("");
