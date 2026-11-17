@@ -390,7 +390,13 @@ header.win .body{background:linear-gradient(#f7faff,#e7eef8)}
 .gpx{display:flex;align-items:flex-start;min-width:0;background:var(--win)}
 .gpx .gpw{flex:1 1 0;min-width:0}
 .gi{flex:none;width:214px;padding:8px 8px 10px;font-size:11.5px;line-height:1.35;border-right:1px solid #c9d3e2;background:var(--win);color:var(--fg)}
-.gi:empty{display:none}
+.gi:empty,#gpInfo{display:none}   /* 화면에는 안 보이고, 이미지로 저장할 때만 들어감 */
+.gix{display:flex;gap:10px;align-items:flex-start}
+.pb{flex:none;width:58px;border:1px solid #000}
+.pb em{display:block;text-align:center;font-style:normal;font-weight:700;font-size:11px;padding:2px 0;background:#e4ebf6}
+.pb div{height:30px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;border-top:1px solid #000}
+.gb{flex:1;min-width:0}.gb h4:first-child{margin-top:0}
+.gi tr.bs td{font-weight:700;font-size:13px;text-align:center}
 .gi .gt{font-size:15px;font-weight:700}
 .gi .gn{color:var(--fg2);margin-bottom:6px}
 .gi h4{margin:9px 0 3px;font-size:11.5px;padding:2px 4px;background:#e4ebf6;border:1px solid #c9d3e2}
@@ -405,7 +411,7 @@ header.win .body{background:linear-gradient(#f7faff,#e7eef8)}
 .gi .nb{color:var(--fg2);margin-top:4px}
 @media (max-width:699px),(hover:none) and (max-height:519px){.gpx{flex-direction:column-reverse}.gpx .gpw{flex:none;width:100%}.gi{width:auto;border-right:0;border-top:1px solid #c9d3e2;align-self:stretch}}   /* 폰: 표는 플랜 아래로 */
 .shot{position:absolute;left:-99999px;top:0;width:max-content;background:#fff;font-family:var(--sans);font-size:13px;line-height:1.4;color:#000}
-.shot .gpx{flex-direction:row}.shot .gi{width:214px;border-top:0;border-right:1px solid #c9d3e2;align-self:flex-start}
+.shot .gpx{flex-direction:row}.shot .gi{display:block;width:292px;border-top:0;border-right:1px solid #c9d3e2;align-self:flex-start}
 #imgBtn{font:inherit;font-size:12px;font-weight:700;padding:1px 9px;margin-right:6px;cursor:pointer;border:1px solid var(--edge);background:var(--chrome);color:var(--fg);border-radius:3px;white-space:nowrap}
 /* 처음 화면: 예시 없이 비워 두고 'ASC 파일 열기'만 크게 */
 #start{display:none}
@@ -425,7 +431,7 @@ body.static .cr{display:none}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-17 23:48 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-17 23:53 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -695,12 +701,13 @@ function render(){
     var h14=sh&&sh.h||0,bt=h14*14;
     function pc(k2){return bt?Math.round(k2/1000/bt*100)+"%":"-"}
     function brow(k,g,cls){var t2=g.n20+g.n40*2,ov=bt&&(g.kg/1000>bt||t2>h14);return '<tr'+(cls?' class="'+cls+'"':'')+'><td>'+(cls?k:'<b>'+esc(k)+'</b>')+'</td><td>'+t2+'</td><td>'+T(g.kg)+'</td><td'+(ov?' class="ov"':'')+'>'+pc(g.kg)+'</td></tr>'}
+    function lrow(k,g,c){var t2=g.n20+g.n40*2,ov=bt&&(g.kg/1000>bt||t2>h14);return '<tr'+(c?'':' class="tt"')+'><td>'+(c?'<i class="gsw" style="background:'+c+'"></i><b>'+esc(k)+'</b>':k)+'</td><td>'+t2.toLocaleString("en-US")+'</td><td>'+T(g.kg)+'</td><td'+(ov?' class="ov"':'')+'>'+pc(g.kg)+'</td></tr>'}
+    // 이미지로 저장할 때만 들어가는 표 (화면에는 안 보임): POD 색 막대 + BSA(14 HOMO) + 선적항별 LOADING TEU·톤
     $("gpInfo").innerHTML='<div class="gt">'+esc((sh?st.ship+" ":"")+(P.voy||""))+'</div><div class="gn">'+esc(sh&&sh.n||st.name||"")+'</div>'+
-      '<h4>POD</h4><table>'+hd+order.map(function(k){return row(hex[k],k,groups[k])}).join("")+tot+'</table>'+
-      '<h4>POL</h4><table>'+hd+po.map(function(k){return row(hexL[k]||CUSTOM[k]||POLFIX[k]||"#8c8c8c",k,pg[k])}).join("")+tot+'</table>'+
-      '<h4>BSA <small>14 HOMO</small></h4>'+(h14?'<table><tr><td>BSA</td><td>'+h14.toLocaleString("en-US")+' TEU</td><td>'+bt.toLocaleString("en-US")+' t</td></tr></table>'+
-        '<table><tr><th>POL</th><th>TEU</th><th>t</th><th>BSA 대비</th></tr>'+po.map(function(k){return brow(k,pg[k])}).join("")+brow("TOTAL",{n20:n20,n40:n40,kg:kg},"tt")+'</table>'
-        :'<div class="nb">선박을 고르면 BSA(14 HOMO)가 나와요.</div>');
+      '<div class="gix"><div class="pb"><em>POD</em>'+order.map(function(k){return '<div style="background:'+hex[k]+';color:'+ink(hex[k])+'">'+esc(k)+'</div>'}).join("")+'</div>'+
+      '<div class="gb"><h4>BSA <small>14 HOMO</small></h4>'+(h14?'<table><tr class="bs"><td>'+h14.toLocaleString("en-US")+' TEU</td><td>'+bt.toLocaleString("en-US")+' TON</td></tr></table>':'<div class="nb">-</div>')+
+      '<h4>LOADING</h4><table><tr><th>POL</th><th>TEU</th><th>TON</th><th>BSA 대비</th></tr>'+
+        po.map(function(k){return lrow(k,pg[k],hexL[k]||CUSTOM[k]||POLFIX[k]||"#8c8c8c")}).join("")+lrow("TOTAL",{n20:n20,n40:n40,kg:kg})+'</table></div></div>';
   })();
   var q=st.q, hits=0, GH=[];
   BP={};ORD=[];FIRSTHIT="";PANELS={};BOXP={};
@@ -1262,9 +1269,11 @@ $("zS").onchange=function(e){AUTOZ=false;setZoom(+e.target.value)};
 // ---------- 이미지로 저장: General Plan + 옆 표를 그대로 PNG 로 ----------
 function saveImg(){
   if(!st.plan)return;
+  function wrapW(){var gr=$("gp").getBoundingClientRect(),m=gr.right;   // 여러 줄 배열: 왼쪽 빈자리를 빼고 실제 그려진 폭만
+    [].forEach.call($("gp").children,function(c){m=Math.min(m,c.getBoundingClientRect().left)});return Math.ceil(gr.right-m)+8}
   var g=$("gp"),box=document.createElement("div"),nt=$("note");box.className="shot";
   box.innerHTML='<div class="gpx"><aside class="gi">'+$("gpInfo").innerHTML+'</aside><div class="'+g.className+'" style="'+(g.getAttribute("style")||"")+
-    (LAYOUT==="wrap"?";width:"+$("gpw").clientWidth+"px":"")+'">'+g.innerHTML+'</div></div>';
+    (LAYOUT==="wrap"?";width:"+wrapW()+"px":"")+'">'+g.innerHTML+'</div></div>';
   [].forEach.call(box.querySelectorAll(".cur"),function(x){x.classList.remove("cur")});
   document.body.appendChild(box);
   var W=Math.ceil(box.offsetWidth)+2,H=Math.ceil(box.offsetHeight)+2,xml=new XMLSerializer().serializeToString(box.firstChild);box.remove();
