@@ -248,7 +248,17 @@ body.static #fbox{display:none}
 #bw.full .bwin{position:absolute;left:0;top:0;width:100%!important;height:100%!important;max-width:none;max-height:none;border-radius:0;border:0}
 #bw.full .bwin>.tb{border-radius:0;padding-top:calc(6px + env(safe-area-inset-top,0px))}
 #bw.full .wr,#bw.full #bwZ{display:none}
-#bw.full .bwf{border-radius:0;padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))}
+#bw.full .bwf{border-radius:0}
+#bw.full .bwin>.tb{flex-wrap:wrap;overflow:visible;row-gap:4px}
+#bw.full .bwin>.tb #bwP,#bw.full .bwin>.tb #bwN{display:none}
+.bwk{display:none;gap:8px;align-items:center;padding:8px 12px;border-top:1px solid var(--edge);background:var(--chrome);flex:none}
+.bwk .sp{flex:1}
+.bwk button{font:inherit;font-size:14px;font-weight:700;min-height:40px;min-width:44px;padding:0 12px;border:1px solid var(--edge);background:var(--win);color:var(--fg);border-radius:4px;cursor:pointer}
+#bwMul[aria-pressed="true"]{background:#b00000;color:#fff;border-color:#700}
+#bwX2{background:#c13229;color:#fff;border-color:#7a1c16}
+#bw.full .bwk{display:flex;padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))}
+@media (hover:none){.bwk{display:flex}}
+body:has(#bw.full:not([hidden])) #sheet{bottom:calc(57px + env(safe-area-inset-bottom,0px));max-height:45vh;overflow:auto}   /* 폰: 상세 창이 아래 줄(창 닫기)을 가리지 않게 */
 #bw.full .bwin .tb{cursor:default}
 /* Editor(목록) / Pivot */
 body.static #edWin,body.static #edBtn{display:none}
@@ -378,7 +388,7 @@ header.win .body{background:linear-gradient(#f7faff,#e7eef8)}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">ASC 베이 플랜 <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-17 22:24 판</small></div>
+  <header class="win"><div class="tb">ASC 베이 플랜 <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-17 22:32 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -386,7 +396,7 @@ header.win .body{background:linear-gradient(#f7faff,#e7eef8)}
       <button class="btn" id="saveBtn" type="button" hidden>ASC 저장</button>
       <button class="btn" id="instBtn" type="button" hidden title="이 기기에 앱으로 설치해요 (홈 화면에 아이콘이 생겨요)">앱 설치</button>
       <button class="btn" id="openBtn" type="button">ASC 파일 열기</button>
-      <input type="file" id="file" hidden>
+      <input type="file" id="file" accept="application/octet-stream,text/plain,.asc" hidden>
     </div>
   </header>
   <div class="note" id="note" hidden></div>
@@ -429,6 +439,9 @@ header.win .body{background:linear-gradient(#f7faff,#e7eef8)}
     <button type="button" id="bwZ" aria-label="최대화" title="최대화 / 이전 크기 (제목줄 더블클릭)">□</button><button type="button" id="bwX" aria-label="닫기" title="닫기 (Esc)">×</button></div>
   <div class="bwb" id="bwB"></div>
   <div class="bwf" id="bwF"></div>
+  <div class="bwk" id="bwK"><button type="button" id="bwMul" aria-pressed="false">여러 개 고르기</button><span class="sp"></span>
+    <button type="button" id="bwP2" aria-label="왼쪽 베이">◀</button><button type="button" id="bwN2" aria-label="오른쪽 베이">▶</button>
+    <button type="button" id="bwX2">창 닫기</button></div>
 </div></div>
 <div id="fbox" hidden role="search"><b>컨테이너 찾기</b>
   <input id="q" type="search" placeholder="번호 일부 (예: 8172320)" autocomplete="off" aria-label="컨테이너 번호">
@@ -828,7 +841,8 @@ function pickBar(){
   $("bwC").disabled=!n; $("bwC").textContent="COD 메일 생성"+(n?" ("+n+")":"");
   var f=$("bwF"), keep=f.querySelector(".ok");
   f.innerHTML=(n?'<span>고른 컨테이너 '+n+'개:</span><span class="pkl">'+st.pick.map(function(i){return esc((B[i]||{}).cntr||"?")}).join(", ")+'</span><button type="button" id="pkC">선택 지우기</button>'
-    :'<span>칸을 누르면 고르고, <b>Ctrl</b>을 누른 채 누르면 여러 개 골라요 (다른 베이로 넘어가도 유지돼요).</span>');
+    :(TOUCH?'<span>칸을 누르면 고르고, <b>여러 개 고르기</b>를 켜면 누르는 대로 여러 개 골라요 (다른 베이로 넘어가도 유지돼요).</span>'
+      :'<span>칸을 누르면 고르고, <b>Ctrl</b>을 누른 채 누르면 여러 개 골라요 (다른 베이로 넘어가도 유지돼요).</span>'));
   if(keep&&n)f.appendChild(keep);
 }
 function svcOf(){
@@ -1127,9 +1141,10 @@ document.addEventListener("click",function(e){
     render();return}
   if(c){var ci=+c.dataset.i;
     var off=false;
-    if(e.ctrlKey||e.metaKey){var k=st.pick.indexOf(ci);if(k<0)st.pick.push(ci);else{st.pick.splice(k,1);off=true}}
+    if(e.ctrlKey||e.metaKey||MULTI){var k=st.pick.indexOf(ci);if(k<0)st.pick.push(ci);else{st.pick.splice(k,1);off=true}}
     else st.pick=[ci];
-    if(off)unmark(ci);else showBox(ci);   // Ctrl+클릭으로 표식을 지우면 그 컨테이너의 상세·테두리도 같이 걷음
+    if(off)unmark(ci);else showBox(ci);
+    if(MULTI){st.sel=-1;$("sheet").hidden=true}   // 여러 개 고르는 중에는 상세 창을 띄우지 않음 (고른 목록이 가려져서)   // Ctrl+클릭으로 표식을 지우면 그 컨테이너의 상세·테두리도 같이 걷음
     render()}
   else if(e.target.id==="pkC"){st.pick=[];render()}
   else if(mi){if(e.detail===0||TOUCH)openBay(mi.dataset.go)}   // 키보드(Enter)·터치 화면은 한 번에 열림
@@ -1229,9 +1244,12 @@ var sumReset=function(){};
   win.addEventListener("pointerup",end);win.addEventListener("pointercancel",end);
   win.addEventListener("dblclick",function(e){if(e.target.dataset&&e.target.dataset.sz){sumReset();refit()}});
 })();
+var MULTI=false;   // 터치 화면: Ctrl 대신 '여러 개 고르기' 버튼
 var TOUCH=!!(window.matchMedia&&window.matchMedia("(hover: none)").matches);
 document.addEventListener("dblclick",function(e){var mi=e.target.closest(".mini");if(mi&&!e.ctrlKey&&!e.metaKey)openBay(mi.dataset.go)});
-$("bwX").onclick=closeBay;
+$("bwX").onclick=closeBay; $("bwX2").onclick=closeBay;
+$("bwP2").onclick=function(){$("bwP").click()}; $("bwN2").onclick=function(){$("bwN").click()};
+$("bwMul").onclick=function(){MULTI=!MULTI;this.setAttribute("aria-pressed",MULTI);this.textContent=MULTI?"여러 개 고르는 중":"여러 개 고르기"};
 // Bay Plan 창: 제목줄을 끌어 옮기기, 가장자리·모서리를 끌어 크기 조절, □·제목줄 더블클릭 = 최대화/이전 크기
 // 자리·크기는 기억됨(ascBwBox). 손잡이를 더블클릭하면 처음 자리(가운데)로.
 var BWDRAG=false, bwApply=function(){};
