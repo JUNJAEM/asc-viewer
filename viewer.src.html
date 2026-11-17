@@ -463,10 +463,10 @@ var BP={},ORD=[],FIRSTHIT="",PANELS={},BOXP={};   // PANELS·BOXP: 긴급양하 
 // 양하항 색 (색정렬): 양하항이 N개면 이 목록의 앞 N색을 기항 순서대로. 앞 N색이 곧 'N개일 때 가장 잘 구분되는 묶음'
 // (tools/pick_colors.py: CIEDE2000 + 적록 색약 시뮬레이션 + 선적항 흑백 띠와의 거리로 계산, 2·3개는 가장 익숙한 노랑·파랑·빨강)
 // 노랑 파랑 빨강 청록 분홍 주황 초록 보라 연두 하늘 갈색 살구
-var PAL=["#ffeb00","#2f7bff","#ff4136","#19c2b0","#ff85e0","#ff9f1a","#2ecc40","#a66bff","#c3f53c","#5fd8ff","#b98555","#ffd0b0"];
+var PAL=["#ffeb00","#1b2a8c","#ff4136","#19c2b0","#ff85e0","#ff9f1a","#2ecc40","#a66bff","#c3f53c","#5fd8ff","#b98555","#ffd0b0"];
 // 고정 색 (준재님 지정): 북항 PUS = 파랑, 신항 PNC = 노랑 — 선적항(POL)일 때도 양하항(POD)일 때도 같은 색. 그 밖의 선적항은 회색.
 // 파랑·노랑은 선적항 전용이라 양하항 색에서는 뺌 → 양하항은 빨강 청록 분홍 주황 초록 보라 연두 하늘 갈색 살구 순서
-var POLFIX={PUS:"#2f7bff",PNC:"#ffeb00"},POLGR=["#8c8c8c","#d9d9d9","#4d4d4d","#b3b3b3"];
+var POLFIX={PUS:"#1b2a8c",PNC:"#ffeb00"},POLGR=["#8c8c8c","#d9d9d9","#4d4d4d","#b3b3b3"];
 var CUSTOM={};try{CUSTOM=JSON.parse(localStorage.getItem("ascPortColors")||"{}")||{}}catch(_){CUSTOM={}}
 function saveColors(){try{localStorage.setItem("ascPortColors",JSON.stringify(CUSTOM))}catch(_){}}
 function ink(hex){var r=parseInt(hex.substr(1,2),16),g=parseInt(hex.substr(3,2),16),b=parseInt(hex.substr(5,2),16);
