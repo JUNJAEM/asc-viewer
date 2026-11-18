@@ -263,8 +263,9 @@ body.empty #helpBtn{display:inline-block}
 .askb button{font:inherit;font-weight:700;min-width:84px;padding:6px 14px;border:1px solid #707f96;border-radius:4px;background:var(--win);color:var(--fg);cursor:pointer}
 #askY{background:#c13229;color:#fff;border-color:#7a1c16}
 /* 지정중 알림: 컨테이너가 골라져 있으면 General Plan 제목줄에 뜸. 마우스를 올리면 SzTp 별 개수 */
-#pkBtn{font:inherit;font-size:12px;font-weight:700;padding:1px 9px;margin-right:2px;border:1px solid #7a1c16;border-radius:3px;background:#d8382e;color:#fff;white-space:nowrap;cursor:default;text-shadow:none;animation:pkb 1.2s ease-in-out infinite}
+#pkBtn{font:inherit;font-size:12px;font-weight:700;padding:1px 9px;margin-right:2px;border:1px solid #7a1c16;border-radius:3px;background:#d8382e;color:#fff;white-space:nowrap;cursor:pointer;text-shadow:none;animation:pkb 1.2s ease-in-out infinite}
 @keyframes pkb{50%{background:#ff7a70}}
+#pkBtn[aria-pressed="true"]{background:#7a1c16;box-shadow:inset 0 2px 4px rgba(0,0,0,.5);animation:none}
 @media (prefers-reduced-motion:reduce){#pkBtn{animation:none}}
 #pkTip{position:fixed;z-index:75;min-width:150px;padding:8px 10px;background:var(--win);color:var(--fg);border:1px solid #7a1c16;border-radius:6px;box-shadow:0 10px 28px rgba(0,20,60,.35);font-size:12.5px;pointer-events:none}
 #pkTip table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
@@ -312,6 +313,7 @@ body.static #tabs{display:none!important}
 .plBrush select,#llForm select{font:inherit;font-weight:700}
 .plMsg{flex:1 1 160px;min-width:0;font-weight:700;color:#0b3f94}.plMsg.err{color:#b00000}
 body.planning #bwB .c[data-s]{cursor:crosshair}body.planning #bwB .c[data-s]:hover{background:#d9ecff}
+body.canmv #bwB .c[data-s],body.canmv #gp .m[data-s]{cursor:crosshair}body.canmv #bwB .c[data-s]:hover,body.canmv #gp .m[data-s]:hover{background:#ffe9a8}
 body.planning #gp .m[data-s]{cursor:crosshair}body.planning #gp .m[data-s]:hover{background:#bfe0ff}
 .c.sf{box-shadow:inset 0 0 0 2px #7a00c8}.c .sfm{position:absolute;top:0;left:50%;transform:translateX(-50%);font-size:8px;font-weight:700;line-height:10px;padding:0 3px;background:#7a00c8;color:#fff;border-radius:0 0 3px 3px}
 .m.sf{box-shadow:inset 0 0 0 1.5px #7a00c8}
@@ -526,7 +528,7 @@ body.static .cr{display:none}
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
-      <span class="pltop" id="plTop"><span class="seg plModes"><button type="button" data-pm="v" title="보기만 (플래닝 끔)">보기</button><button type="button" data-pm="ll" title="Planning by Load List (Alt + S)">로드리스트</button><button type="button" data-pm="pal" title="Planning by Palette (Alt + Q)">팔레트</button><button type="button" data-pm="mv" title="컨테이너 이동 · 자리 교체 (Alt + W)">이동·교체</button></span>
+      <span class="pltop" id="plTop"><span class="seg plModes"><button type="button" data-pm="v" title="보기만 (플래닝 끔)">보기</button><button type="button" data-pm="ll" title="Planning by Load List (Alt + S)">로드리스트</button><button type="button" data-pm="pal" title="Planning by Palette (Alt + Q)">팔레트</button></span>
     <span class="seg plMir"><button type="button" data-mir="S" title="Single — 누른 칸에만 (Alt + Z)">S</button><button type="button" data-mir="2FA" title="Mirror for Fore and Aft — 같은 해치의 앞·뒤 20' 베이에 같이 (Alt + C)">2F/A</button></span></span>
       <button class="btn" id="edBtn" type="button" aria-pressed="false" title="컨테이너 목록(Editor)과 집계표(Pivot) 창을 켜고 꺼요 (Alt + E)">EDITOR / PIVOT</button>
       <button class="btn" id="helpBtn" type="button" title="단축키 모음 (F1)">도움말</button>
@@ -1082,7 +1084,8 @@ function pickTip(){   // 지정중 버튼에 마우스를 올렸을 때: 고른 
   ks=Object.keys(m).sort();
   return "<table>"+ks.map(function(k){return "<tr><td>"+esc(k)+"</td><td>"+m[k]+"</td></tr>"}).join("")+'<tr class="tt"><td>합계</td><td>'+n+"개 · "+teu+" TEU</td></tr></table>"}
 function pickFlag(){   // render() 가 끝날 때마다: 골라 둔 컨테이너가 있으면 '지정중' 버튼을 보임
-  $("pkBtn").hidden=!st.pick.length; if(!st.pick.length)$("pkTip").hidden=true; else if(!$("pkTip").hidden)$("pkTip").innerHTML=pickTip()}
+  if(!st.pick.length&&ES.fade&&!ES.on)ES.fade=false;
+  $("pkBtn").hidden=!st.pick.length;$("pkBtn").setAttribute("aria-pressed",!!ES.fade);$("pkBtn").title=ES.fade?"다시 누르면 흐림 풀기":"누르면 지정한 컨테이너만 남기고 나머지를 흐리게"; if(!st.pick.length)$("pkTip").hidden=true; else if(!$("pkTip").hidden)$("pkTip").innerHTML=pickTip()}
 function pickBar(){
   var n=st.pick.length, B=st.plan?st.plan.boxes:[];
   $("bwM").disabled=!n; $("bwM").textContent="긴급양하 메일 생성"+(n?" ("+n+")":"");
@@ -1294,6 +1297,7 @@ function showBox(i){
       (ED&&k?'<input class="ei" data-k="'+k+'" value="'+esc(evOf(b,k))+'" autocomplete="off" spellcheck="false" aria-label="'+r[0]+'">':esc(r[1]))+'</dd></div>'}).join("");
   var em=$("eMsg"), mod=ED&&st.lines[b.li]!==st.orig[b.li];
   em.innerHTML=ED?'<div>값을 고치고 Enter를 누르면 바로 반영돼요. 노란 칸 = 고친 값.</div>'+(mod?'<button type="button" id="eUndo">이 컨테이너 원래대로</button> ':'')+(dirtyN()?'<button type="button" id="eSave" style="color:#b00000;border-color:#b00000;font-weight:700">ASC 저장 ('+dirtyN()+')</button>':''):'';
+  if(sfr&&!window.__STATIC__)em.insertAdjacentHTML("beforeend",' <button type="button" id="eUnsf" title="쉬프팅을 취소하고 원래 자리('+p6d(sfr)+')로 돌려놓아요">쉬프팅 취소</button>');
   sh.querySelector(".edt small").textContent=ED?"편집 가능":"보기 전용";
   sh.hidden=false;
 }
@@ -1495,6 +1499,8 @@ $("saveBtn").onclick=saveAsc;
 $("pkBtn").addEventListener("mouseenter",function(){var t=$("pkTip"),r=this.getBoundingClientRect();t.innerHTML=pickTip();t.hidden=false;
   t.style.top=(r.bottom+6)+"px";t.style.left=Math.max(8,Math.min(r.left,window.innerWidth-t.offsetWidth-8))+"px"});
 $("pkBtn").addEventListener("mouseleave",function(){$("pkTip").hidden=true});
+// 누르면 지정한 컨테이너만 또렷하게 남기고 나머지를 흐리게(FADE OUT). 다시 누르면 원래대로. (Editor 의 Highlight Fade Out 과 같은 스위치)
+$("pkBtn").addEventListener("click",function(){ES.fade=!ES.fade;render()});
 $("askY").onclick=function(){askEnd(true)};$("askN").onclick=function(){askEnd(false)};
 $("ask").addEventListener("click",function(e){if(e.target.id==="ask")askEnd(false)});
 function expMenu(on){var m=$("expMenu");if(on==null)on=m.hidden;m.hidden=!on;$("expBtn").setAttribute("aria-expanded",on)}
@@ -1796,7 +1802,7 @@ document.addEventListener("contextmenu",function(e){
 //  · 로드리스트·이동은 무거운 것부터 아래에 놓임.
 // 쉬프팅 내역: 옮긴 컨테이너는 원래 자리를 기억(ASC 는 st.sft[줄 번호], 그 밖은 b.from) — 칸에 보라색 S, Container Editor 에 "Shift 원래 → 지금".
 // 로드리스트(st.ll)와 쉬프팅 내역은 이 화면 안에서만 살아 있음: ASC·EDI 파일에는 그런 칸이 없어서 내보내면 '지금 자리'만 나감.
-var PL={mode:"v",mir:"S",brush:{pol:"",pod:"",type:"22GP",kg:"14000",fe:"F",line:""},lsel:[],seq:0,last:-1};
+var PL={cp:false,mode:"v",mir:"S",brush:{pol:"",pod:"",type:"22GP",kg:"14000",fe:"F",line:""},lsel:[],seq:0,last:-1};
 function fromOf(b){return st.lines?(st.sft||{})[b.li]:b.from}
 function p6(bay,row,tier){return pad(bay)+pad(row)+pad(tier)}
 function p6d(x){return x.slice(0,2)+"-"+x.slice(2,4)+"-"+x.slice(4,6)}
@@ -1843,7 +1849,7 @@ function setPos(b,t){   // 실려 있는 컨테이너를 자리 t 로. 원래 �
   else{var B=st.plan.boxes,nb=Object.assign({},b,{bay:t.bay,row:t.row,tier:t.tier});if(from)nb.from=from;else delete nb.from;B[B.indexOf(b)]=nb;st.mod=true}}
 function dropBoxes(bx){if(st.lines)bx.forEach(function(b){st.lines[b.li]="";if(st.sft)delete st.sft[b.li]});
   else{st.plan.boxes=st.plan.boxes.filter(function(b){return bx.indexOf(b)<0});st.mod=true}}
-function plDone(msg,err){if(st.lines)reparse();st.pick=[];st.sel=-1;st.saved="";$("sheet").hidden=true;render();plSay(msg,err)}
+function plDone(msg,err){if(st.lines)reparse();PL.cp=false;st.pick=[];st.sel=-1;st.saved="";$("sheet").hidden=true;render();plSay(msg,err)}
 function plTargets(G,is40){var T=[],seen={};   // G = [{p: 그 베이 화면, cells: 칸들}] — 베이마다 다 채우고 다음 베이로
   G.forEach(function(g){var p=g.p;g.cells.forEach(function(c){var bay=is40?p.h:(p.kind==="f"?p.f:p.a),k=bay+"_"+c.row+"_"+c.tier;
     if(!seen[k]){seen[k]=1;T.push({H:p,bay:bay,row:c.row,tier:c.tier})}
@@ -1896,8 +1902,8 @@ function plUnshift(bx){var sf=bx.filter(function(b){return fromOf(b)}),O=occMap(
   sf.forEach(function(b){var fr=fromOf(b),t={bay:+fr.slice(0,2),row:+fr.slice(2,4),tier:+fr.slice(4,6)},k=t.bay+"_"+t.row+"_"+t.tier;
     if(O[k]){no++;return}if(!pushed){pushUndo();pushed=true}O[k]={};setPos(b,t);n++});
   if(n)plDone("원래 자리로 되돌린 컨테이너 "+n+" VAN."+(no?" 원래 자리가 차 있어 못 돌린 것 "+no+" VAN.":""));else plSay("원래 자리가 다른 컨테이너로 차 있어요.",true)}
-function plGesture(btn,x1,y1,x2,y2,area){
-  var G=[],boxes=[],B=st.plan.boxes;
+function plGesture(btn,x1,y1,x2,y2,area,md){
+  var G=[],boxes=[],B=st.plan.boxes,mode=md||PL.mode;
   function scan(root,sel,p){var cells=[];
     [].forEach.call(root.querySelectorAll(sel),function(c){var r=c.getBoundingClientRect();if(!(r.right>x1&&r.left<x2&&r.bottom>y1&&r.top<y2))return;
       if(c.dataset.s){var q=c.dataset.s.split("_");cells.push({row:+q[0],tier:+q[1]})}
@@ -1906,9 +1912,9 @@ function plGesture(btn,x1,y1,x2,y2,area){
   if(area&&area.id==="gp")[].forEach.call(area.querySelectorAll(".mini"),function(mi){var Q=PANELS[mi.dataset.go],r=mi.getBoundingClientRect();
     if(Q&&r.right>x1&&r.left<x2&&r.bottom>y1&&r.top<y2)scan(mi,".m",Q.p)});
   else{var Q0=PANELS[st.open];if(!Q0)return;scan($("bwB"),".c",Q0.p)}
-  if(btn===0){if(PL.mode==="pal")plPaint(G);else if(PL.mode==="ll")plLoad(G);
+  if(btn===0){if(mode==="pal")plPaint(G);else if(mode==="ll")plLoad(G);
     else if(G.length)plMove(G);else plSwap(boxes)}
-  else{if(PL.mode==="pal")plErase(boxes);else if(PL.mode==="ll")plUnplan(boxes);else plUnshift(boxes)}}
+  else{if(mode==="pal")plErase(boxes);else if(mode==="ll")plUnplan(boxes)}}
 function plMode(m){if(window.__STATIC__||!st.plan||st.example)return;PL.mode=PL.mode===m?"v":m;
   if(PL.mode==="pal"&&!PL.brush.pol){var c={},d={};st.plan.boxes.forEach(function(b){c[b.pol]=(c[b.pol]||0)+1;d[b.pod]=(d[b.pod]||0)+1});
     var top=function(o){return Object.keys(o).sort(function(a,b){return o[b]-o[a]})[0]||""};PL.brush.pol=top(c);PL.brush.pod=top(d)}
@@ -1923,7 +1929,10 @@ function plDraw(){
   [].forEach.call(document.querySelectorAll(".plMir button"),function(b){b.setAttribute("aria-pressed",b.dataset.mir===PL.mir)});
   [].forEach.call(document.querySelectorAll(".plBrush"),function(x){x.hidden=PL.mode!=="pal"});
   [].forEach.call(document.querySelectorAll(".plBrush [data-b]"),function(i){if(document.activeElement!==i)i.value=PL.brush[i.dataset.b]});
-  var nm={ll:"로드리스트로 싣기",pal:"팔레트로 싣기",mv:"이동 · 자리 교체"}[PL.mode]||"";
+  var can=PL.cp&&st.pick.length>0&&tOn(),nm={ll:"로드리스트로 싣기",pal:"팔레트로 싣기"}[PL.mode]||"";
+  document.body.classList.toggle("canmv",can);
+  if(can)nm=(nm?nm+" · ":"")+"고른 컨테이너 "+st.pick.length+"개 — 빈 칸을 누르면 이동 · 다른 컨테이너를 누르면 자리 교체";
+  on=on||can;
   $("plStrip").hidden=!on;$("plName").textContent=nm;$("bwPl").hidden=!on;$("bwPl").querySelector(".plNm").textContent=nm+(PL.mir==="2FA"?" · 2F/A":"");
   var L=(st.ll||[]).slice().sort(function(a,b){return b.b.kg-a.b.kg}),show=PL.mode==="ll"&&!!st.plan;
   $("llBox").hidden=!show;if(!show)return;
@@ -1935,6 +1944,7 @@ function plDraw(){
 (function(){
   document.addEventListener("click",function(e){if(!e.target.closest)return;var b=e.target.closest(".plModes [data-pm]"),m=e.target.closest(".plMir [data-mir]");
     if(b){if(b.dataset.pm==="v"){PL.mode="v";plDraw();plSay("")}else plMode(b.dataset.pm)}else if(m)plMir(m.dataset.mir)});
+  document.addEventListener("click",function(e){if(e.target.id==="eUnsf"){var b=st.plan.boxes[st.sel];if(b)plUnshift([b])}});
   document.addEventListener("change",function(e){var t=e.target;if(t.closest&&t.closest(".plBrush")&&t.dataset.b){PL.brush[t.dataset.b]=t.value.trim().toUpperCase();plDraw()}});
   [].forEach.call(document.querySelectorAll(".plBrush,#llForm"),function(x){x.addEventListener("keydown",function(e){e.stopPropagation();if(e.key==="Enter")e.target.blur()})});
   $("llAdd").onclick=function(){var f=$("llForm");f.hidden=!f.hidden;if(!f.hidden)[].forEach.call(f.querySelectorAll("[data-l]"),function(i){var k=i.dataset.l;if(k!=="n"&&!i.value)i.value=PL.brush[k]||""})};
@@ -1952,13 +1962,20 @@ function plDraw(){
   $("llT").addEventListener("dblclick",function(e){var tr=e.target.closest("tr[data-l]");if(!tr)return;var ids=rowIds();PL.lsel=ids.slice(ids.indexOf(+tr.dataset.l));plDraw()});
   // 마우스: 플래닝 모드에서 Ctrl 없이 Bay Plan 을 누르거나 끄는 것은 여기서 먼저 받음(Ctrl 을 누르면 평소처럼 고르기)
   var d=null,band=null;
-  function mine(e){return PL.mode!=="v"&&!window.__STATIC__&&st.plan&&!st.example&&e.pointerType==="mouse"&&!(e.ctrlKey||e.metaKey)&&e.target.closest&&(e.target.closest("#bwB")||e.target.closest("#gp"))}
+  // 이동·교체는 모드가 따로 없음: Ctrl 로 고른 컨테이너가 있으면(PL.cp), 그냥 누르는 빈 칸 = 이동 · 다른 컨테이너 = 교체.
+  // Ctrl 없이 한 번 눌러 본 컨테이너(Container Editor 보기)는 옮겨지지 않음 — 실수로 옮기는 일을 막으려고.
+  function zone(e){return !window.__STATIC__&&st.plan&&!st.example&&e.pointerType==="mouse"&&e.target.closest&&(e.target.closest("#bwB")||e.target.closest("#gp"))}
   document.addEventListener("pointerdown",function(e){
-    if(!mine(e)||(e.button!==0&&e.button!==2))return;
-    var ar=mine(e),onBox=!!e.target.closest(".c.b,.m.b");
-    if(e.button===0&&PL.mode!=="mv"&&onBox)return;          // 싣기 모드에서 컨테이너를 왼쪽으로 누르면 평소처럼 Container Editor
-    if(e.button===0&&PL.mode==="mv"&&!st.pick.length)return;   // 이동 모드인데 고른 것이 없으면 평소처럼
-    e.stopPropagation();d={x:e.clientX,y:e.clientY,btn:e.button,on:false,a:ar}},true);
+    if(e.ctrlKey||e.metaKey){if(e.button===0)PL.cp=true;return}   // Ctrl = 고르기(평소 동작, Editor 목록 포함)
+    var ar=zone(e);if(!ar||(e.button!==0&&e.button!==2))return;
+    var box=e.target.closest(".c.b,.m.b"),slot=e.target.closest(".c[data-s],.m[data-s]"),can=PL.cp&&st.pick.length>0,md="";
+    if(e.button===0){
+      if(can&&slot)md="mv";                                                   // 고른 것을 이 빈 칸으로
+      else if(can&&box&&st.pick.indexOf(+box.dataset.i)<0)md="mv";              // 고른 것과 이 컨테이너를 맞바꿈
+      else if(PL.mode!=="v"&&!box)md=PL.mode;                                  // 싣기 모드: 빈 칸을 누르거나 끌기
+      else{if(box)PL.cp=false;return}}                                         // 그 밖은 평소처럼 (컨테이너를 누르면 Container Editor)
+    else{if(PL.mode==="v")return;md=PL.mode}                                    // 오른쪽 버튼: 싣기 모드에서만 가로챔 (보기에서는 평소처럼 삭제)
+    e.stopPropagation();d={x:e.clientX,y:e.clientY,btn:e.button,on:false,a:ar,md:md}},true);
   document.addEventListener("pointermove",function(e){if(!d)return;e.stopPropagation();
     if(!d.on){if(Math.abs(e.clientX-d.x)<6&&Math.abs(e.clientY-d.y)<6)return;d.on=true;band=document.createElement("div");band.id="band";band.className=d.btn===0?"add":"del";document.body.appendChild(band);document.body.classList.add("banding")}
     band.style.left=Math.min(d.x,e.clientX)+"px";band.style.top=Math.min(d.y,e.clientY)+"px";band.style.width=Math.abs(e.clientX-d.x)+"px";band.style.height=Math.abs(e.clientY-d.y)+"px";e.preventDefault()},true);
@@ -1967,7 +1984,7 @@ function plDraw(){
     var stop=function(ev){ev.stopPropagation();ev.preventDefault()};
     document.addEventListener("click",stop,true);document.addEventListener("contextmenu",stop,true);
     setTimeout(function(){document.removeEventListener("click",stop,true);document.removeEventListener("contextmenu",stop,true)},350);
-    plGesture(D.btn,Math.min(D.x,e.clientX),Math.min(D.y,e.clientY),Math.max(D.x,e.clientX),Math.max(D.y,e.clientY),D.a)},true);
+    plGesture(D.btn,Math.min(D.x,e.clientX),Math.min(D.y,e.clientY),Math.max(D.x,e.clientX),Math.max(D.y,e.clientY),D.a,D.md)},true);
   document.addEventListener("pointercancel",function(){if(band){band.remove();band=null}d=null});
 })();
 // ---------- 폰(터치)에서 플래닝 ----------
@@ -2346,7 +2363,7 @@ var KEYS=[
   {keys:["Alt","3"],d:"되돌리기 (삭제 · 고친 값을 한 단계씩)",code:"Digit3",code2:"Numpad3",alt:1,plan:1,fn:function(){undo()}},
   {keys:["Alt","S"],d:"로드리스트로 싣기 (Planning by Load List) 켜기 · 끄기 — General Plan · Bay Plan",code:"KeyS",alt:1,plan:1,fn:function(){plMode("ll")}},
   {keys:["Alt","Q"],d:"팔레트로 싣기 (Planning by Palette) 켜기 · 끄기 — General Plan · Bay Plan",code:"KeyQ",alt:1,plan:1,fn:function(){plMode("pal")}},
-  {keys:["Alt","W"],d:"이동 · 자리 교체 켜기 · 끄기 (Ctrl 로 고른 뒤 빈 칸 = 이동, 다른 컨테이너 = 교체) — General Plan · Bay Plan",code:"KeyW",alt:1,plan:1,fn:function(){plMode("mv")}},
+  {keys:["클릭"],d:"Ctrl 로 고른 컨테이너가 있을 때 — 빈 칸을 누르면(끌면) 그 자리로 이동, 다른 컨테이너를 누르면 자리 교체 (General Plan · Bay Plan, 다른 베이로도)"},
   {keys:["Alt","Z"],d:"미러 끄기 (Single)",code:"KeyZ",alt:1,plan:1,fn:function(){plMir("S")}},
   {keys:["Alt","C"],d:"미러 2F/A — 같은 해치의 앞·뒤 20' 베이에 같이 싣기",code:"KeyC",alt:1,plan:1,fn:function(){plMir("2FA")}},
   {keys:["Shift","클릭"],d:"Editor 목록에서 범위로 고르기 · 열 제목은 여러 열 정렬"},
