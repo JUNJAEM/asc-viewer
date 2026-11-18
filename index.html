@@ -443,7 +443,7 @@ body.static .cr{display:none}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-18 09:15 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-18 09:17 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -850,7 +850,7 @@ var ES={on:false,tab:"E",sort:[],flt:{},fade:false,pr:"pod",pc:"type",pv:"van"};
 try{ES.on=localStorage.getItem("ascEdOn")==="1"}catch(_){}
 function dg0(b){return (b.dgno&&st.plan.dg[b.dgno]&&st.plan.dg[b.dgno][0])||{}}
 var EF=[   // [키, 제목, 숫자?, 값, 목록에 보임?, 피벗 항목?]
-  ["pos","Position",0,function(b){return pad(b.bay)+pad(b.row)+pad(b.tier)},1,0],
+  ["pos","Position",0,function(b){return pad(b.bay)+"-"+pad(b.row)+"-"+pad(b.tier)},1,0],
   ["bay","Bay",1,function(b){return b.bay},0,1],["row","Row",1,function(b){return b.row},0,1],["tier","Tier",1,function(b){return b.tier},0,1],
   ["hd","HD",0,function(b){return b.tier>=80?"D":"H"},1,1],
   ["cntr","Cntr No",0,function(b){return b.cntr},1,0],
@@ -1112,7 +1112,7 @@ function urgentMail(){
   var dv=function(st_,t){return '<div style="'+st_+'">'+(t===""?"<br>":t)+'</div>'};
   var td=function(t,h){return '<td style="white-space: nowrap; border: 2px solid rgb(0, 0, 0); padding: 1px 5px; vertical-align: middle;'+(h?' text-align: center;':'')+'"><div style="'+C+(h?' text-align: center;':'')+'">'+esc(t)+'</div></td>'};
   var hd=["Cntr No","POSITION","POL","POD","OPR","DEST","SzTp","WGT","FE"];
-  var rows=bx.map(function(b){return '<tr>'+[b.cntr,pad(b.bay)+pad(b.row)+pad(b.tier),port5(b.pol),port5(b.pod),b.line||"",b.dest||port5(b.pod),b.type||"",b.kg.toLocaleString("en-US"),b.fe].map(function(v){return td(v)}).join("")+'</tr>'}).join("");
+  var rows=bx.map(function(b){return '<tr>'+[b.cntr,pad(b.bay)+"-"+pad(b.row)+"-"+pad(b.tier),port5(b.pol),port5(b.pod),b.line||"",b.dest||port5(b.pod),b.type||"",b.kg.toLocaleString("en-US"),b.fe].map(function(v){return td(v)}).join("")+'</tr>'}).join("");
   var tot={},to=[];bx.forEach(function(b){var k=b.type||"-";if(!tot[k]){tot[k]=0;to.push(k)}tot[k]++});
   var img=bayPng();
   var html='<html><head><meta charset="utf-8"></head><body>'+
@@ -1152,7 +1152,7 @@ function showBox(i){
   // 기본 8개 항목만(DEST 도 뺌) 보여 줌(2026-11 사용자 요청). 냉동 온도·위험물·OverDim·Cargo Type 은 그 컨테이너에 값이 있을 때만 덧붙임.
   // 네 번째 값 = 고칠 수 있는 칸의 이름. 화면에서만 뺀 것이고 파일의 다른 칸은 그대로 남음(저장해도 안 바뀜)
   var rowsD=[["Container No.",b.cntr,0,"cntr"],
-    ["Position",pad(b.bay)+pad(b.row)+pad(b.tier)],
+    ["Position",pad(b.bay)+"-"+pad(b.row)+"-"+pad(b.tier)],
     ["OPR",b.line||"",0,"line"],
     ["POL",evOf(b,"pol"),0,"pol"],
     ["POD",evOf(b,"pod"),0,"pod"],
