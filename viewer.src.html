@@ -234,6 +234,9 @@ body.static #sumWin .rz{display:none}
   #sum #sortCol{align-self:flex-start;margin:0}
 }
 @container (max-width:210px){ #sum .chipb small{display:none} #sum .kv span{font-size:10.5px} }
+/* 끌어서 고르기 (네모) */
+#band{position:fixed;z-index:70;border:1px dashed #b00000;background:rgba(255,40,40,.14);pointer-events:none}
+body.banding{user-select:none;-webkit-user-select:none;cursor:crosshair}
 /* EXPORT PLAN 메뉴 */
 .expw{position:relative;display:inline-block}
 #expMenu{position:absolute;right:0;top:calc(100% + 4px);z-index:45;min-width:190px;padding:4px;background:var(--win);border:1px solid #5d7fae;border-radius:6px;box-shadow:0 10px 28px rgba(0,20,60,.35)}
@@ -1519,6 +1522,36 @@ $("q").addEventListener("keydown",function(e){if(e.key==="Enter"&&FIRSTHIT)openB
 function findBox(on){var f=$("fbox");if(on==null)on=f.hidden;f.hidden=!on;
   if(on){$("q").focus();$("q").select()}else{$("q").value="";if(st.q){st.q="";render()}$("q").blur()}}
 $("findBtn").onclick=function(){findBox()};$("fX").onclick=function(){findBox(false)};
+// ---------- 끌어서 고르기: Bay Plan 창이나 General Plan 에서 마우스로 네모를 그리면 그 안의 컨테이너를 한꺼번에 고름 ----------
+// Ctrl 을 누른 채 끌면 기존 선택에 더함. 터치 화면은 '여러 개 고르기' 버튼을 씀(끌기는 화면 넘기기라서).
+(function(){
+  var d=null,band=null;
+  function area(t){return t.closest&&(t.closest("#bwB")||t.closest("#gp"))}
+  document.addEventListener("pointerdown",function(e){
+    if(e.pointerType!=="mouse"||e.button!==0||window.__STATIC__||!st.plan)return;
+    var a=area(e.target);if(!a||e.target.closest("input,select"))return;
+    d={x:e.clientX,y:e.clientY,a:a,on:false,add:e.ctrlKey||e.metaKey}});
+  document.addEventListener("pointermove",function(e){
+    if(!d)return;
+    if(!d.on){if(Math.abs(e.clientX-d.x)<6&&Math.abs(e.clientY-d.y)<6)return;
+      d.on=true;band=document.createElement("div");band.id="band";document.body.appendChild(band);document.body.classList.add("banding")}
+    var x=Math.min(d.x,e.clientX),y=Math.min(d.y,e.clientY);
+    band.style.left=x+"px";band.style.top=y+"px";band.style.width=Math.abs(e.clientX-d.x)+"px";band.style.height=Math.abs(e.clientY-d.y)+"px";
+    e.preventDefault()});
+  function end(e){
+    if(!d)return;var D=d;d=null;
+    if(!D.on)return;
+    var x1=Math.min(D.x,e.clientX),x2=Math.max(D.x,e.clientX),y1=Math.min(D.y,e.clientY),y2=Math.max(D.y,e.clientY),ids=[];
+    band.remove();band=null;document.body.classList.remove("banding");
+    [].forEach.call(D.a.querySelectorAll(D.a.id==="gp"?".m.b":".c.b"),function(c){var r=c.getBoundingClientRect(),i=+c.dataset.i;
+      if(r.right>x1&&r.left<x2&&r.bottom>y1&&r.top<y2&&ids.indexOf(i)<0)ids.push(i)});
+    // 끌고 난 뒤에 따라오는 클릭 한 번은 무시 (칸 하나만 다시 골라지지 않게)
+    var stop=function(ev){ev.stopPropagation();ev.preventDefault()};document.addEventListener("click",stop,true);setTimeout(function(){document.removeEventListener("click",stop,true)},0);
+    if(!ids.length&&D.add)return;
+    if(D.add)ids.forEach(function(i){if(st.pick.indexOf(i)<0)st.pick.push(i)});else st.pick=ids;
+    st.sel=-1;$("sheet").hidden=true;render()}
+  document.addEventListener("pointerup",end);document.addEventListener("pointercancel",function(){if(band){band.remove();band=null;document.body.classList.remove("banding")}d=null});
+})();
 // ---------- 단축키 표: 여기 한 줄을 넣으면 단축키가 생기고 도움말(F1)에도 자동으로 나옴 ----------
 // keys = 도움말에 보이는 글, d = 설명. 키보드 단축키는 code(자판 위치)·alt/ctrl/shift·fn(할 일)·plan(플랜이 열려 있을 때만)을 같이 적음.
 // code 가 없는 줄은 마우스 동작처럼 다른 곳에서 처리하는 것 — 도움말에만 나옴.
@@ -1527,6 +1560,7 @@ var KEYS=[
   {keys:["Alt","E"],d:"EDITOR / PIVOT 켜기 · 끄기",code:"KeyE",alt:1,plan:1,fn:function(){$("edBtn").click()}},
   {keys:["Alt","F"],d:"컨테이너 찾기 열기 · 닫기",code:"KeyF",alt:1,plan:1,fn:function(){findBox()}},
   {keys:["Ctrl","클릭"],d:"컨테이너 여러 개 고르기 (다시 누르면 빨간 표식 지우기)"},
+  {keys:["드래그"],d:"네모로 끌어서 그 안의 컨테이너를 한꺼번에 고르기 (Ctrl을 누른 채 끌면 기존 선택에 더하기)"},
   {keys:["Shift","클릭"],d:"Editor 목록에서 범위로 고르기 · 열 제목은 여러 열 정렬"},
   {keys:["Alt","휠"],d:"General Plan 확대 · 축소"},
   {keys:["더블클릭"],d:"베이를 Bay Plan 창으로 열기"},
@@ -1535,7 +1569,7 @@ var KEYS=[
   {keys:["Esc"],d:"열려 있는 창 닫기"}
 ];
 function helpDraw(){
-  function kb(a){return a.map(function(x){return /^(클릭|휠|더블클릭)$/.test(x)?x:"<kbd>"+esc(x)+"</kbd>"}).join(" + ")}
+  function kb(a){return a.map(function(x){return /^(클릭|휠|더블클릭|드래그)$/.test(x)?x:"<kbd>"+esc(x)+"</kbd>"}).join(" + ")}
   $("helpT").innerHTML=KEYS.map(function(K){return "<tr><td>"+kb(K.keys)+(K.or?" "+kb(K.or):"")+"</td><td>"+esc(K.d)+"</td></tr>"}).join("")}
 helpDraw();
 document.addEventListener("keydown",function(e){
