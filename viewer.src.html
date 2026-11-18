@@ -298,15 +298,21 @@ body.static #tabs{display:none!important}
 #fbox{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));z-index:40;display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;
   max-width:calc(100vw - 32px);padding:8px 10px;background:linear-gradient(#f7faff,#e3ebf6);border:1px solid #5d7fae;border-radius:8px;box-shadow:0 8px 24px rgba(0,20,60,.4);font-size:12.5px}
 #fbox b{font-size:12.5px}
+.bpl[hidden]{display:none}.bpl .plNm{color:#0b3f94}
 .bpl{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;padding:5px 12px;border-bottom:1px solid var(--edge);background:var(--chrome);font-size:12px}
-.bpl .seg{display:inline-flex}.bpl .seg button{font:inherit;font-size:12px;font-weight:700;padding:2px 9px;border:1px solid var(--edge);background:#fff;color:#111;cursor:pointer;margin-left:-1px}
-.bpl .seg button:first-child{margin-left:0;border-radius:4px 0 0 4px}.bpl .seg button:last-child{border-radius:0 4px 4px 0}
-.bpl .seg button[aria-pressed="true"]{background:#0b3f94;color:#fff;border-color:#0b3f94}
-#plBrush,#llForm{display:flex;flex-wrap:wrap;gap:3px 5px;align-items:center;font-weight:700}#plBrush[hidden],#llForm[hidden]{display:none}
-#plBrush input,#llForm input{font:inherit;font-weight:700;width:46px;padding:0 3px;border:1px solid var(--edge);border-radius:3px;text-transform:uppercase}#plBrush input.w,#llForm input.w{width:54px}
-#plBrush select,#llForm select{font:inherit;font-weight:700}
-#plMsg{flex:1 1 160px;min-width:0;font-weight:700;color:#0b3f94}#plMsg.err{color:#b00000}
+.seg{display:inline-flex}.seg button{font:inherit;font-size:12px;font-weight:700;padding:2px 9px;border:1px solid var(--edge);background:#fff;color:#111;cursor:pointer;margin-left:-1px}
+.seg button:first-child{margin-left:0;border-radius:4px 0 0 4px}.seg button:last-child{border-radius:0 4px 4px 0}
+.pltop{display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap}.pltop .seg button{padding:5px 11px;font-size:12.5px}
+#plStrip{position:sticky;top:0;z-index:12;display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;padding:6px 12px;margin:0 0 8px;border:1px solid #0b3f94;border-radius:6px;background:#eaf2ff;font-size:12.5px;box-shadow:0 3px 10px rgba(0,20,60,.2)}
+#plStrip[hidden]{display:none}#plStrip b{color:#0b3f94}
+@media (hover:none){#plTop,#plStrip{display:none}}
+.seg button[aria-pressed="true"]{background:#0b3f94;color:#fff;border-color:#0b3f94}
+.plBrush,#llForm{display:flex;flex-wrap:wrap;gap:3px 5px;align-items:center;font-weight:700}.plBrush[hidden],#llForm[hidden]{display:none}
+.plBrush input,#llForm input{font:inherit;font-weight:700;width:46px;padding:0 3px;border:1px solid var(--edge);border-radius:3px;text-transform:uppercase}.plBrush input.w,#llForm input.w{width:54px}
+.plBrush select,#llForm select{font:inherit;font-weight:700}
+.plMsg{flex:1 1 160px;min-width:0;font-weight:700;color:#0b3f94}.plMsg.err{color:#b00000}
 body.planning #bwB .c[data-s]{cursor:crosshair}body.planning #bwB .c[data-s]:hover{background:#d9ecff}
+body.planning #gp .m[data-s]{cursor:crosshair}body.planning #gp .m[data-s]:hover{background:#bfe0ff}
 .c.sf{box-shadow:inset 0 0 0 2px #7a00c8}.c .sfm{position:absolute;top:0;left:50%;transform:translateX(-50%);font-size:8px;font-weight:700;line-height:10px;padding:0 3px;background:#7a00c8;color:#fff;border-radius:0 0 3px 3px}
 .m.sf{box-shadow:inset 0 0 0 1.5px #7a00c8}
 #llBox{position:fixed;left:max(12px,env(safe-area-inset-left,0px));bottom:12px;z-index:41;width:330px;max-width:calc(100vw - 24px);background:var(--win);border:1px solid var(--edge);border-radius:8px;box-shadow:0 10px 30px rgba(0,20,60,.45);font-size:12px;display:flex;flex-direction:column;max-height:46vh}
@@ -318,7 +324,22 @@ body.planning #bwB .c[data-s]{cursor:crosshair}body.planning #bwB .c[data-s]:hov
 #llT td,#llT th{padding:2px 6px;border-bottom:1px solid #e3e8f0;text-align:left;white-space:nowrap}#llT th{position:sticky;top:0;background:#eef3fa}
 #llT td.n{text-align:right}#llT tbody tr{cursor:pointer}#llT tr.on td{background:#ffd9d9}#llT td.emp{color:#667;white-space:normal;cursor:default}
 #llBox .llf{padding:5px 8px;border-top:1px solid var(--edge);color:#445;font-size:11px;line-height:1.35}
-@media (pointer:coarse){#bwPl{display:none}}
+.tpl{display:none}
+@media (hover:none){#bwPl{display:none}
+  .tpl{display:block;position:relative;flex:none;border-top:1px solid var(--edge);background:var(--chrome);font-size:13px}.tpl[hidden]{display:none}
+  .tpl button{font:inherit;font-weight:700;white-space:nowrap;min-height:40px;min-width:44px;padding:0 11px;border:1px solid var(--edge);border-radius:6px;background:#fff;color:#111}
+  .tpl button[aria-pressed="true"],.tpl button.on{background:#0b3f94;color:#fff;border-color:#0b3f94}
+  .tpr,.tpc{display:flex;gap:6px;align-items:center;padding:6px 10px}.tpr .sp{flex:1}.tpc[hidden]{display:none}
+  .tpc .sum{flex:1 1 auto;min-width:0;text-align:left;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tpc .go{background:#0a7a2f;color:#fff;border-color:#0a7a2f}.tpc .go:disabled{background:#c9d2de;border-color:#c9d2de;color:#fff}
+  .tpm{padding:5px 10px;font-weight:700;color:#0b3f94;background:#eef4ff;border-bottom:1px solid var(--edge)}.tpm.err{color:#b00000;background:#fff0f0}.tpm[hidden]{display:none}
+  .tpd{position:absolute;left:0;right:0;bottom:100%;max-height:44vh;overflow:auto;background:#fff;border-top:2px solid #0b3f94;box-shadow:0 -8px 20px rgba(0,20,60,.3);padding:8px 10px 10px;z-index:5}.tpd[hidden]{display:none}
+  .tpd .tabs{display:flex;gap:6px;margin-bottom:8px}.tpd .tabs button{flex:1}
+  .tpd .grp{display:flex;width:100%;justify-content:space-between;gap:8px;margin-bottom:6px;text-align:left}
+  .tpd .lab{font-weight:700;margin:8px 0 4px;color:#33415c}.tpd .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .tpd input{font:inherit;font-weight:700;min-height:40px;width:110px;padding:0 8px;border:1px solid var(--edge);border-radius:6px}
+  .tpd .emp{color:#556;line-height:1.5}
+  #bwB .c.mk{background:#bfe3ff;box-shadow:inset 0 0 0 3px #0b6fd6}}
 #fbox{cursor:move;touch-action:none;user-select:none;-webkit-user-select:none}
 #fbox #q{cursor:text;user-select:text;-webkit-user-select:text;width:230px;padding:4px 7px}
 #fbox #qn{font-size:12px;min-width:0}
@@ -505,6 +526,8 @@ body.static .cr{display:none}
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
+      <span class="pltop" id="plTop"><span class="seg plModes"><button type="button" data-pm="v" title="보기만 (플래닝 끔)">보기</button><button type="button" data-pm="ll" title="Planning by Load List (Alt + S)">로드리스트</button><button type="button" data-pm="pal" title="Planning by Palette (Alt + Q)">팔레트</button><button type="button" data-pm="mv" title="컨테이너 이동 · 자리 교체 (Alt + W)">이동·교체</button></span>
+    <span class="seg plMir"><button type="button" data-mir="S" title="Single — 누른 칸에만 (Alt + Z)">S</button><button type="button" data-mir="2FA" title="Mirror for Fore and Aft — 같은 해치의 앞·뒤 20' 베이에 같이 (Alt + C)">2F/A</button></span></span>
       <button class="btn" id="edBtn" type="button" aria-pressed="false" title="컨테이너 목록(Editor)과 집계표(Pivot) 창을 켜고 꺼요 (Alt + E)">EDITOR / PIVOT</button>
       <button class="btn" id="helpBtn" type="button" title="단축키 모음 (F1)">도움말</button>
       <button class="btn" id="saveBtn" type="button" hidden>ASC 저장</button>
@@ -520,6 +543,8 @@ body.static .cr{display:none}
     </div>
   </header>
   <div id="tabs" hidden role="tablist" aria-label="열어 둔 플랜"></div>
+  <div id="plStrip" hidden><b id="plName"></b><span class="plBrush" hidden>POL<input data-b="pol" maxlength="5" aria-label="팔레트 POL"> POD<input data-b="pod" maxlength="5" aria-label="팔레트 POD"> SzTp<input data-b="type" maxlength="4" aria-label="팔레트 SzTp"> kg<input data-b="kg" maxlength="5" class="w" aria-label="팔레트 무게 kg">
+      <select data-b="fe" aria-label="팔레트 F/E"><option>F</option><option>E</option></select> OPR<input data-b="line" maxlength="8" aria-label="팔레트 OPR"></span><span class="plMsg"></span></div>
   <div class="note" id="note" hidden></div>
   <section class="win" id="sumWin"><div class="tb">Summary</div><div class="body" id="sum"></div>
     <div class="rz rzl" data-sz="l" title="끌어서 너비 조절 (더블클릭: 원래대로)"></div><div class="rz rzr" data-sz="r" title="끌어서 너비 조절 (더블클릭: 원래대로)"></div><div class="rz rzb" data-sz="b" title="끌어서 높이 조절 (더블클릭: 원래대로)"></div><div class="rz rzc" data-sz="c" title="끌어서 크기 조절 (더블클릭: 원래대로)"></div></section>
@@ -564,14 +589,16 @@ body.static .cr{display:none}
     <button type="button" id="bwC" title="POD를 바꾼(COD) 컨테이너를 골라 COD NOTICE 메일을 만들어요" disabled>COD 메일 생성</button>
     <button type="button" id="bwP" aria-label="왼쪽 베이" title="왼쪽 베이 (←)">◀</button><button type="button" id="bwN" aria-label="오른쪽 베이" title="오른쪽 베이 (→)">▶</button>
     <button type="button" id="bwZ" aria-label="최대화" title="최대화 / 이전 크기 (제목줄 더블클릭)">□</button><button type="button" id="bwX" aria-label="닫기" title="닫기 (Esc)">×</button></div>
-  <div class="bpl" id="bwPl">
-    <span class="seg" id="plModes"><button type="button" data-pm="v" title="보기만 (플래닝 끔)">보기</button><button type="button" data-pm="ll" title="Planning by Load List (Alt + S)">로드리스트</button><button type="button" data-pm="pal" title="Planning by Palette (Alt + Q)">팔레트</button><button type="button" data-pm="mv" title="컨테이너 이동 · 자리 교체 (Alt + W)">이동·교체</button></span>
-    <span class="seg" id="plMir"><button type="button" data-mir="S" title="Single — 누른 칸에만 (Alt + Z)">S</button><button type="button" data-mir="2FA" title="Mirror for Fore and Aft — 같은 해치의 앞·뒤 20' 베이에 같이 (Alt + C)">2F/A</button></span>
-    <span id="plBrush" hidden>POL<input data-b="pol" maxlength="5" aria-label="팔레트 POL"> POD<input data-b="pod" maxlength="5" aria-label="팔레트 POD"> SzTp<input data-b="type" maxlength="4" aria-label="팔레트 SzTp"> kg<input data-b="kg" maxlength="5" class="w" aria-label="팔레트 무게 kg">
-      <select data-b="fe" aria-label="팔레트 F/E"><option>F</option><option>E</option></select> OPR<input data-b="line" maxlength="8" aria-label="팔레트 OPR"></span>
-    <span id="plMsg"></span></div>
+  <div class="bpl" id="bwPl" hidden><b class="plNm"></b><span class="plMsg"></span></div>
   <div class="bwb" id="bwB"></div>
   <div class="bwf" id="bwF"></div>
+  <div class="tpl" id="tpl" hidden>
+    <div class="tpd" id="tpD" hidden></div>
+    <div class="tpm" id="tpM" hidden></div>
+    <div class="tpc" id="tpC" hidden><button type="button" class="sum" id="tpS"></button><button type="button" class="go" id="tpGo"></button><button type="button" id="tpClr">지우기</button></div>
+    <div class="tpr" id="tpR"><button type="button" data-tt="load">싣기</button><button type="button" data-tt="unload">내리기</button><button type="button" data-tt="move">이동·교체</button><span class="sp"></span>
+      <button type="button" id="tpMir" aria-pressed="false" title="Mirror for Fore and Aft">2F/A</button><button type="button" id="tpU" aria-label="되돌리기" title="되돌리기">↶</button></div>
+  </div>
   <div class="bwk" id="bwK"><button type="button" id="bwMul" aria-pressed="false">여러 개 고르기</button><span class="sp"></span>
     <button type="button" id="bwP2" aria-label="왼쪽 베이">◀</button><button type="button" id="bwN2" aria-label="오른쪽 베이">▶</button>
     <button type="button" id="bwX2">창 닫기</button></div>
@@ -872,7 +899,7 @@ function render(){
       function line(ts){return ts.map(function(t){return rs.map(function(r){var c=p.cell(r,t);
         if(c.b){var mh=q&&qHit(c.b);if(mh&&!FIRSTHIT)FIRSTHIT=p.id;
           return '<div class="m b'+(PP?' pp':'')+(c.f40?' f40':'')+(mh?' hit':'')+(dimmed(c.b)?' dim':'')+(st.pick.indexOf(c.b.i)>=0?' pk':'')+(fromOf(c.b)?' sf':'')+kc(c.b)+'" data-i="'+c.b.i+'" style="'+sty(c.b)+'">'+marks(c.b)+'</div>'}
-        return c.x?'<div class="m">×</div>':'<div class="m'+(c.slot?'':' n')+'"></div>'}).join("")+'<div class="mt">'+pad(t)+'</div>'}).join("")}
+        return c.x?'<div class="m">×</div>':'<div class="m'+(c.slot?'':' n')+'"'+(c.slot?' data-s="'+r+'_'+t+'"':'')+'></div>'}).join("")+'<div class="mt">'+pad(t)+'</div>'}).join("")}
       var mrow=rs.map(function(r){return '<div class="mr">'+pad(r)+'</div>'}).join("")+'<div class="mr"></div>';
       return '<button type="button" class="mini'+(p.id===st.open?' cur':'')+'" data-go="'+p.id+'" aria-label="BAY '+p.name+'"><span>BAY '+p.name+'</span><div class="mg" style="--n:'+rs.length+'">'+
         mrow+line(T.D)+(T.D.length&&T.H.length?'<div class="mbar"></div>':'')+line(T.H)+mrow+'</div></button>'}).join("")+'</div>');
@@ -927,7 +954,7 @@ function drawWin(){
   // 칸 높이: 그 베이의 단 수가 화면 높이에 다 들어오게 (24~42px), 창 폭은 칸 비율에 맞춤
   var Q=PANELS[st.open],nt=Q?Q.T.D.length+Q.T.H.length:8,nr=Q?Q.rs.length:8,PH=isPhone();
   var LD=PH&&window.innerWidth>window.innerHeight;   // 가로로 눕힌 폰: 높이가 낮아서 칸을 더 낮게(20px까지)
-  var availH=window.innerHeight-(LD?215:PH?175:235), ch=Math.max(LD?20:24,Math.min(42,Math.floor(availH/Math.max(nt,1))));
+  var availH=window.innerHeight-(LD?215:PH?175:235)-(TOUCH&&tOn()?(PL.t.tool?100:54):0), ch=Math.max(LD?20:24,Math.min(42,Math.floor(availH/Math.max(nt,1))));
   var bwid=Math.min(window.innerWidth-(PH?0:40),nr*Math.round(ch*1.5)+70);
   w.firstElementChild.style.setProperty("--ch",ch+"px");
   w.firstElementChild.style.setProperty("--bw",Math.max(bwid,Math.min(430,window.innerWidth))+"px"); w.hidden=false; bwApply();
@@ -1773,7 +1800,8 @@ var PL={mode:"v",mir:"S",brush:{pol:"",pod:"",type:"22GP",kg:"14000",fe:"F",line
 function fromOf(b){return st.lines?(st.sft||{})[b.li]:b.from}
 function p6(bay,row,tier){return pad(bay)+pad(row)+pad(tier)}
 function p6d(x){return x.slice(0,2)+"-"+x.slice(2,4)+"-"+x.slice(4,6)}
-function plSay(m,err){var e=$("plMsg");e.textContent=m||"";e.className=err?"err":"";if(m)say(m,err)}
+function plSay(m,err){[].forEach.call(document.querySelectorAll(".plMsg"),function(e){e.textContent=m||"";e.className="plMsg"+(err?" err":"")});if(m)say(m,err);
+  var t=$("tpM");t.textContent=m||"";t.className="tpm"+(err?" err":"");t.hidden=!m;clearTimeout(PL.tm);if(m)PL.tm=setTimeout(function(){t.hidden=true},err?6000:4000)}
 function occMap(skip){var m={};st.plan.boxes.forEach(function(b){if(!skip||skip.indexOf(b)<0)m[b.bay+"_"+b.row+"_"+b.tier]=b});return m}
 function hasSlot(bay,row,tier){var sh=curShip();if(!sh)return null;var S=slotsOf(sh,bay);return S?!!S[row+"_"+tier]:null}
 function whyNot(is40,H,bay,row,tier,O){   // 그 크기의 컨테이너를 거기 못 싣는 까닭 ("" = 실어도 됨)
@@ -1816,11 +1844,13 @@ function setPos(b,t){   // 실려 있는 컨테이너를 자리 t 로. 원래 �
 function dropBoxes(bx){if(st.lines)bx.forEach(function(b){st.lines[b.li]="";if(st.sft)delete st.sft[b.li]});
   else{st.plan.boxes=st.plan.boxes.filter(function(b){return bx.indexOf(b)<0});st.mod=true}}
 function plDone(msg,err){if(st.lines)reparse();st.pick=[];st.sel=-1;st.saved="";$("sheet").hidden=true;render();plSay(msg,err)}
-function plTargets(p,cells,is40){var T=[];cells.forEach(function(c){var bay=is40?p.h:(p.kind==="f"?p.f:p.a);T.push({bay:bay,row:c.row,tier:c.tier});
-    if(PL.mir==="2FA"&&!is40)T.push({bay:bay===p.f?p.a:p.f,row:c.row,tier:c.tier,mir:1})});return T}
-function plRun(p,cells,is40,next,skip,word){   // 자리마다 검사하고, next() 가 주는 것을 하나씩 놓음
-  var T=plTargets(p,cells,is40),O=occMap(skip),done=0,why={},pushed=false;
-  for(var k=0;k<T.length;k++){var t=T[k],w=whyNot(is40,p,t.bay,t.row,t.tier,O);
+function plTargets(G,is40){var T=[],seen={};   // G = [{p: 그 베이 화면, cells: 칸들}] — 베이마다 다 채우고 다음 베이로
+  G.forEach(function(g){var p=g.p;g.cells.forEach(function(c){var bay=is40?p.h:(p.kind==="f"?p.f:p.a),k=bay+"_"+c.row+"_"+c.tier;
+    if(!seen[k]){seen[k]=1;T.push({H:p,bay:bay,row:c.row,tier:c.tier})}
+    if(PL.mir==="2FA"&&!is40){var b2=bay===p.f?p.a:p.f,k2=b2+"_"+c.row+"_"+c.tier;if(!seen[k2]){seen[k2]=1;T.push({H:p,bay:b2,row:c.row,tier:c.tier,mir:1})}}})});return T}
+function plRun(G,is40,next,skip,word){   // 자리마다 검사하고, next() 가 주는 것을 하나씩 놓음
+  var T=plTargets(G,is40),O=occMap(skip),done=0,why={},pushed=false;
+  for(var k=0;k<T.length;k++){var t=T[k],w=whyNot(is40,t.H,t.bay,t.row,t.tier,O);
     if(w){if(!t.mir)why[w]=(why[w]||0)+1;continue}
     var put=next(done);if(!put)break;
     if(!pushed){pushUndo();pushed=true}
@@ -1830,21 +1860,21 @@ function plRun(p,cells,is40,next,skip,word){   // 자리마다 검사하고, nex
   else plSay(no?"실을 수 있는 자리가 없어요 ("+no+").":"빈 칸을 누르거나 끌어 주세요.",true);
   return done}
 function f604(){return !!st.lines&&(st.lines[0]||"").indexOf("$604")===0}
-function plPaint(p,cells){
+function plPaint(G){
   var f=plFields(PL.brush);if(typeof f==="string")return plSay(f,true);
   if(f604())return plSay("옛 CASP($604) 파일에는 새 컨테이너를 만들 수 없어요. 이동·교체만 돼요.",true);
-  var o=mkObj(f);plRun(p,cells,o.size===40,function(){return function(t){addBox(o,t,null)}},null,"팔레트로 실은 컨테이너")}
-function plLoad(p,cells){
+  var o=mkObj(f);plRun(G,o.size===40,function(){return function(t){addBox(o,t,null)}},null,"팔레트로 실은 컨테이너")}
+function plLoad(G){
   var sel=(st.ll||[]).filter(function(e){return PL.lsel.indexOf(e.id)>=0}).sort(function(a,b){return b.b.kg-a.b.kg});
   if(!sel.length)return plSay("LOAD LIST 에서 실을 컨테이너를 먼저 골라 주세요.",true);
   var is40=sel[0].b.size===40;if(sel.some(function(e){return (e.b.size===40)!==is40}))return plSay("20' 와 40' 를 같이 고를 수는 없어요. 한 크기만 골라 주세요.",true);
   if(f604()&&sel.some(function(e){return !e.raw}))return plSay("옛 CASP($604) 파일에는 새로 만든 로드리스트를 실을 수 없어요.",true);
-  plRun(p,cells,is40,function(n){var e=sel[n];if(!e)return null;return function(t){addBox(e.b,t,e);st.ll=st.ll.filter(function(x){return x!==e});PL.lsel=PL.lsel.filter(function(i){return i!==e.id})}},null,"로드리스트에서 실은 컨테이너")}
+  plRun(G,is40,function(n){var e=sel[n];if(!e)return null;return function(t){addBox(e.b,t,e);st.ll=st.ll.filter(function(x){return x!==e});PL.lsel=PL.lsel.filter(function(i){return i!==e.id})}},null,"로드리스트에서 실은 컨테이너")}
 function plPicked(){var B=st.plan.boxes;return st.pick.map(function(i){return B[i]}).filter(Boolean).sort(function(a,b){return b.kg-a.kg})}
-function plMove(p,cells){
+function plMove(G){
   var mv=plPicked();if(!mv.length)return;
   var is40=mv[0].size===40;if(mv.some(function(b){return (b.size===40)!==is40}))return plSay("20' 와 40' 를 같이 옮길 수는 없어요. 한 크기만 골라 주세요.",true);
-  plRun(p,cells,is40,function(n){var b=mv[n];if(!b)return null;return function(t){setPos(b,t)}},mv,"옮긴 컨테이너")}
+  plRun(G,is40,function(n){var b=mv[n];if(!b)return null;return function(t){setPos(b,t)}},mv,"옮긴 컨테이너")}
 function plSwap(hit){
   var A=plPicked(),Bx=hit.filter(function(b){return A.indexOf(b)<0}).sort(function(a,b){return b.kg-a.kg});
   if(!Bx.length)return;
@@ -1866,29 +1896,36 @@ function plUnshift(bx){var sf=bx.filter(function(b){return fromOf(b)}),O=occMap(
   sf.forEach(function(b){var fr=fromOf(b),t={bay:+fr.slice(0,2),row:+fr.slice(2,4),tier:+fr.slice(4,6)},k=t.bay+"_"+t.row+"_"+t.tier;
     if(O[k]){no++;return}if(!pushed){pushUndo();pushed=true}O[k]={};setPos(b,t);n++});
   if(n)plDone("원래 자리로 되돌린 컨테이너 "+n+" VAN."+(no?" 원래 자리가 차 있어 못 돌린 것 "+no+" VAN.":""));else plSay("원래 자리가 다른 컨테이너로 차 있어요.",true)}
-function plGesture(btn,x1,y1,x2,y2){
-  var Q=PANELS[st.open];if(!Q)return;var p=Q.p,cells=[],boxes=[];
-  [].forEach.call($("bwB").querySelectorAll(".c"),function(c){var r=c.getBoundingClientRect();if(!(r.right>x1&&r.left<x2&&r.bottom>y1&&r.top<y2))return;
-    if(c.dataset.s){var q=c.dataset.s.split("_");cells.push({row:+q[0],tier:+q[1]})}
-    else if(c.dataset.i!=null){var b=st.plan.boxes[+c.dataset.i];if(b&&boxes.indexOf(b)<0)boxes.push(b)}});
-  cells.sort(function(a,b){return a.tier-b.tier||a.row-b.row});
-  if(btn===0){if(PL.mode==="pal")plPaint(p,cells);else if(PL.mode==="ll")plLoad(p,cells);
-    else if(cells.length)plMove(p,cells);else plSwap(boxes)}
+function plGesture(btn,x1,y1,x2,y2,area){
+  var G=[],boxes=[],B=st.plan.boxes;
+  function scan(root,sel,p){var cells=[];
+    [].forEach.call(root.querySelectorAll(sel),function(c){var r=c.getBoundingClientRect();if(!(r.right>x1&&r.left<x2&&r.bottom>y1&&r.top<y2))return;
+      if(c.dataset.s){var q=c.dataset.s.split("_");cells.push({row:+q[0],tier:+q[1]})}
+      else if(c.dataset.i!=null){var b=B[+c.dataset.i];if(b&&boxes.indexOf(b)<0)boxes.push(b)}});
+    cells.sort(function(a,b){return a.tier-b.tier||a.row-b.row});if(cells.length)G.push({p:p,cells:cells})}
+  if(area&&area.id==="gp")[].forEach.call(area.querySelectorAll(".mini"),function(mi){var Q=PANELS[mi.dataset.go],r=mi.getBoundingClientRect();
+    if(Q&&r.right>x1&&r.left<x2&&r.bottom>y1&&r.top<y2)scan(mi,".m",Q.p)});
+  else{var Q0=PANELS[st.open];if(!Q0)return;scan($("bwB"),".c",Q0.p)}
+  if(btn===0){if(PL.mode==="pal")plPaint(G);else if(PL.mode==="ll")plLoad(G);
+    else if(G.length)plMove(G);else plSwap(boxes)}
   else{if(PL.mode==="pal")plErase(boxes);else if(PL.mode==="ll")plUnplan(boxes);else plUnshift(boxes)}}
 function plMode(m){if(window.__STATIC__||!st.plan||st.example)return;PL.mode=PL.mode===m?"v":m;
   if(PL.mode==="pal"&&!PL.brush.pol){var c={},d={};st.plan.boxes.forEach(function(b){c[b.pol]=(c[b.pol]||0)+1;d[b.pod]=(d[b.pod]||0)+1});
     var top=function(o){return Object.keys(o).sort(function(a,b){return o[b]-o[a]})[0]||""};PL.brush.pol=top(c);PL.brush.pod=top(d)}
   plDraw();
-  plSay({v:"",ll:"로드리스트: LOAD LIST 에서 고른 뒤 빈 칸을 누르거나 끌면 실려요. 오른쪽 버튼 = 로드리스트로 내리기.",pal:"팔레트: 위 조건으로 빈 칸을 누르거나 끌면 컨테이너가 생겨요. 오른쪽 버튼 = 팔레트 컨테이너 지우기.",
-    mv:"이동·교체: Ctrl + 클릭(드래그)으로 고른 뒤, 빈 칸을 누르면 이동 · 다른 컨테이너를 누르면 자리 교체. 오른쪽 버튼 = 쉬프팅 취소."}[PL.mode])}
+  plSay({v:"",ll:"LOAD LIST 에서 고른 뒤 General Plan(또는 Bay Plan)의 빈 칸을 누르거나 끌면 실려요. 여러 베이에 걸쳐 끌어도 돼요. 오른쪽 버튼 = 로드리스트로 내리기.",pal:"이 조건으로 General Plan(또는 Bay Plan)의 빈 칸을 누르거나 끌면 컨테이너가 생겨요. 오른쪽 버튼 = 새로 만든 컨테이너 지우기.",
+    mv:"Ctrl + 클릭(드래그)으로 고른 뒤, 빈 칸을 누르거나 끌면 이동 · 다른 컨테이너를 누르면 자리 교체 (다른 베이로도 돼요). 오른쪽 버튼 = 쉬프팅 취소."}[PL.mode])}
 function plMir(m){PL.mir=m;plDraw()}
 function plDraw(){
+  tDraw();
   var on=PL.mode!=="v";document.body.classList.toggle("planning",on);
-  [].forEach.call(document.querySelectorAll("#plModes button"),function(b){b.setAttribute("aria-pressed",b.dataset.pm===PL.mode)});
-  [].forEach.call(document.querySelectorAll("#plMir button"),function(b){b.setAttribute("aria-pressed",b.dataset.mir===PL.mir)});
-  $("plBrush").hidden=PL.mode!=="pal";
-  [].forEach.call(document.querySelectorAll("#plBrush [data-b]"),function(i){if(document.activeElement!==i)i.value=PL.brush[i.dataset.b]});
-  var L=(st.ll||[]).slice().sort(function(a,b){return b.b.kg-a.b.kg}),show=PL.mode==="ll"&&!!st.open&&!!st.plan;
+  [].forEach.call(document.querySelectorAll(".plModes button"),function(b){b.setAttribute("aria-pressed",b.dataset.pm===PL.mode)});
+  [].forEach.call(document.querySelectorAll(".plMir button"),function(b){b.setAttribute("aria-pressed",b.dataset.mir===PL.mir)});
+  [].forEach.call(document.querySelectorAll(".plBrush"),function(x){x.hidden=PL.mode!=="pal"});
+  [].forEach.call(document.querySelectorAll(".plBrush [data-b]"),function(i){if(document.activeElement!==i)i.value=PL.brush[i.dataset.b]});
+  var nm={ll:"로드리스트로 싣기",pal:"팔레트로 싣기",mv:"이동 · 자리 교체"}[PL.mode]||"";
+  $("plStrip").hidden=!on;$("plName").textContent=nm;$("bwPl").hidden=!on;$("bwPl").querySelector(".plNm").textContent=nm+(PL.mir==="2FA"?" · 2F/A":"");
+  var L=(st.ll||[]).slice().sort(function(a,b){return b.b.kg-a.b.kg}),show=PL.mode==="ll"&&!!st.plan;
   $("llBox").hidden=!show;if(!show)return;
   PL.lsel=PL.lsel.filter(function(i){return L.some(function(e){return e.id===i})});
   $("llN").textContent=L.length+" VAN"+(PL.lsel.length?" · 고른 것 "+PL.lsel.length:"");
@@ -1896,10 +1933,10 @@ function plDraw(){
     (L.length?L.map(function(e){var b=e.b;return '<tr data-l="'+e.id+'"'+(PL.lsel.indexOf(e.id)>=0?' class="on"':'')+'><td>'+esc(b.cntr||"(번호 없음)")+'</td><td>'+esc(b.pol)+'</td><td>'+esc(b.pod)+'</td><td>'+esc(b.type)+'</td><td class="n">'+ton(b.kg)+'</td><td>'+(e.from?p6d(e.from):"")+'</td></tr>'}).join("")
       :'<tr><td colspan="6" class="emp">비어 있어요. Bay Plan 에서 컨테이너를 오른쪽 버튼으로 누르거나 끌면 여기로 내려오고, ＋ 추가로 새로 만들 수도 있어요.</td></tr>')+"</tbody>"}
 (function(){
-  $("plModes").addEventListener("click",function(e){var b=e.target.closest("[data-pm]");if(!b)return;if(b.dataset.pm==="v"){PL.mode="v";plDraw();plSay("")}else plMode(b.dataset.pm)});
-  $("plMir").addEventListener("click",function(e){var b=e.target.closest("[data-mir]");if(b)plMir(b.dataset.mir)});
-  $("plBrush").addEventListener("change",function(e){var k=e.target.dataset.b;if(k)PL.brush[k]=e.target.value.trim().toUpperCase()});
-  ["plBrush","llForm"].forEach(function(id){$(id).addEventListener("keydown",function(e){e.stopPropagation();if(e.key==="Enter")e.target.blur()})});
+  document.addEventListener("click",function(e){if(!e.target.closest)return;var b=e.target.closest(".plModes [data-pm]"),m=e.target.closest(".plMir [data-mir]");
+    if(b){if(b.dataset.pm==="v"){PL.mode="v";plDraw();plSay("")}else plMode(b.dataset.pm)}else if(m)plMir(m.dataset.mir)});
+  document.addEventListener("change",function(e){var t=e.target;if(t.closest&&t.closest(".plBrush")&&t.dataset.b){PL.brush[t.dataset.b]=t.value.trim().toUpperCase();plDraw()}});
+  [].forEach.call(document.querySelectorAll(".plBrush,#llForm"),function(x){x.addEventListener("keydown",function(e){e.stopPropagation();if(e.key==="Enter")e.target.blur()})});
   $("llAdd").onclick=function(){var f=$("llForm");f.hidden=!f.hidden;if(!f.hidden)[].forEach.call(f.querySelectorAll("[data-l]"),function(i){var k=i.dataset.l;if(k!=="n"&&!i.value)i.value=PL.brush[k]||""})};
   $("llGo").onclick=function(){var v={};[].forEach.call($("llForm").querySelectorAll("[data-l]"),function(i){v[i.dataset.l]=i.value});
     var f=plFields(v),n=Math.max(1,Math.min(500,parseInt(v.n,10)||1));if(typeof f==="string")return plSay(f,true);
@@ -1915,13 +1952,13 @@ function plDraw(){
   $("llT").addEventListener("dblclick",function(e){var tr=e.target.closest("tr[data-l]");if(!tr)return;var ids=rowIds();PL.lsel=ids.slice(ids.indexOf(+tr.dataset.l));plDraw()});
   // 마우스: 플래닝 모드에서 Ctrl 없이 Bay Plan 을 누르거나 끄는 것은 여기서 먼저 받음(Ctrl 을 누르면 평소처럼 고르기)
   var d=null,band=null;
-  function mine(e){return PL.mode!=="v"&&!window.__STATIC__&&st.plan&&!st.example&&e.pointerType==="mouse"&&!(e.ctrlKey||e.metaKey)&&e.target.closest&&e.target.closest("#bwB")}
+  function mine(e){return PL.mode!=="v"&&!window.__STATIC__&&st.plan&&!st.example&&e.pointerType==="mouse"&&!(e.ctrlKey||e.metaKey)&&e.target.closest&&(e.target.closest("#bwB")||e.target.closest("#gp"))}
   document.addEventListener("pointerdown",function(e){
     if(!mine(e)||(e.button!==0&&e.button!==2))return;
-    var onBox=!!e.target.closest(".c.b");
+    var ar=mine(e),onBox=!!e.target.closest(".c.b,.m.b");
     if(e.button===0&&PL.mode!=="mv"&&onBox)return;          // 싣기 모드에서 컨테이너를 왼쪽으로 누르면 평소처럼 Container Editor
     if(e.button===0&&PL.mode==="mv"&&!st.pick.length)return;   // 이동 모드인데 고른 것이 없으면 평소처럼
-    e.stopPropagation();d={x:e.clientX,y:e.clientY,btn:e.button,on:false}},true);
+    e.stopPropagation();d={x:e.clientX,y:e.clientY,btn:e.button,on:false,a:ar}},true);
   document.addEventListener("pointermove",function(e){if(!d)return;e.stopPropagation();
     if(!d.on){if(Math.abs(e.clientX-d.x)<6&&Math.abs(e.clientY-d.y)<6)return;d.on=true;band=document.createElement("div");band.id="band";band.className=d.btn===0?"add":"del";document.body.appendChild(band);document.body.classList.add("banding")}
     band.style.left=Math.min(d.x,e.clientX)+"px";band.style.top=Math.min(d.y,e.clientY)+"px";band.style.width=Math.abs(e.clientX-d.x)+"px";band.style.height=Math.abs(e.clientY-d.y)+"px";e.preventDefault()},true);
@@ -1930,8 +1967,99 @@ function plDraw(){
     var stop=function(ev){ev.stopPropagation();ev.preventDefault()};
     document.addEventListener("click",stop,true);document.addEventListener("contextmenu",stop,true);
     setTimeout(function(){document.removeEventListener("click",stop,true);document.removeEventListener("contextmenu",stop,true)},350);
-    plGesture(D.btn,Math.min(D.x,e.clientX),Math.min(D.y,e.clientY),Math.max(D.x,e.clientX),Math.max(D.y,e.clientY))},true);
+    plGesture(D.btn,Math.min(D.x,e.clientX),Math.min(D.y,e.clientY),Math.max(D.x,e.clientX),Math.max(D.y,e.clientY),D.a)},true);
   document.addEventListener("pointercancel",function(){if(band){band.remove();band=null}d=null});
+})();
+// ---------- 폰(터치)에서 플래닝 ----------
+// 마우스 오른쪽 버튼·Ctrl·끌기가 없으니: 아래 도구 막대에서 도구를 켜고, 칸을 눌러 표시한 뒤 확정.
+//  싣기   : 빈 칸을 눌러 표시(로우·단 번호를 누르면 그 줄 전체) → [싣기]. 무엇을 실을지는 위로 열리는 서랍에서(로드리스트 묶음 / 팔레트 칩).
+//  내리기 : 컨테이너를 눌러 표시 → [내리기] (로드리스트로 감).
+//  이동·교체: 컨테이너를 누르면 '들림' → 빈 칸 = 이동, 다른 컨테이너 = 자리 교체. 여러 개는 '여러 개 고르기'를 켜고 든 뒤 빈 칸들을 표시 → [이동].
+// 실제 싣기·옮기기 규칙은 PC 와 같은 함수(plLoad·plPaint·plMove·plSwap·plUnplan)를 그대로 씀.
+PL.t={tool:"",src:"ll",marks:[],bay:"",open:false,grp:""};
+function tOn(){return !!st.plan&&!st.example&&!window.__STATIC__}
+function tMarks(){if(PL.t.bay!==st.open){PL.t.bay=st.open;PL.t.marks=[]}return PL.t.marks}
+function tCells(){return tMarks().map(function(k){var q=k.split("_");return {row:+q[0],tier:+q[1]}}).sort(function(a,b){return a.tier-b.tier||a.row-b.row})}
+function tGroups(){var m={},ks=[];(st.ll||[]).forEach(function(e){var b=e.b,k=b.pol+"|"+b.pod+"|"+b.type;if(!m[k]){m[k]={k:k,pol:b.pol,pod:b.pod,type:b.type,ids:[],kg:0};ks.push(k)}m[k].ids.push(e.id);m[k].kg+=b.kg});
+  return ks.sort().map(function(k){return m[k]})}
+function tDraw(){
+  var bar=$("tpl");if(!bar)return;var T=PL.t,on=TOUCH&&tOn()&&!!st.open;bar.hidden=!on;if(!on)return;
+  [].forEach.call(document.querySelectorAll("#tpR [data-tt]"),function(b){b.setAttribute("aria-pressed",b.dataset.tt===T.tool)});
+  $("tpMir").setAttribute("aria-pressed",PL.mir==="2FA");
+  var M=tMarks(),np=st.pick.length,G=tGroups(),g=G.filter(function(x){return x.k===T.grp})[0];if(!g)T.grp="";
+  $("tpC").hidden=!T.tool;var S=$("tpS"),go=$("tpGo");go.hidden=false;
+  if(T.tool==="load"){var f=PL.brush;
+    S.textContent=(T.src==="ll"?(g?"로드리스트 · "+g.pol+"→"+g.pod+" "+g.type+" "+g.ids.length+" VAN":"로드리스트에서 고르기"):"팔레트 · "+(f.pol||"?")+"→"+(f.pod||"?")+" "+f.type+" "+ton(+f.kg||0)+"t")+(T.open?"  ▾":"  ▴");
+    go.textContent="싣기 ("+M.length+"칸)";go.disabled=!M.length}
+  else if(T.tool==="unload"){S.textContent=np?"내릴 컨테이너 "+np+"개 표시됨":"내릴 컨테이너를 눌러 주세요";go.textContent="내리기 ("+np+"개)";go.disabled=!np}
+  else if(T.tool==="move"){S.textContent=!np?"옮길 컨테이너를 눌러 주세요":np===1?"든 것 1개 · 빈 칸 = 이동, 다른 컨테이너 = 교체":"든 것 "+np+"개 · 옮길 빈 칸들을 표시해 주세요";
+    go.textContent="이동 ("+M.length+"칸)";go.disabled=!(np>1&&M.length);go.hidden=np<2}
+  M.forEach(function(k){var c=$("bwB").querySelector('.c[data-s="'+k+'"]');if(c)c.classList.add("mk")});
+  var D=$("tpD"),open=T.open&&T.tool==="load";D.hidden=!open;if(!open)return;
+  var h='<div class="tabs"><button type="button" data-ts="ll"'+(T.src==="ll"?' class="on"':'')+'>로드리스트</button><button type="button" data-ts="pal"'+(T.src==="pal"?' class="on"':'')+'>팔레트</button></div>';
+  if(T.src==="ll")h+=G.length?G.map(function(x){return '<button type="button" class="grp'+(x.k===T.grp?' on':'')+'" data-tg="'+esc(x.k)+'"><span>'+esc(x.pol+" → "+x.pod+" · "+x.type)+'</span><span>'+x.ids.length+' VAN · '+ton(x.kg)+' t</span></button>'}).join("")
+      :'<div class="emp">로드리스트가 비어 있어요.<br>‘내리기’로 컨테이너를 내리면 여기로 들어오고, 새로 만들려면 ‘팔레트’를 쓰세요.</div>';
+  else{var B=st.plan.boxes,cnt=function(key){var o={};B.forEach(function(b){o[b[key]]=(o[b[key]]||0)+1});return Object.keys(o).sort(function(a,b){return o[b]-o[a]})};
+    var pods=cnt("pod");(st.plan.rotation||[]).forEach(function(x){if(pods.indexOf(x)<0)pods.push(x)});
+    var types=cnt("type").slice(0,6);["22GP","45GP","42GP","22RF","45RF"].forEach(function(x){if(types.indexOf(x)<0&&types.length<9)types.push(x)});
+    var chips=function(key,arr){return '<div class="chips">'+arr.filter(Boolean).map(function(v){return '<button type="button" data-tb="'+key+'" data-v="'+esc(v)+'"'+(PL.brush[key]===v?' class="on"':'')+'>'+esc(v)+'</button>'}).join("")+'</div>'};
+    h+='<div class="lab">POL</div>'+chips("pol",cnt("pol"))+'<div class="lab">POD</div>'+chips("pod",pods)+'<div class="lab">SzTp</div>'+chips("type",types)+
+      '<div class="lab">F/E · 무게(kg)</div><div class="chips">'+chips("fe",["F","E"]).replace(/^<div class="chips">|<\/div>$/g,"")+'<input id="tpKg" inputmode="numeric" maxlength="5" value="'+esc(PL.brush.kg)+'" aria-label="무게 kg"></div>'}
+  D.innerHTML=h}
+(function(){
+  function act(e){return TOUCH&&tOn()&&e.target.closest}
+  $("tpR").addEventListener("click",function(e){var b=e.target.closest("[data-tt]");if(!b)return;var T=PL.t;
+    T.tool=T.tool===b.dataset.tt?"":b.dataset.tt;T.open=false;T.marks=[];st.pick=[];st.sel=-1;$("sheet").hidden=true;
+    if(T.tool==="load"&&!PL.brush.pol){var c={},d={};st.plan.boxes.forEach(function(x){c[x.pol]=(c[x.pol]||0)+1;d[x.pod]=(d[x.pod]||0)+1});
+      var top=function(o){return Object.keys(o).sort(function(a,b2){return o[b2]-o[a]})[0]||""};PL.brush.pol=top(c);PL.brush.pod=top(d)}
+    if(T.tool==="load"&&!(st.ll||[]).length)T.src="pal";
+    render()});
+  $("tpMir").onclick=function(){PL.mir=PL.mir==="2FA"?"S":"2FA";plDraw();plSay(PL.mir==="2FA"?"2F/A 켬: 20' 를 실으면 같은 해치 반대쪽 20' 베이에도 같이 실려요.":"미러 끔 (Single).")};
+  $("tpU").onclick=function(){PL.t.marks=[];undo();var n=$("note");plSayKeep(n&&!n.hidden?n.textContent:"")};
+  function plSayKeep(m){var t=$("tpM");t.textContent=m;t.className="tpm";t.hidden=!m;clearTimeout(PL.tm);if(m)PL.tm=setTimeout(function(){t.hidden=true},4000)}
+  $("tpS").onclick=function(){if(PL.t.tool==="load"){PL.t.open=!PL.t.open;tDraw()}};
+  $("tpClr").onclick=function(){PL.t.marks=[];st.pick=[];render()};
+  $("tpGo").onclick=function(){var T=PL.t,Q=PANELS[st.open];if(!Q)return;var cells=tCells(),keep=T.marks.slice(),u0=(st.undo||[]).length;
+    setTimeout(function(){if((st.undo||[]).length===u0&&T.tool!=="unload"){T.bay=st.open;T.marks=keep;render()}},0);   // 하나도 못 실었으면 표시는 그대로 둠
+    if(T.tool==="load"){T.open=false;
+      if(T.src==="ll"){var g=tGroups().filter(function(x){return x.k===T.grp})[0];if(!g){T.open=true;tDraw();return plSay("위 서랍에서 실을 묶음을 먼저 골라 주세요.",true)}PL.lsel=g.ids.slice();T.marks=[];plLoad([{p:Q.p,cells:cells}])}
+      else{T.marks=[];plPaint([{p:Q.p,cells:cells}])}
+      if(!$("tpl").hidden)tDraw()}
+    else if(T.tool==="unload"){var B=st.plan.boxes;plUnplan(st.pick.map(function(i){return B[i]}).filter(Boolean))}
+    else if(T.tool==="move"){T.marks=[];plMove([{p:Q.p,cells:cells}])}};
+  $("tpD").addEventListener("click",function(e){var T=PL.t,a=e.target.closest("[data-ts]"),g=e.target.closest("[data-tg]"),c=e.target.closest("[data-tb]");
+    if(a){T.src=a.dataset.ts;tDraw()}else if(g){T.grp=T.grp===g.dataset.tg?"":g.dataset.tg;if(T.grp)T.open=false;tDraw()}
+    else if(c){PL.brush[c.dataset.tb]=c.dataset.v;tDraw()}});
+  $("tpD").addEventListener("change",function(e){if(e.target.id==="tpKg"){var v=e.target.value.replace(/\D/g,"");PL.brush.kg=v||"0";tDraw()}});
+  $("tpD").addEventListener("keydown",function(e){e.stopPropagation();if(e.key==="Enter")e.target.blur()});
+  // 도구가 켜져 있는 동안 Bay Plan 안의 누름은 여기서 먼저 받음
+  document.addEventListener("click",function(e){
+    if(!act(e)||!PL.t.tool||!e.target.closest("#bwB"))return;
+    var T=PL.t,M=tMarks(),cs=e.target.closest(".c[data-s]"),cb=e.target.closest(".c.b"),rl=e.target.closest(".rl"),tl=e.target.closest(".tl"),Q=PANELS[st.open];
+    e.stopPropagation();e.preventDefault();if(!Q)return;
+    function tog(k){var i=M.indexOf(k);if(i<0)M.push(k);else M.splice(i,1)}
+    function line(test){var ks=[].map.call($("bwB").querySelectorAll(".c[data-s]"),function(c){return c.dataset.s}).filter(test);if(!ks.length)return;
+      var all=ks.every(function(k){return M.indexOf(k)>=0});ks.forEach(function(k){var i=M.indexOf(k);if(all){M.splice(i,1)}else if(i<0)M.push(k)})}
+    var B=st.plan.boxes,bi=cb&&cb.dataset.i!=null?+cb.dataset.i:-1;
+    if(T.tool==="load"){
+      if(cs)tog(cs.dataset.s);
+      else if(rl&&rl.textContent.trim()!==""){var r=+rl.textContent;line(function(k){return +k.split("_")[0]===r})}
+      else if(tl&&/^\d+$/.test(tl.textContent.trim())){var t=+tl.textContent;line(function(k){return +k.split("_")[1]===t})}
+      else if(cb)return plSay("이미 실려 있는 칸이에요. 빈 칸을 눌러 주세요.",true);
+      else return;
+      render();return}
+    if(T.tool==="unload"){if(bi<0)return;var k=st.pick.indexOf(bi);if(k<0)st.pick.push(bi);else st.pick.splice(k,1);render();return}
+    if(T.tool==="move"){var np=st.pick.length;
+      if(bi>=0){var k2=st.pick.indexOf(bi);
+        if(k2>=0){st.pick.splice(k2,1);render()}
+        else if(MULTI||!np){st.pick.push(bi);render()}
+        else if(np===1)plSwap([B[bi]]);
+        else plSay("여러 개를 든 상태에서는 빈 칸으로 이동만 돼요. 교체는 하나씩 해 주세요.",true);
+        return}
+      if(cs){if(!np)return plSay("먼저 옮길 컨테이너를 눌러 주세요.",true);
+        if(np===1){var q=cs.dataset.s.split("_");T.marks=[];plMove([{p:Q.p,cells:[{row:+q[0],tier:+q[1]}]}])}
+        else{tog(cs.dataset.s);render()}}}
+  },true);
 })();
 // ---------- 3D VIEW ----------
 // 선박 모양은 도면이 아니라 cCASP 구조에서 만든 것: 전장·폭·깊이, 베이·로우·티어 칸, 거주구가 어느 베이 뒤에 있는지(ships.js 의 g).
@@ -2216,9 +2344,9 @@ var KEYS=[
   {keys:["오른쪽 버튼 클릭"],d:"그 컨테이너 하나 삭제 (확인 창에서 Enter = 삭제, Esc = 취소)"},
   {keys:["오른쪽 버튼 드래그"],d:"네모 안의 컨테이너 여러 개 삭제"},
   {keys:["Alt","3"],d:"되돌리기 (삭제 · 고친 값을 한 단계씩)",code:"Digit3",code2:"Numpad3",alt:1,plan:1,fn:function(){undo()}},
-  {keys:["Alt","S"],d:"Bay Plan: 로드리스트로 싣기 (Planning by Load List) 켜기 · 끄기",code:"KeyS",alt:1,plan:1,fn:function(){plMode("ll")}},
-  {keys:["Alt","Q"],d:"Bay Plan: 팔레트로 싣기 (Planning by Palette) 켜기 · 끄기",code:"KeyQ",alt:1,plan:1,fn:function(){plMode("pal")}},
-  {keys:["Alt","W"],d:"Bay Plan: 이동 · 자리 교체 켜기 · 끄기 (Ctrl 로 고른 뒤 빈 칸 = 이동, 다른 컨테이너 = 교체)",code:"KeyW",alt:1,plan:1,fn:function(){plMode("mv")}},
+  {keys:["Alt","S"],d:"로드리스트로 싣기 (Planning by Load List) 켜기 · 끄기 — General Plan · Bay Plan",code:"KeyS",alt:1,plan:1,fn:function(){plMode("ll")}},
+  {keys:["Alt","Q"],d:"팔레트로 싣기 (Planning by Palette) 켜기 · 끄기 — General Plan · Bay Plan",code:"KeyQ",alt:1,plan:1,fn:function(){plMode("pal")}},
+  {keys:["Alt","W"],d:"이동 · 자리 교체 켜기 · 끄기 (Ctrl 로 고른 뒤 빈 칸 = 이동, 다른 컨테이너 = 교체) — General Plan · Bay Plan",code:"KeyW",alt:1,plan:1,fn:function(){plMode("mv")}},
   {keys:["Alt","Z"],d:"미러 끄기 (Single)",code:"KeyZ",alt:1,plan:1,fn:function(){plMir("S")}},
   {keys:["Alt","C"],d:"미러 2F/A — 같은 해치의 앞·뒤 20' 베이에 같이 싣기",code:"KeyC",alt:1,plan:1,fn:function(){plMir("2FA")}},
   {keys:["Shift","클릭"],d:"Editor 목록에서 범위로 고르기 · 열 제목은 여러 열 정렬"},
