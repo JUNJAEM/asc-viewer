@@ -238,7 +238,8 @@ body.static #sumWin .rz{display:none}
 @container (max-width:210px){ #sum .chipb small{display:none} #sum .kv span{font-size:10.5px} }
 /* 끌어서 고르기 (네모) */
 #band{position:fixed;z-index:70;border:1px dashed #b00000;background:rgba(255,40,40,.14);pointer-events:none}
-#band.rm{border-color:#3a4a66;background:rgba(90,110,150,.2)}
+#band.off{border-color:#3a4a66;background:rgba(90,110,150,.2)}
+#band.del{border:2px solid #000;background:repeating-linear-gradient(45deg,rgba(0,0,0,.28) 0 6px,rgba(0,0,0,.08) 6px 12px)}
 body.banding{user-select:none;-webkit-user-select:none;cursor:crosshair}
 /* EXPORT PLAN 메뉴 */
 .expw{position:relative;display:inline-block}
@@ -442,7 +443,7 @@ body.static .cr{display:none}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-18 09:10 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-18 09:15 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -1037,7 +1038,8 @@ function codMail(){
   function fail(m){var e=document.createElement("div");e.className="er";e.textContent=m;f.appendChild(e)}
   if(!st.pick.length)return;
   if(!st.lines||!st.plan0)return fail(st.plan.edi?"EDI 파일은 보기 전용이라 COD 메일을 만들 수 없어요. ASC 파일을 열어 주세요.":"예시 플랜에서는 만들 수 없어요. 실제 ASC 파일을 열어 주세요.");
-  var B=st.plan.boxes,O=st.plan0.boxes,bx=st.pick.map(function(i){return B[i]}).filter(Boolean);
+  var B=st.plan.boxes,O={},bx=st.pick.map(function(i){return B[i]}).filter(Boolean);
+  bx.forEach(function(b){O[b.i]=st.p0[b.li]});   // 원래 값은 줄 번호로 찾음
   var same=bx.filter(function(b){return evOf(O[b.i],"pod")===evOf(b,"pod")});
   if(same.length)return fail("POD(양하항)가 원래 그대로인 컨테이너가 있어서 COD 메일을 만들지 않았어요: "+same.map(function(b){var o=O[b.i],pc=evOf(o,"pol")!==evOf(b,"pol");
     return b.cntr+" (POD "+evOf(b,"pod")+" 그대로"+(pc?", POL만 "+evOf(o,"pol")+" → "+evOf(b,"pol")+"로 바뀜":"")+")"}).join(", ")+". Container Editor의 POD 칸을 바꿔 주세요.");
@@ -1061,7 +1063,7 @@ function codMail(){
     '<p style="margin:0;'+F+'">==================================================</p></body></html>';
   var u8=function(x){return btoa(unescape(encodeURIComponent(x)))}, hw=function(x){return /^[\x20-\x7e]*$/.test(x)?x:"=?UTF-8?B?"+u8(x)+"?="};
   var w76=function(x){return x.replace(/.{76}/g,"$&\r\n")}, t=Date.now(), M="----=_ascviewer_m_"+t, R="----=_ascviewer_r_"+t;
-  var an=(st.name||"plan.asc").replace(/[\r\n"]/g,""), asc=btoa(st.lines.join(st.eol));   // 반영된 플랜: 원래 파일 이름 그대로 첨부
+  var an=(st.name||"plan.asc").replace(/[\r\n"]/g,""), asc=btoa(ascOut());   // 반영된 플랜: 원래 파일 이름 그대로 첨부
   var eml=mailTo("cod").concat(["Subject: "+hw(subj),"X-Unsent: 1","MIME-Version: 1.0",
     'Content-Type: multipart/mixed; boundary="'+M+'"',"",
     "--"+M,'Content-Type: multipart/related; boundary="'+R+'"; type="text/html"',"",
@@ -1146,7 +1148,7 @@ function showBox(i){
   $("sCn").textContent=b.cntr||"(번호 없음)";
   var dg=(st.plan.dg[b.dgno]||[]).map(function(d){return d.cls+"/"+d.un}).join(", ");
   var ovs=(b.ov||[]).some(function(v){return v>0});
-  var ED=!!st.lines&&!window.__STATIC__, o=ED&&st.plan0?st.plan0.boxes[i]:null;   // ED: 편집 가능 (실제 파일을 연 경우)
+  var ED=!!st.lines&&!window.__STATIC__, o=ED&&st.p0?st.p0[b.li]:null;   // ED: 편집 가능 (실제 파일을 연 경우)
   // 기본 8개 항목만(DEST 도 뺌) 보여 줌(2026-11 사용자 요청). 냉동 온도·위험물·OverDim·Cargo Type 은 그 컨테이너에 값이 있을 때만 덧붙임.
   // 네 번째 값 = 고칠 수 있는 칸의 이름. 화면에서만 뺀 것이고 파일의 다른 칸은 그대로 남음(저장해도 안 바뀜)
   var rowsD=[["Container No.",b.cntr,0,"cntr"],
@@ -1207,13 +1209,37 @@ function editBox(i,k,val){   // 돌려주는 값: 오류 글 (없으면 "")
       var n=Math.round(parseFloat(v)*10),t=f604?String(n)+"C":(n<0?"-":"")+("0"+Math.abs(n)).slice(-Math.max(2,String(Math.abs(n)).length))+"C";
       l=putCol(l,55,60,t,f604)}}   // $609(cCASP)는 왼쪽 맞춤 "250C ", $604(CASP)는 오른쪽 맞춤 " 250C"
   else return "";
-  st.lines[b.li]=l; st.saved=""; reparse(); return "";
+  pushUndo(); st.lines[b.li]=l; st.saved=""; reparse(); return "";
 }
+// ---------- 되돌리기(Alt+3)·컨테이너 삭제 ----------
+// 플랜을 바꾸는 동작(값 고치기, 삭제)은 하기 직전에 pushUndo() 로 지금 상태를 쌓아 둔다. 새 변경 기능을 넣을 때도 같은 방식으로.
+// ASC: 줄 배열(st.lines)을 통째로 보관. 지운 컨테이너는 그 줄을 빈 줄("")로 바꿔 둠 — 줄 번호가 안 밀려서 원래 값과 계속 짝이 맞음. 내보낼 때 ascOut() 이 빼 줌.
+// EDI: 컨테이너 목록(st.plan.boxes)을 보관. 바뀐 적이 있으면(st.mod) 내보낼 때 원본 대신 새로 만듦.
+function pushUndo(){if(!st.undo)st.undo=[];st.undo.push(st.lines?{lines:st.lines.slice()}:{boxes:st.plan.boxes.slice(),mod:!!st.mod});if(st.undo.length>60)st.undo.shift()}
+function say(m,err){var nt=$("note");nt.hidden=false;nt.className=err?"note err":"note";nt.textContent=m}
+function undo(){
+  var u=st.undo&&st.undo.pop();if(!u)return say("되돌릴 것이 없어요.");
+  if(u.lines){st.lines=u.lines;reparse()}else{st.plan.boxes=u.boxes;st.mod=u.mod}
+  st.pick=[];st.sel=-1;st.saved="";$("sheet").hidden=true;render();say("한 단계 되돌렸어요."+(st.undo.length?" (더 되돌릴 수 있는 단계 "+st.undo.length+"개)":""))}
+function delBoxes(ids){
+  var B=st.plan.boxes,bx=ids.map(function(i){return B[i]}).filter(Boolean);if(!bx.length)return;
+  pushUndo();
+  if(st.lines){bx.forEach(function(b){st.lines[b.li]=""});reparse()}
+  else{st.plan.boxes=B.filter(function(b){return ids.indexOf(b.i)<0});st.mod=true}
+  st.pick=[];st.sel=-1;st.saved="";$("sheet").hidden=true;render();
+  say("컨테이너 "+bx.length+"개를 지웠어요 ("+bx.slice(0,6).map(function(b){return b.cntr}).join(", ")+(bx.length>6?" …":"")+"). Alt + 3 으로 되돌릴 수 있어요.")}
+function ascOut(){   // 내보낼 ASC 글: 지운 컨테이너 줄을 빼고, 머리말의 RECORD 수와 안 쓰는 위험물 줄을 맞춤
+  var keep=st.lines.filter(function(l,i){return !(l===""&&st.orig[i]!=="")});
+  if(keep.length===st.lines.length)return st.lines.join(st.eol);
+  var used={},n=0,inDg=false;st.plan.boxes.forEach(function(b){n++;if(b.dgno)used[b.dgno]=1});
+  keep=keep.filter(function(l){if(l.indexOf("***")===0){inDg=/IMDG/i.test(l);return true}return !(inDg&&/^\d{6}/.test(l)&&!used[l.slice(0,4)])});
+  keep[0]=keep[0].replace(/RECORD=\s*\d+\s*/,function(m){return fx("RECORD="+n,m.length)});
+  return keep.join(st.eol)}
 function reparse(){var P=parseAsc(st.lines.join("\n"));st.plan=P}
 function dirtyN(){var n=0;if(st.lines)for(var i=0;i<st.lines.length;i++)if(st.lines[i]!==st.orig[i])n++;return n}
 function saveAsc(){
   if(!st.lines)return;
-  var t=st.lines.join(st.eol),u=new Uint8Array(t.length);for(var i=0;i<t.length;i++)u[i]=t.charCodeAt(i)&255;
+  var t=ascOut(),u=new Uint8Array(t.length);for(var i=0;i<t.length;i++)u[i]=t.charCodeAt(i)&255;
   var nm=(st.name||"plan.asc").replace(/\.asc$/i,"")+"_EDIT.asc";
   var a=document.createElement("a"),url=URL.createObjectURL(new Blob([u],{type:"application/octet-stream"}));
   a.href=url;a.download=nm;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(url);a.remove()},4000);
@@ -1269,9 +1295,9 @@ function exportPlan(kind){
   var P=st.plan;if(!P)return;
   var base=(st.name||"plan").replace(/\.(asc|edi)$/i,""),txt,nm,made=false,dn=dirtyN(),nt=$("note");
   if(st.example)base="example";
-  if(kind==="asc"){if(st.lines){txt=st.lines.join(st.eol);nm=base+(dn?"_EDIT":"")+".asc"}else{txt=genAsc();nm=base+".asc";made=true}}
+  if(kind==="asc"){if(st.lines){txt=ascOut();nm=base+(dn?"_EDIT":"")+".asc"}else{txt=genAsc();nm=base+".asc";made=true}}
   else{var ver=kind==="edi15"?15:22;
-    if(P.edi&&P.ediVer===ver&&st.raw){txt=st.raw;nm=base+".edi"}else{txt=genEdi(ver);nm=base+(P.edi?"_BAPLIE"+(ver===15?"15":"22"):"")+".edi";made=true}}
+    if(P.edi&&P.ediVer===ver&&st.raw&&!st.mod){txt=st.raw;nm=base+".edi"}else{txt=genEdi(ver);nm=base+(P.edi?"_BAPLIE"+(ver===15?"15":"22"):"")+".edi";made=true}}
   var u=new Uint8Array(txt.length);for(var i=0;i<txt.length;i++)u[i]=txt.charCodeAt(i)&255;
   var a=document.createElement("a"),url=URL.createObjectURL(new Blob([u],{type:"application/octet-stream"}));
   a.href=url;a.download=nm;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(url);a.remove()},4000);
@@ -1283,14 +1309,14 @@ function latin1(u){var s="",i=0;for(;i<u.length;i+=8192)s+=String.fromCharCode.a
 function loadBytes(u,name){   // 바이트를 1:1 글자로 읽어야 저장할 때 원본과 한 바이트도 안 달라짐
   var t=latin1(u);load(t,name);
   st.raw=t;
-  if(st.plan&&!st.example&&st.name===name&&!st.plan.edi){st.eol=/\r\n/.test(t)?"\r\n":"\n";st.lines=t.split(/\r?\n/);st.orig=st.lines.slice();st.plan0=parseAsc(st.lines.join("\n"));render();autoFit()}
+  if(st.plan&&!st.example&&st.name===name&&!st.plan.edi){st.eol=/\r\n/.test(t)?"\r\n":"\n";st.lines=t.split(/\r?\n/);st.orig=st.lines.slice();st.plan0=parseAsc(st.lines.join("\n"));st.p0={};st.plan0.boxes.forEach(function(b){st.p0[b.li]=b});render();autoFit()}
 }
 function load(text,name){
   var P;try{P=isEdi(text)?parseEdi(text):parseAsc(text)}catch(e){P=null}
   if(!P||!P.boxes.length){var nt=$("note");nt.hidden=false;nt.className="note err";
     nt.textContent="“"+name+"”에서 컨테이너를 찾지 못했어요. CASP ASC($609/$604)나 EDI(BAPLIE) 파일이 맞는지 확인해 주세요.";return}
   document.body.classList.remove("empty");
-  st.plan=P;st.name=name;st.example=false;pickShip(detectShip(name));st.filter=null;st.sel=-1;st.pick=[];st.lines=st.orig=st.plan0=null;st.saved="";sumReset();st.open=null;st.q="";$("q").value="";$("sheet").hidden=true;
+  st.plan=P;st.name=name;st.example=false;pickShip(detectShip(name));st.filter=null;st.sel=-1;st.pick=[];st.lines=st.orig=st.plan0=st.p0=null;st.undo=[];st.mod=false;st.saved="";sumReset();st.open=null;st.q="";$("q").value="";$("sheet").hidden=true;
   document.title=name.replace(/\.(asc|edi)$/i,"")+" · PLAN VIEWER";
   render(); if(typeof autoFit==="function")autoFit(); else toBow();
 }
@@ -1310,7 +1336,7 @@ document.addEventListener("change",function(e){var t=e.target;if(!t.classList||!
 document.addEventListener("keydown",function(e){if(e.key==="Enter"&&e.target.classList&&e.target.classList.contains("ei"))e.target.blur()});
 document.addEventListener("click",function(e){if(e.target.id==="eSave"){saveAsc();if(st.sel>=0)showBox(st.sel);return}
   if(e.target.id==="eUndo"&&st.lines){var b=st.plan.boxes[st.sel];if(!b)return;
-  st.lines[b.li]=st.orig[b.li];st.saved="";reparse();render();showBox(st.sel)}});
+  pushUndo();st.lines[b.li]=st.orig[b.li];st.saved="";reparse();render();showBox(st.sel)}});
 window.addEventListener("beforeunload",function(e){if(dirtyN()&&!st.saved){e.preventDefault();e.returnValue=""}});
 $("file").onchange=function(e){if(e.target.files[0])readFile(e.target.files[0]);e.target.value=""};
 document.addEventListener("dragover",function(e){e.preventDefault();document.body.classList.add("drag")});
@@ -1525,40 +1551,44 @@ $("q").addEventListener("keydown",function(e){if(e.key==="Enter"&&FIRSTHIT)openB
 function findBox(on){var f=$("fbox");if(on==null)on=f.hidden;f.hidden=!on;
   if(on){$("q").focus();$("q").select()}else{$("q").value="";if(st.q){st.q="";render()}$("q").blur()}}
 $("findBtn").onclick=function(){findBox()};$("fX").onclick=function(){findBox(false)};
-// ---------- 끌어서 고르기: Bay Plan 창이나 General Plan 에서 마우스로 네모를 그리면 그 안의 컨테이너를 한꺼번에 고름 ----------
-// Ctrl 을 누른 채 끌면 기존 선택에 더함. 터치 화면은 '여러 개 고르기' 버튼을 씀(끌기는 화면 넘기기라서).
+// ---------- 끌기(네모): Bay Plan 창·General Plan 에서 마우스로 ----------
+// Ctrl + 왼쪽 버튼 = 네모 안 고르기(기존 선택에 더함) / Ctrl + 오른쪽 버튼 = 네모 안 선택 해제 / 오른쪽 버튼만 = 네모 안 컨테이너 삭제(Alt+3 으로 되돌림).
+// Ctrl 없이 왼쪽 버튼으로 끄는 것은 아무 일도 안 함. 터치 화면은 '여러 개 고르기' 버튼을 씀.
 (function(){
   var d=null,band=null;
   function area(t){return t.closest&&(t.closest("#bwB")||t.closest("#gp"))}
+  function clear(){if(band){band.remove();band=null}document.body.classList.remove("banding")}
   document.addEventListener("pointerdown",function(e){
     if(e.pointerType!=="mouse"||(e.button!==0&&e.button!==2)||window.__STATIC__||!st.plan)return;
-    var a=area(e.target);if(!a||e.target.closest("input,select"))return;
-    d={x:e.clientX,y:e.clientY,a:a,on:false,add:e.ctrlKey||e.metaKey,rm:e.button===2}});   // rm: 오른쪽 버튼으로 끌면 선택 해제
+    var a=area(e.target),ct=e.ctrlKey||e.metaKey;if(!a||e.target.closest("input,select"))return;
+    var mode=e.button===0?(ct?"add":""):(ct?"off":"del");if(!mode)return;
+    d={x:e.clientX,y:e.clientY,a:a,on:false,mode:mode}});
   document.addEventListener("pointermove",function(e){
     if(!d)return;
     if(!d.on){if(Math.abs(e.clientX-d.x)<6&&Math.abs(e.clientY-d.y)<6)return;
-      d.on=true;band=document.createElement("div");band.id="band";if(d.rm)band.className="rm";document.body.appendChild(band);document.body.classList.add("banding")}
+      d.on=true;band=document.createElement("div");band.id="band";band.className=d.mode;document.body.appendChild(band);document.body.classList.add("banding")}
     var x=Math.min(d.x,e.clientX),y=Math.min(d.y,e.clientY);
     band.style.left=x+"px";band.style.top=y+"px";band.style.width=Math.abs(e.clientX-d.x)+"px";band.style.height=Math.abs(e.clientY-d.y)+"px";
     e.preventDefault()});
-  function end(e){
+  document.addEventListener("pointerup",function(e){
     if(!d)return;var D=d;d=null;
     if(!D.on)return;
     var x1=Math.min(D.x,e.clientX),x2=Math.max(D.x,e.clientX),y1=Math.min(D.y,e.clientY),y2=Math.max(D.y,e.clientY),ids=[];
-    band.remove();band=null;document.body.classList.remove("banding");
+    clear();
     [].forEach.call(D.a.querySelectorAll(D.a.id==="gp"?".m.b":".c.b"),function(c){var r=c.getBoundingClientRect(),i=+c.dataset.i;
       if(r.right>x1&&r.left<x2&&r.bottom>y1&&r.top<y2&&ids.indexOf(i)<0)ids.push(i)});
-    // 끌고 난 뒤에 따라오는 클릭 한 번은 무시 (칸 하나만 다시 골라지지 않게)
-    var stop=function(ev){ev.stopPropagation();ev.preventDefault()};document.addEventListener("click",stop,true);setTimeout(function(){document.removeEventListener("click",stop,true)},0);
-    if(D.rm){   // 오른쪽 버튼: 네모 안의 것만 선택에서 뺌. 뒤따라오는 오른쪽 메뉴는 띄우지 않음
-      var nomenu=function(ev){ev.preventDefault()};document.addEventListener("contextmenu",nomenu,true);setTimeout(function(){document.removeEventListener("contextmenu",nomenu,true)},300);
-      var n0=st.pick.length;st.pick=st.pick.filter(function(i){return ids.indexOf(i)<0});
+    // 끌고 난 뒤에 따라오는 클릭·오른쪽 메뉴는 무시
+    var stop=function(ev){ev.stopPropagation();ev.preventDefault()};
+    document.addEventListener("click",stop,true);setTimeout(function(){document.removeEventListener("click",stop,true)},0);
+    if(D.mode!=="add"){document.addEventListener("contextmenu",stop,true);setTimeout(function(){document.removeEventListener("contextmenu",stop,true)},300)}
+    if(!ids.length)return;
+    if(D.mode==="del"){delBoxes(ids);return}
+    if(D.mode==="off"){var n0=st.pick.length;st.pick=st.pick.filter(function(i){return ids.indexOf(i)<0});
       if(st.pick.length!==n0){if(ids.indexOf(st.sel)>=0){st.sel=-1;$("sheet").hidden=true}render()}
       return}
-    if(!ids.length&&D.add)return;
-    if(D.add)ids.forEach(function(i){if(st.pick.indexOf(i)<0)st.pick.push(i)});else st.pick=ids;
-    st.sel=-1;$("sheet").hidden=true;render()}
-  document.addEventListener("pointerup",end);document.addEventListener("pointercancel",function(){if(band){band.remove();band=null;document.body.classList.remove("banding")}d=null});
+    ids.forEach(function(i){if(st.pick.indexOf(i)<0)st.pick.push(i)});
+    st.sel=-1;$("sheet").hidden=true;render()});
+  document.addEventListener("pointercancel",function(){clear();d=null});
 })();
 // ---------- 단축키 표: 여기 한 줄을 넣으면 단축키가 생기고 도움말(F1)에도 자동으로 나옴 ----------
 // keys = 도움말에 보이는 글, d = 설명. 키보드 단축키는 code(자판 위치)·alt/ctrl/shift·fn(할 일)·plan(플랜이 열려 있을 때만)을 같이 적음.
@@ -1568,8 +1598,10 @@ var KEYS=[
   {keys:["Alt","E"],d:"EDITOR / PIVOT 켜기 · 끄기",code:"KeyE",alt:1,plan:1,fn:function(){$("edBtn").click()}},
   {keys:["Alt","F"],d:"컨테이너 찾기 열기 · 닫기",code:"KeyF",alt:1,plan:1,fn:function(){findBox()}},
   {keys:["Ctrl","클릭"],d:"컨테이너 여러 개 고르기 (다시 누르면 빨간 표식 지우기)"},
-  {keys:["드래그"],d:"네모로 끌어서 그 안의 컨테이너를 한꺼번에 고르기 (Ctrl을 누른 채 끌면 기존 선택에 더하기)"},
-  {keys:["오른쪽 버튼 드래그"],d:"네모로 끌어서 그 안의 컨테이너 선택 해제"},
+  {keys:["Ctrl","드래그"],d:"네모로 끌어서 그 안의 컨테이너를 한꺼번에 고르기"},
+  {keys:["Ctrl","오른쪽 버튼 드래그"],d:"네모 안의 컨테이너 선택 해제"},
+  {keys:["오른쪽 버튼 드래그"],d:"네모 안의 컨테이너 삭제"},
+  {keys:["Alt","3"],d:"되돌리기 (삭제 · 고친 값을 한 단계씩)",code:"Digit3",code2:"Numpad3",alt:1,plan:1,fn:function(){undo()}},
   {keys:["Shift","클릭"],d:"Editor 목록에서 범위로 고르기 · 열 제목은 여러 열 정렬"},
   {keys:["Alt","휠"],d:"General Plan 확대 · 축소"},
   {keys:["더블클릭"],d:"베이를 Bay Plan 창으로 열기"},
@@ -1585,7 +1617,7 @@ document.addEventListener("keydown",function(e){
   if(window.__STATIC__)return;
   if(e.key==="Alt"){e.preventDefault();return}   // Alt 만 눌렀다 떼면 브라우저 메뉴로 넘어가는 것을 막음
   for(var ki=0;ki<KEYS.length;ki++){var K=KEYS[ki];   // 단축키 표에서 찾아 실행 (한글 입력 상태에서도 되게 자판 위치 e.code 로 봄)
-    if(K.code&&K.code===e.code&&!!K.alt===e.altKey&&!!K.ctrl===(e.ctrlKey||e.metaKey)&&!!K.shift===e.shiftKey){
+    if(K.code&&(K.code===e.code||K.code2===e.code)&&!!K.alt===e.altKey&&!!K.ctrl===(e.ctrlKey||e.metaKey)&&!!K.shift===e.shiftKey){
       e.preventDefault();if(K.plan&&!st.plan)return;K.fn();return}}
   if(e.key==="Escape"&&!$("expMenu").hidden){e.stopPropagation();expMenu(false);return}
   if(e.key==="Escape"&&!$("help").hidden){e.stopPropagation();helpBox(false)}
