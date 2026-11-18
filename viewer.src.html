@@ -258,7 +258,7 @@ body.empty .expw{display:none}
 .hwin kbd{display:inline-block;font:inherit;font-weight:700;font-size:12px;padding:1px 6px;border:1px solid #8090a8;border-bottom-width:2px;border-radius:4px;background:#f6f8fc}
 body.empty #helpBtn{display:inline-block}
 #ask{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;background:rgba(20,45,85,.28);padding:16px}
-#ask p{margin:4px 0 14px;font-size:13.5px;word-break:break-all}
+#ask p{margin:4px 0 14px;font-size:13.5px;white-space:pre-wrap;font-variant-numeric:tabular-nums;max-height:50vh;overflow:auto}
 .askb{display:flex;justify-content:flex-end;gap:8px}
 .askb button{font:inherit;font-weight:700;min-width:84px;padding:6px 14px;border:1px solid #707f96;border-radius:4px;background:var(--win);color:var(--fg);cursor:pointer}
 #askY{background:#c13229;color:#fff;border-color:#7a1c16}
@@ -1283,17 +1283,20 @@ function undo(){
   var u=st.undo&&st.undo.pop();if(!u)return say("되돌릴 것이 없어요.");
   if(u.lines){st.lines=u.lines;reparse()}else{st.plan.boxes=u.boxes;st.mod=u.mod}
   st.pick=[];st.sel=-1;st.saved="";$("sheet").hidden=true;render();say("한 단계 되돌렸어요."+(st.undo.length?" (더 되돌릴 수 있는 단계 "+st.undo.length+"개)":""))}
+function vanSum(bx){   // 컨테이너 번호 대신 묶음으로: POL  POD  SZTP  n VAN
+  var m={},ks=[];bx.forEach(function(b){var k=(b.pol||"-")+"  "+(b.pod||"-")+"  "+(b.type||"-");if(!m[k]){m[k]=0;ks.push(k)}m[k]++});
+  return ks.sort().map(function(k){return k+"  "+m[k]+" VAN"})}
 function delBoxes(ids){
   var B=st.plan.boxes,bx=ids.map(function(i){return B[i]}).filter(Boolean);if(!bx.length)return;
   pushUndo();
   if(st.lines){bx.forEach(function(b){st.lines[b.li]=""});reparse()}
   else{st.plan.boxes=B.filter(function(b){return ids.indexOf(b.i)<0});st.mod=true}
   st.pick=[];st.sel=-1;st.saved="";$("sheet").hidden=true;render();
-  say("컨테이너 "+bx.length+"개를 지웠어요 ("+bx.slice(0,6).map(function(b){return b.cntr}).join(", ")+(bx.length>6?" …":"")+"). Alt + 3 으로 되돌릴 수 있어요.")}
+  say("컨테이너 "+bx.length+" VAN 을 지웠어요 ("+vanSum(bx).join(", ")+"). Alt + 3 으로 되돌릴 수 있어요.")}
 // 삭제 전에 한 번 물어봄 (Enter = 삭제, Esc = 취소)
 var ASK=null;
 function askDel(ids){var B=st.plan.boxes,bx=ids.map(function(i){return B[i]}).filter(Boolean);if(!bx.length)return;
-  ASK=ids;$("askT").textContent="컨테이너 "+bx.length+"개를 지울까요? ("+bx.slice(0,8).map(function(b){return b.cntr}).join(", ")+(bx.length>8?" …":"")+")";
+  ASK=ids;$("askT").textContent="컨테이너 "+bx.length+" VAN 을 지울까요?\n\n"+vanSum(bx).join("\n");
   $("ask").hidden=false;$("askY").focus()}
 function askEnd(yes){var ids=ASK;ASK=null;$("ask").hidden=true;if(yes&&ids)delBoxes(ids)}
 function ascOut(){   // 내보낼 ASC 글: 지운 컨테이너 줄을 빼고, 머리말의 RECORD 수와 안 쓰는 위험물 줄을 맞춤
