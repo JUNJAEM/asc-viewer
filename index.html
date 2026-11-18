@@ -276,9 +276,6 @@ body.empty #helpBtn{display:inline-block}
 #v3 .tb{display:flex;align-items:center;gap:10px;flex-wrap:nowrap}#v3 .tb .sp{flex:1}#v3 .tb small{font-weight:400;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #v3 .tb button{font:inherit;font-size:12px;font-weight:700;padding:1px 9px;border:1px solid var(--edge);border-radius:3px;background:var(--chrome);color:var(--fg);cursor:pointer;white-space:nowrap;text-shadow:none}
 #v3 .tb button[aria-pressed="true"]{background:#0b3f94;color:#fff}
-#v3 .v3f{font-size:12px;font-weight:700;white-space:nowrap;display:flex;align-items:center;gap:4px}
-#v3 .v3f input{font:inherit;font-weight:700;width:58px;padding:0 4px;border:1px solid var(--edge);border-radius:3px;background:#fff;color:#111;text-transform:uppercase}
-#v3 .v3f input.est{color:#666;font-style:italic}
 @media (max-width:700px){#v3 .tb small{display:none}}
 #v3X{background:#c13229!important;color:#fff!important;border-color:#7a1c16!important;min-width:30px}
 .v3b{position:relative;height:min(520px,62vh);background:linear-gradient(#a9cdea,#dcebf6 70%,#eef5fa);overflow:hidden;border-radius:0 0 7px 7px}
@@ -485,7 +482,7 @@ body.static .cr{display:none}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-18 14:57 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-18 15:08 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -519,8 +516,6 @@ body.static .cr{display:none}
   </div>
   <section class="win" id="v3" hidden aria-label="3D VIEW">
     <div class="tb"><span id="v3T">3D VIEW</span><small>끌거나 양옆 화살표로 돌리기 · 휠로 확대 · 베이를 누르면 Bay Plan</small><span class="sp"></span>
-      <label class="v3f" title="파일 이름에서 읽은 포트예요. 다른 포트를 보려면 3글자(OIT)나 5글자(JPOIT)로 적고 Enter">포트 <input id="v3P" size="6" maxlength="5" autocomplete="off" spellcheck="false"></label>
-      <label class="v3f" title="플랜 파일에는 흘수가 없어서 화물 무게로 어림한 값이에요. 실제 흘수를 적으면 수면 높이와 Visibility 가 그 값으로 바뀌어요">흘수 <input id="v3Dr" type="number" min="1" max="20" step="0.1"> m</label>
       <button type="button" id="v3H" aria-pressed="false" title="선체를 비쳐 보이게 해서 홀드 안 컨테이너를 봐요">홀드 보기</button>
       <button type="button" id="v3R" title="처음 각도로">처음 각도</button><button type="button" id="v3X" aria-label="닫기">×</button></div>
     <div class="v3b"><canvas id="v3C"></canvas>
@@ -1741,7 +1736,7 @@ var GA=(function(){var o={MJEP:{nav:20.2,eye:22.0,lv:5}};
   a("HTVY OSVY VTVY PCNB",27.6);a("PCSG PCTJ",27.6,10.8);a("PCBS",27.8);a("CNVY",37.8);
   a("ICVY USVY YSVY",37.5);a("NBVY QDVY",40.55);a("MEBG",53.8);a("NBTD",31.0,11.5);
   a("SWAT SWDN SWIC SWSR",34.3);a("PCBJ PCSZ",31.1);a("YKTD YTTR",30.9);return o})();
-var HEX={},BAY2P={},V3={yaw:-0.62,pit:0.5,zoom:1,hold:false,faces:[],hov:null,M:null,dr:{},port:{}};
+var HEX={},BAY2P={},V3={yaw:-0.62,pit:0.5,zoom:1,hold:false,faces:[],hov:null,M:null,port:{}};
 // ---------- 그 항의 실제 바람·파도 ----------
 // 파일 이름에서 포트를 읽음: 5글자(JPOIT) 먼저, 없으면 회사 3글자(OIT). 좌표는 ships.js 의 ASC_GEO(tools/build_geo.py).
 // 날씨는 Open-Meteo(열쇠 없이 쓰는 공개 예보, open-meteo.com)에 위도·경도만 보내서 받음. 인터넷이 막힌 곳에서는 그냥 안 나옴.
@@ -1806,10 +1801,7 @@ function v3Model(){
     cells.push({x0:dh[0]+ix*sx,x1:dh[0]+(ix+1)*sx,y:iy*CW,z:D+iz*HH,hh:HH,c:iz===lv-1?"#dfe7f2":"#f4f6f9",house:1,win:ix===nx2-1&&iz>0})}
   for(var fz=0;fz<2;fz++)cells.push({x0:dh[0]+0.5,x1:dh[0]+sx*0.8,y:0,z:D+(lv-1+fz)*HH,hh:HH,c:"#1b2a8c",house:1});   // 연돌
   // 전방 시야(Visibility): 조타 위치의 눈에서 갑판 화물 꼭대기를 스치는 시선이 바다에 닿는 곳. SOLAS V/22 = 선수 앞 사각이 2 x 전장 또는 500 m 중 작은 값 이내.
-  // 흘수: 직접 적은 값이 먼저. 없으면 어림 — 배 무게(경하 ~0.16·L·B·D) + 화물 + 연료·평형수 따위(경하의 1/4)를 물에 잠기는 부피로 나눔. ±1 m 쯤 틀릴 수 있음.
-  var cargoT=0;B.forEach(function(b){cargoT+=(b.kg||0)/1000});
-  var Ld=g[0]>50&&g[0]<450?g[0]:Lh,ls=0.16*Ld*W*D,dEst=Math.max(D*0.3,Math.min(D*0.8,(ls*1.25+cargoT)/(1.025*Ld*0.94*W*0.6)));
-  var dTyped=V3.dr[st.name],draft=dTyped>0?Math.min(dTyped,D-0.3):dEst,eye=[dh[1]-1.5,ga?(ga.eye||ga.nav+1.8):D+(lv-1)*HH+1.8],sl=-1e9,hit=null;
+  var draft=D*0.68,eye=[dh[1]-1.5,ga?(ga.eye||ga.nav+1.8):D+(lv-1)*HH+1.8],sl=-1e9,hit=null;
   function see(px,pz,what){if(px<=eye[0]+0.5)return;var m=(pz-eye[1])/(px-eye[0]);if(m>sl){sl=m;hit=[px,pz,what]}}
   see(xB,D+1.2,null);
   cells.forEach(function(c){if(!c.house&&!c.hold){see(c.x0,c.z+c.hh+0.1,c);see(c.x1,c.z+c.hh+0.1,c)}});
@@ -1820,21 +1812,23 @@ function v3Model(){
   for(var bk=0;bk<2;bk++){var yb=ya+bk*(6*2.6+10);blocks.push([yb-1.3,yb+5*2.6+1.3]);
     for(var bx=xS-34,ci=0;bx<xB+34;bx+=6.4,ci++){if(ci%10===9)continue;
       for(var rr=0;rr<6;rr++){var hn=Math.floor(rnd()*5);if(hn)yard.push({x0:bx,x1:bx+6.1,y:yb+rr*2.6,n:hn,c:YC[Math.floor(rnd()*YC.length)]})}}}
-  return {q0:q0,yard:yard,blocks:blocks,q1:ya+2*(6*2.6+10)+2,cells:cells,X:X,bays:bays,evn:evn,xB:xB,xS:xS,L:Lh,hb:hb,D:D,CW:CW,CH:CH,zD:zD,draft:draft,dEst:dEst,dTyped:dTyped>0,vis:vis,name:(sh?st.ship+" ":"")+(P.voy||"")};
+  return {q0:q0,yard:yard,blocks:blocks,q1:ya+2*(6*2.6+10)+2,cells:cells,X:X,bays:bays,evn:evn,xB:xB,xS:xS,L:Lh,hb:hb,D:D,CW:CW,CH:CH,zD:zD,draft:draft,vis:vis,name:(sh?st.ship+" ":"")+(P.voy||"")};
 }
 function v3Tick(){clearTimeout(V3.tm);if($("v3").hidden)return;
   if(!document.hidden&&!V3.still){V3.t=performance.now()/1000;v3Draw()}
   V3.tm=setTimeout(v3Tick,70)}
 function v3Build(){V3.M=v3Model();$("v3T").textContent="3D VIEW  "+V3.M.name;
-  var pc=v3Port(),pi=$("v3P"),di=$("v3Dr");if(document.activeElement!==pi)pi.value=pc;
-  if(document.activeElement!==di){di.value=V3.M.draft.toFixed(1);di.classList.toggle("est",!V3.M.dTyped)}
-  wxLoad(pc);v3Draw()}
+  wxLoad(v3Port());v3Draw()}
 function v3Draw(){
   var M=V3.M,cv=$("v3C");if(!M||$("v3").hidden)return;
   var dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr)}
   var g=cv.getContext("2d"),a=V3.yaw,p=V3.pit,ca=Math.cos(a),sa=Math.sin(a),cp=Math.cos(p),sp=Math.sin(p);
   var xm=(M.xB+M.xS)/2,sc=(V3.quay?Math.min(w*0.6/M.L,h*0.5/(M.L*0.42)):Math.min(w*0.74/M.L,h*0.72/(M.L*0.42)))*V3.zoom,ox=w/2,oy=h*(V3.quay?0.74:0.62);
-  function pr(x,y,z){x-=xm;var xr=x*ca-y*sa,yr=x*sa+y*ca;return [ox+xr*sc,oy-(yr*sp+z*cp)*sc+M.D*cp*sc*0.5]}
+  // 롤링·피칭(어림): 파고가 높을수록, 배가 작을수록 큼. 실제 값은 GM·파도 방향에 따라 달라서 참고용.
+  var wx=WX[v3Port()]||null,wind=wx&&wx.wind!=null?wx.wind:4,wvh=wx&&wx.wave!=null?wx.wave:0.4,tm=V3.t||0;
+  var Lr=M.L,Bm=M.hb*2,rollA=Math.min(20,2.2*wvh*Math.sqrt(20/Bm)),pitA=Math.min(8,0.9*wvh*150/Lr),Tr=Math.max(8,Math.min(22,0.58*Bm)),Tp=Math.max(4,wx&&wx.per||0.5*Math.sqrt(Lr));
+  var rr0=rollA*Math.PI/180*Math.sin(6.2832*tm/Tr),pp0=pitA*Math.PI/180*Math.sin(6.2832*tm/Tp+1),RK=true,zp=M.draft;
+  function pr(x,y,z){if(RK){var dz=z-zp,dx=x-xm;z=zp+dz+y*rr0-dx*pp0;y=y-dz*rr0;x=x+dz*pp0}x-=xm;var xr=x*ca-y*sa,yr=x*sa+y*ca;return [ox+xr*sc,oy-(yr*sp+z*cp)*sc+M.D*cp*sc*0.5]}
   function near(x,y,z){x-=xm;return -(x*sa+y*ca)*cp+z*sp}
   function poly(pts,fill,stroke,al){g.beginPath();pts.forEach(function(q,i){if(i)g.lineTo(q[0],q[1]);else g.moveTo(q[0],q[1])});g.closePath();
     if(al!=null)g.globalAlpha=al;if(fill){g.fillStyle=fill;g.fill()}if(stroke){g.strokeStyle=stroke;g.stroke()}g.globalAlpha=1}
@@ -1852,10 +1846,9 @@ function v3Draw(){
   band(0,M.draft,"#8c2b2b",al);
   var xs=sa<0?1:0,ys=ca<0?1:0;   // 보이는 옆면: x 쪽은 sa<0 이면 +x 면, y 쪽은 ca<0 이면 +y 면
   // 바다: 수면(흘수선 높이)의 큰 판 + 잔물결. 물밑 선체는 그 아래로 비쳐 보임
-  var S=900,zw=M.draft,tm=V3.t||0,sea=g.createLinearGradient(0,0,0,h);sea.addColorStop(0,"#2c9396");sea.addColorStop(1,"#0e5766");
+  RK=false;var S=900,zw=M.draft,sea=g.createLinearGradient(0,0,0,h);sea.addColorStop(0,"#2c9396");sea.addColorStop(1,"#0e5766");
   poly([pr(xm-S,-S,zw),pr(xm+S,-S,zw),pr(xm+S,S,zw),pr(xm-S,S,zw)],sea,null,0.9);
   g.lineCap="round";g.lineWidth=Math.max(0.8,sc*0.28);
-  var wx=WX[v3Port()]||null,wind=wx&&wx.wind!=null?wx.wind:4,wvh=wx&&wx.wave!=null?wx.wave:0.4;
   var wk=Math.max(0.5,Math.min(3.2,0.45+wind/6)),hk=Math.max(0.6,Math.min(3,0.6+wvh/1.2));   // 바람 -> 물결 길이·빠르기, 파고 -> 물결 굵기·짙기
   g.lineWidth=Math.max(0.8,sc*0.28*hk);
   var WS=wind>10?10:12,RX=Math.max(170,L*0.95),RY=RX*0.8;
@@ -1904,7 +1897,7 @@ function v3Draw(){
     g.strokeStyle="#30343b";g.lineWidth=Math.max(0.7,sc*0.15);g.beginPath();[[-2.6,-1],[2.6,-1],[-2.6,1],[2.6,1]].forEach(function(o){seg([cx+o[0]*0.5,ty+o[1],zt-3.4],[cx+o[0],ty+o[1],zt-15])});g.stroke();
     slab(cx-3.05,cx+3.05,ty-1.25,ty+1.25,zt-15.6,zt-15,YEL,YED)})}                                                                                 // 스프레더
   if(V3.quay&&farQ){ground();yard();craneLow()}
-  band(M.draft,M.D,"#232a36",al);
+  RK=true;band(M.draft,M.D,"#232a36",al);
   // 상자 칸을 먼 것부터
   var CW=M.CW*0.94/2,CH=M.CH*0.95;   // 보이는 옆면: x 쪽은 sa<0 이면 +x 면, y 쪽은 ca<0 이면 +y 면
   function box(c,alpha){
@@ -1928,7 +1921,7 @@ function v3Draw(){
   function lab(t,q,c){g.lineWidth=3;g.strokeStyle="rgba(255,255,255,.92)";g.strokeText(t,q[0],q[1]);g.fillStyle=c;g.fillText(t,q[0],q[1]);g.lineWidth=0.6}
   M.bays.forEach(function(b){var r=M.X[b],q=pr((r[0]+r[1])/2,side,M.D);lab((b<10?"0":"")+b,q,V3.hov===b?"#b00000":"#0b1f47")});
   // 전방 시야: 시선(점선)과 선수 앞 사각 구역
-  var V=M.vis,ok=V.blind<=V.lim,vc=ok?"#0a7a2f":"#c40000",bx=isFinite(V.blind)?M.xB+Math.max(0,V.blind):M.xB+V.lim*1.5;
+  RK=false;var V=M.vis,ok=V.blind<=V.lim,vc=ok?"#0a7a2f":"#c40000",bx=isFinite(V.blind)?M.xB+Math.max(0,V.blind):M.xB+V.lim*1.5;
   poly([pr(M.xB,-hb,zw),pr(bx,-hb,zw),pr(bx,hb,zw),pr(M.xB,hb,zw)],ok?"rgba(20,160,70,.28)":"rgba(220,30,30,.3)",vc);       // 사각(바다가 안 보이는 구간)
   var lx=M.xB+V.lim;g.strokeStyle="#111";g.lineWidth=1.5;g.setLineDash([6,4]);g.beginPath();seg([lx,-hb*1.6,zw],[lx,hb*1.6,zw]);g.stroke();   // SOLAS 한도선
   g.strokeStyle=vc;g.lineWidth=2;g.setLineDash([9,5]);g.beginPath();seg([V.eye[0],0,V.eye[1]],[bx,0,isFinite(V.blind)?zw:V.eye[1]]);g.stroke();g.setLineDash([]);g.lineWidth=0.6;
@@ -1940,15 +1933,17 @@ function v3Draw(){
   var pc=v3Port(),wl2="";
   if(pc){if(!(window.ASC_GEO||{})[pc])wl2=pc+"  좌표를 모르는 포트";else if(!wx||wx.busy)wl2=pc+"  날씨 불러오는 중…";else if(wx.fail)wl2=pc+"  날씨를 못 불러왔어요 (인터넷 확인)";
     else wl2=pc+((window.ASC_GEO[pc]||[])[2]?" (위치 추정)":"")+"  "+(wx.wind!=null?compass(wx.dir)+"풍 "+wx.wind.toFixed(1)+" m/s"+(wx.gust!=null?" (돌풍 "+wx.gust.toFixed(1)+")":""):"바람 자료 없음")+"   "+(wx.wave!=null?"파고 "+wx.wave.toFixed(1)+" m"+(wx.per?" · 주기 "+Math.round(wx.per)+"초":""):"파고 자료 없음")}
-  else wl2="포트를 못 읽었어요 — 위 '포트' 칸에 적어 주세요";
-  lab(wl2+"   흘수 "+M.draft.toFixed(1)+" m"+(M.dTyped?"":" (추정)"),[14,40],"#0b1f47");
-  if(wx&&wx.time){g.font="11px Arial";lab(wx.time.replace("T"," ")+" 현지 · 날씨 Open-Meteo",[14,57],"#33415c")}
+  else wl2="파일 이름에서 포트를 못 읽었어요";
+  lab(wl2,[14,40],"#0b1f47");
+  if(wx&&wx.wave!=null)lab("롤링 ±"+rollA.toFixed(1)+"°  피칭 ±"+pitA.toFixed(1)+"°  (파고로 어림한 값)",[14,60],"#0b1f47");
+  if(wx&&wx.time){g.font="11px Arial";lab(wx.time.replace("T"," ")+" 현지 · 날씨 Open-Meteo",[14,wx.wave!=null?77:57],"#33415c")}
   if(wx&&wx.wind!=null){var cx=w-58,cy=64,rr=24,ang=(wx.dir+180)*Math.PI/180;   // 바람이 불어 가는 쪽으로 화살표 (위가 북)
     g.fillStyle="rgba(255,255,255,.82)";g.strokeStyle="#0b1f47";g.lineWidth=1.2;g.beginPath();g.arc(cx,cy,rr+7,0,7);g.fill();g.stroke();
     g.font="bold 10px Arial";g.textAlign="center";g.fillStyle="#b00000";g.fillText("N",cx,cy-rr+4);
     var dx=Math.sin(ang),dy=-Math.cos(ang);g.strokeStyle="#0b3f94";g.fillStyle="#0b3f94";g.lineWidth=3;g.beginPath();g.moveTo(cx-dx*14,cy-dy*14+3);g.lineTo(cx+dx*10,cy+dy*10+3);g.stroke();
     g.beginPath();g.moveTo(cx+dx*18,cy+dy*18+3);g.lineTo(cx+dx*8-dy*6,cy+dy*8+dx*6+3);g.lineTo(cx+dx*8+dy*6,cy+dy*8-dx*6+3);g.closePath();g.fill();g.lineWidth=0.6}
   g.textAlign="center";g.font="bold "+Math.max(9,Math.min(13,sc*2.2))+"px Arial";
+  RK=true;
   for(var k in M.evn){var r1=M.X[+k-1],r2=M.X[+k+1];if(!r1||!r2)continue;var q2=pr((r1[0]+r2[1])/2,side*1.22,M.D);lab("("+(+k<10?"0":"")+k+")",q2,V3.hov===+k?"#b00000":"#3d5a94")}
 }
 function v3Pick(x,y){for(var i=V3.faces.length-1;i>=0;i--){var q=V3.faces[i][0],inn=false;
@@ -1975,10 +1970,6 @@ function v3Open(on){if(on==null)on=$("v3").hidden;$("v3").hidden=!on;var b=$("v3
   cv.addEventListener("wheel",function(e){e.preventDefault();V3.zoom=Math.max(0.5,Math.min(6,V3.zoom*(e.deltaY<0?1.12:1/1.12)));v3Draw()},{passive:false});
   $("v3X").onclick=function(){v3Open(false)};
   $("v3R").onclick=function(){V3.yaw=-0.62;V3.pit=0.5;V3.zoom=1;v3Draw()};
-  $("v3P").addEventListener("change",function(){var v=this.value.trim(),c=portNorm(v);if(v&&!c){say("'"+v.toUpperCase()+"' 포트를 모르겠어요. 3글자(OIT)나 5글자(JPOIT)로 적어 주세요.",true);this.value=v3Port();return}
-    if(v)V3.port[st.name]=c;else delete V3.port[st.name];this.blur();v3Build()});
-  $("v3Dr").addEventListener("change",function(){var v=parseFloat(this.value);if(v>0)V3.dr[st.name]=v;else delete V3.dr[st.name];this.blur();v3Build()});
-  ["v3P","v3Dr"].forEach(function(id){$(id).addEventListener("keydown",function(e){e.stopPropagation();if(e.key==="Enter")this.blur()})});
   $("v3H").onclick=function(){V3.hold=!V3.hold;this.setAttribute("aria-pressed",V3.hold);v3Draw()};
   // 양옆 화살표: 한 번 누르면 15도, 누르고 있으면 계속 돌아감
   function spin(btn,dir){var t=0;function stop(){clearInterval(t);t=0}
