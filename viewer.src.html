@@ -1682,6 +1682,8 @@ document.addEventListener("contextmenu",function(e){
 // ---------- 3D VIEW ----------
 // 선박 모양은 도면이 아니라 cCASP 구조에서 만든 것: 전장·폭·깊이, 베이·로우·티어 칸, 거주구가 어느 베이 뒤에 있는지(ships.js 의 g).
 // 그리기는 캔버스 하나로 직접(외부 라이브러리 없음): 모든 것을 같은 크기의 상자 칸으로 쪼개서, 먼 것부터 덧칠.
+// GA 도면(스캔 그림)을 보고 읽어 넣은 선박별 값: nav = 항해 갑판(브리지 바닥) 높이, eye = 조타 위치 눈높이, lv = 상갑판 위 층수 (모두 용골 기준 m)
+var GA={MJEP:{nav:20.2,eye:22.0,lv:5}};
 var HEX={},BAY2P={},V3={yaw:-0.62,pit:0.5,zoom:1,hold:false,faces:[],hov:null,M:null};
 function v3Model(){
   var P=st.plan,B=P.boxes,sh=curShip(),g=sh&&sh.g||[0,0,0,-1,-1],odd={},evn={},k,rows={},holdT=0,deckT=0;
@@ -1710,17 +1712,24 @@ function v3Model(){
       cells.push({x0:r[0]+(b.bay%2?0.1:(j?0.1:-0.13)),x1:r[1]-(b.bay%2?0.1:(j?-0.13:0.1)),y:yc,z:zz,c:c,bay:b.bay,i:b.i,hold:b.tier<80,pk:st.pick.indexOf(b.i)>=0})})});
   // 거주구·연돌: 컨테이너와 같은 크기의 칸으로 (정렬이 꼬이지 않게)
   var hw=Math.floor((W-2)/CW/2),nx2=Math.max(2,Math.round((dh[1]-dh[0])/CL)),sx=(dh[1]-dh[0])/nx2,lv=Math.max(4,Math.min(7,deckT+1));
+  var ga=GA[st.ship]||null,HH=CH;if(ga){lv=ga.lv;HH=(ga.nav-D)/(lv-1)}   // HH: 거주구 한 층 높이
   for(var ix=0;ix<nx2;ix++)for(var iy=-hw;iy<=hw;iy++)for(var iz=0;iz<lv;iz++){
     if(iz===lv-1&&ix<nx2-1)continue;                           // 맨 위층(브리지)은 앞쪽 한 칸만
-    cells.push({x0:dh[0]+ix*sx,x1:dh[0]+(ix+1)*sx,y:iy*CW,z:D+iz*CH,c:iz===lv-1?"#dfe7f2":"#f4f6f9",house:1,win:ix===nx2-1&&iz>0})}
-  for(var fz=0;fz<2;fz++)cells.push({x0:dh[0]+0.5,x1:dh[0]+sx*0.8,y:0,z:D+(lv-1+fz)*CH,c:"#1b2a8c",house:1});   // 연돌
+    cells.push({x0:dh[0]+ix*sx,x1:dh[0]+(ix+1)*sx,y:iy*CW,z:D+iz*HH,hh:HH,c:iz===lv-1?"#dfe7f2":"#f4f6f9",house:1,win:ix===nx2-1&&iz>0})}
+  for(var fz=0;fz<2;fz++)cells.push({x0:dh[0]+0.5,x1:dh[0]+sx*0.8,y:0,z:D+(lv-1+fz)*HH,hh:HH,c:"#1b2a8c",house:1});   // 연돌
+  // 전방 시야(Visibility): 조타 위치의 눈에서 갑판 화물 꼭대기를 스치는 시선이 바다에 닿는 곳. SOLAS V/22 = 선수 앞 사각이 2 x 전장 또는 500 m 중 작은 값 이내.
+  var draft=D*0.68,eye=[dh[1]-1.5,ga?ga.eye:D+(lv-1)*HH+1.8],sl=-1e9,hit=null;
+  function see(px,pz,what){if(px<=eye[0]+0.5)return;var m=(pz-eye[1])/(px-eye[0]);if(m>sl){sl=m;hit=[px,pz,what]}}
+  see(xB,D+1.2,null);
+  cells.forEach(function(c){if(!c.house&&!c.hold){see(c.x0,c.z+CH*0.95,c);see(c.x1,c.z+CH*0.95,c)}});
+  var Lr=g[0]>50&&g[0]<450?g[0]:Lh,lim=Math.min(2*Lr,500),vis={eye:eye,hit:hit,lim:lim,blind:sl<0?eye[0]+(draft-eye[1])/sl-xB:Infinity,ga:!!ga};
   // 부두 뒤 야드: 블록 두 줄, 칸마다 0~4단을 색색으로 (늘 같은 모양이 나오게 정해진 난수)
   var q0=hb+1.6,ya=q0+36,yard=[],blocks=[],sd=11,YC=["#2f5fa8","#8c3b2e","#dcdcdc","#c9682b","#2e8a57","#1b2a8c","#b0413e","#e0b030","#3f86c2"];
   function rnd(){sd=(sd*9301+49297)%233280;return sd/233280}
   for(var bk=0;bk<2;bk++){var yb=ya+bk*(6*2.6+10);blocks.push([yb-1.3,yb+5*2.6+1.3]);
     for(var bx=xS-34,ci=0;bx<xB+34;bx+=6.4,ci++){if(ci%10===9)continue;
       for(var rr=0;rr<6;rr++){var hn=Math.floor(rnd()*5);if(hn)yard.push({x0:bx,x1:bx+6.1,y:yb+rr*2.6,n:hn,c:YC[Math.floor(rnd()*YC.length)]})}}}
-  return {q0:q0,yard:yard,blocks:blocks,q1:ya+2*(6*2.6+10)+2,cells:cells,X:X,bays:bays,evn:evn,xB:xB,xS:xS,L:Lh,hb:hb,D:D,CW:CW,CH:CH,zD:zD,draft:D*0.68,name:(sh?st.ship+" ":"")+(P.voy||"")};
+  return {q0:q0,yard:yard,blocks:blocks,q1:ya+2*(6*2.6+10)+2,cells:cells,X:X,bays:bays,evn:evn,xB:xB,xS:xS,L:Lh,hb:hb,D:D,CW:CW,CH:CH,zD:zD,draft:draft,vis:vis,name:(sh?st.ship+" ":"")+(P.voy||"")};
 }
 function v3Tick(){clearTimeout(V3.tm);if($("v3").hidden)return;
   if(!document.hidden&&!V3.still){V3.t=performance.now()/1000;v3Draw()}
@@ -1730,7 +1739,7 @@ function v3Draw(){
   var M=V3.M,cv=$("v3C");if(!M||$("v3").hidden)return;
   var dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr)}
   var g=cv.getContext("2d"),a=V3.yaw,p=V3.pit,ca=Math.cos(a),sa=Math.sin(a),cp=Math.cos(p),sp=Math.sin(p);
-  var xm=(M.xB+M.xS)/2,sc=Math.min(w*0.6/M.L,h*0.5/(M.L*0.42))*V3.zoom,ox=w/2,oy=h*0.74;
+  var xm=(M.xB+M.xS)/2,sc=(V3.quay?Math.min(w*0.6/M.L,h*0.5/(M.L*0.42)):Math.min(w*0.74/M.L,h*0.72/(M.L*0.42)))*V3.zoom,ox=w/2,oy=h*(V3.quay?0.74:0.62);
   function pr(x,y,z){x-=xm;var xr=x*ca-y*sa,yr=x*sa+y*ca;return [ox+xr*sc,oy-(yr*sp+z*cp)*sc+M.D*cp*sc*0.5]}
   function near(x,y,z){x-=xm;return -(x*sa+y*ca)*cp+z*sp}
   function poly(pts,fill,stroke,al){g.beginPath();pts.forEach(function(q,i){if(i)g.lineTo(q[0],q[1]);else g.moveTo(q[0],q[1])});g.closePath();
@@ -1797,12 +1806,12 @@ function v3Draw(){
     var ty=(ci-1)*5.5;slab(cx-1.8,cx+1.8,ty-1.8,ty+1.8,zt-3.4,zt-0.4,"#f4f1e6","#6f6a57");                                                         // 트롤리·운전실
     g.strokeStyle="#30343b";g.lineWidth=Math.max(0.7,sc*0.15);g.beginPath();[[-2.6,-1],[2.6,-1],[-2.6,1],[2.6,1]].forEach(function(o){seg([cx+o[0]*0.5,ty+o[1],zt-3.4],[cx+o[0],ty+o[1],zt-15])});g.stroke();
     slab(cx-3.05,cx+3.05,ty-1.25,ty+1.25,zt-15.6,zt-15,YEL,YED)})}                                                                                 // 스프레더
-  if(farQ){ground();yard();craneLow()}
+  if(V3.quay&&farQ){ground();yard();craneLow()}
   band(M.draft,M.D,"#232a36",al);
   // 상자 칸을 먼 것부터
   var CW=M.CW*0.94/2,CH=M.CH*0.95;   // 보이는 옆면: x 쪽은 sa<0 이면 +x 면, y 쪽은 ca<0 이면 +y 면
   function box(c,alpha){
-    var x0=c.x0,x1=c.x1,y0=c.y-CW,y1=c.y+CW,z0=c.z,z1=c.z+CH,hv=V3.hov!=null&&c.bay===V3.hov,col=c.c,ln=c.house?null:"rgba(0,0,0,.55)";
+    var x0=c.x0,x1=c.x1,y0=c.y-CW,y1=c.y+CW,z0=c.z,z1=c.z+(c.hh||CH),hv=V3.hov!=null&&c.bay===V3.hov,col=c.c,ln=c.house?null:"rgba(0,0,0,.55)";
     var xf=xs?x1:x0,yf=ys?y1:y0;
     var f1=[pr(xf,y0,z0),pr(xf,y1,z0),pr(xf,y1,z1),pr(xf,y0,z1)],f2=[pr(x0,yf,z0),pr(x1,yf,z0),pr(x1,yf,z1),pr(x0,yf,z1)],f3=[pr(x0,y0,z1),pr(x1,y0,z1),pr(x1,y1,z1),pr(x0,y1,z1)];
     poly(f1,shade(col,c.win?0.55:0.72),ln,alpha);poly(f2,shade(col,0.86),ln,alpha);poly(f3,hv?"#fff4a8":col,ln,alpha);
@@ -1815,14 +1824,22 @@ function v3Draw(){
   M.bays.forEach(function(b){var r=M.X[b],q=[pr(r[0]+0.2,-hb+1.4,M.D+0.05),pr(r[1]-0.2,-hb+1.4,M.D+0.05),pr(r[1]-0.2,hb-1.4,M.D+0.05),pr(r[0]+0.2,hb-1.4,M.D+0.05)];
     poly(q,V3.hov===b?"#fff4a8":"#6f7b8c","#39424f",V3.hold?0.3:1);V3.faces.push([q,b])});
   cs.forEach(function(c){if(!c.hold)box(c)});
-  if(!farQ){ground();craneLow()}
-  craneTop();
-  if(!farQ)yard();
+  if(V3.quay){if(!farQ){ground();craneLow()}craneTop();if(!farQ)yard()}
   // 베이 번호 (가까운 쪽 뱃전에)
   g.font="bold "+Math.max(9,Math.min(13,sc*2.2))+"px Arial";g.textAlign="center";g.textBaseline="middle";
   var side=ca<0?hb+2.2:-hb-2.2;
   function lab(t,q,c){g.lineWidth=3;g.strokeStyle="rgba(255,255,255,.92)";g.strokeText(t,q[0],q[1]);g.fillStyle=c;g.fillText(t,q[0],q[1]);g.lineWidth=0.6}
   M.bays.forEach(function(b){var r=M.X[b],q=pr((r[0]+r[1])/2,side,M.D);lab((b<10?"0":"")+b,q,V3.hov===b?"#b00000":"#0b1f47")});
+  // 전방 시야: 시선(점선)과 선수 앞 사각 구역
+  var V=M.vis,ok=V.blind<=V.lim,vc=ok?"#0a7a2f":"#c40000",bx=isFinite(V.blind)?M.xB+Math.max(0,V.blind):M.xB+V.lim*1.5;
+  poly([pr(M.xB,-hb,zw),pr(bx,-hb,zw),pr(bx,hb,zw),pr(M.xB,hb,zw)],ok?"rgba(20,160,70,.28)":"rgba(220,30,30,.3)",vc);       // 사각(바다가 안 보이는 구간)
+  var lx=M.xB+V.lim;g.strokeStyle="#111";g.lineWidth=1.5;g.setLineDash([6,4]);g.beginPath();seg([lx,-hb*1.6,zw],[lx,hb*1.6,zw]);g.stroke();   // SOLAS 한도선
+  g.strokeStyle=vc;g.lineWidth=2;g.setLineDash([9,5]);g.beginPath();seg([V.eye[0],0,V.eye[1]],[bx,0,isFinite(V.blind)?zw:V.eye[1]]);g.stroke();g.setLineDash([]);g.lineWidth=0.6;
+  var ep=pr(V.eye[0],0,V.eye[1]);g.fillStyle=vc;g.beginPath();g.arc(ep[0],ep[1],4,0,7);g.fill();
+  lab("SOLAS "+Math.round(V.lim)+" m",pr(lx,hb*1.6+3,zw),"#111");
+  g.textAlign="left";g.font="bold 13px Arial";
+  lab("VISIBILITY  사각 "+(isFinite(V.blind)?Math.round(Math.max(0,V.blind))+" m":"측정 불가(시선이 수면에 닿지 않음)")+" / 한도 "+Math.round(V.lim)+" m  "+(ok?"OK":"초과")+(V.ga?"":"  (브리지 높이 추정)"),[14,20],vc);
+  g.textAlign="center";g.font="bold "+Math.max(9,Math.min(13,sc*2.2))+"px Arial";
   for(var k in M.evn){var r1=M.X[+k-1],r2=M.X[+k+1];if(!r1||!r2)continue;var q2=pr((r1[0]+r2[1])/2,side*1.22,M.D);lab("("+(+k<10?"0":"")+k+")",q2,V3.hov===+k?"#b00000":"#3d5a94")}
 }
 function v3Pick(x,y){for(var i=V3.faces.length-1;i>=0;i--){var q=V3.faces[i][0],inn=false;
