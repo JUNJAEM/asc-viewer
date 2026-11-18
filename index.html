@@ -258,6 +258,11 @@ body.empty .expw{display:none}
 .hwin td:first-child{white-space:nowrap;width:1%;padding-right:14px}
 .hwin kbd{display:inline-block;font:inherit;font-weight:700;font-size:12px;padding:1px 6px;border:1px solid #8090a8;border-bottom-width:2px;border-radius:4px;background:#f6f8fc}
 body.empty #helpBtn{display:inline-block}
+#ask{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;background:rgba(20,45,85,.28);padding:16px}
+#ask p{margin:4px 0 14px;font-size:13.5px;word-break:break-all}
+.askb{display:flex;justify-content:flex-end;gap:8px}
+.askb button{font:inherit;font-weight:700;min-width:84px;padding:6px 14px;border:1px solid #707f96;border-radius:4px;background:var(--win);color:var(--fg);cursor:pointer}
+#askY{background:#c13229;color:#fff;border-color:#7a1c16}
 /* 찾기 창 (Alt+F) */
 #fbox{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));z-index:40;display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;
   max-width:calc(100vw - 32px);padding:8px 10px;background:linear-gradient(#f7faff,#e3ebf6);border:1px solid #5d7fae;border-radius:8px;box-shadow:0 8px 24px rgba(0,20,60,.4);font-size:12.5px}
@@ -443,7 +448,7 @@ body.static .cr{display:none}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-18 09:17 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-18 09:20 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -506,6 +511,9 @@ body.static .cr{display:none}
   <div class="tb">도움말 · 단축키<span class="sp"></span><button type="button" id="hX" aria-label="닫기">×</button></div>
   <div class="body"><table id="helpT">
   </table></div></div></div>
+<div id="ask" hidden><div class="win hwin" role="alertdialog" aria-label="컨테이너 삭제">
+  <div class="tb">컨테이너 삭제</div>
+  <div class="body"><p id="askT"></p><div class="askb"><button type="button" id="askY">삭제</button><button type="button" id="askN">취소</button></div></div></div></div>
 <div id="fbox" hidden role="search"><b>컨테이너 찾기</b>
   <input id="q" type="search" placeholder="번호 일부 (예: 8172320)" autocomplete="off" aria-label="컨테이너 번호">
   <span id="qn"></span><button type="button" id="fX" aria-label="닫기" title="닫기 (Alt + F 또는 Esc)">×</button></div>
@@ -1228,6 +1236,12 @@ function delBoxes(ids){
   else{st.plan.boxes=B.filter(function(b){return ids.indexOf(b.i)<0});st.mod=true}
   st.pick=[];st.sel=-1;st.saved="";$("sheet").hidden=true;render();
   say("컨테이너 "+bx.length+"개를 지웠어요 ("+bx.slice(0,6).map(function(b){return b.cntr}).join(", ")+(bx.length>6?" …":"")+"). Alt + 3 으로 되돌릴 수 있어요.")}
+// 삭제 전에 한 번 물어봄 (Enter = 삭제, Esc = 취소)
+var ASK=null;
+function askDel(ids){var B=st.plan.boxes,bx=ids.map(function(i){return B[i]}).filter(Boolean);if(!bx.length)return;
+  ASK=ids;$("askT").textContent="컨테이너 "+bx.length+"개를 지울까요? ("+bx.slice(0,8).map(function(b){return b.cntr}).join(", ")+(bx.length>8?" …":"")+")";
+  $("ask").hidden=false;$("askY").focus()}
+function askEnd(yes){var ids=ASK;ASK=null;$("ask").hidden=true;if(yes&&ids)delBoxes(ids)}
 function ascOut(){   // 내보낼 ASC 글: 지운 컨테이너 줄을 빼고, 머리말의 RECORD 수와 안 쓰는 위험물 줄을 맞춤
   var keep=st.lines.filter(function(l,i){return !(l===""&&st.orig[i]!=="")});
   if(keep.length===st.lines.length)return st.lines.join(st.eol);
@@ -1325,6 +1339,8 @@ function readFile(f){var r=new FileReader();r.onload=function(){loadBytes(new Ui
 
 $("openBtn").onclick=function(){$("file").click()};
 $("saveBtn").onclick=saveAsc;
+$("askY").onclick=function(){askEnd(true)};$("askN").onclick=function(){askEnd(false)};
+$("ask").addEventListener("click",function(e){if(e.target.id==="ask")askEnd(false)});
 function expMenu(on){var m=$("expMenu");if(on==null)on=m.hidden;m.hidden=!on;$("expBtn").setAttribute("aria-expanded",on)}
 $("expBtn").onclick=function(e){e.stopPropagation();expMenu()};
 $("expMenu").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;expMenu(false);exportPlan(b.dataset.x)});
@@ -1561,13 +1577,14 @@ $("findBtn").onclick=function(){findBox()};$("fX").onclick=function(){findBox(fa
   document.addEventListener("pointerdown",function(e){
     if(e.pointerType!=="mouse"||(e.button!==0&&e.button!==2)||window.__STATIC__||!st.plan)return;
     var a=area(e.target),ct=e.ctrlKey||e.metaKey;if(!a||e.target.closest("input,select"))return;
-    var mode=e.button===0?(ct?"add":""):(ct?"off":"del");if(!mode)return;
+    var mode=e.button===0?(ct?"add":"none"):(ct?"off":"del");   // none: Ctrl 없는 왼쪽 끌기 — 네모도 안 그리고 아무것도 안 고름
     d={x:e.clientX,y:e.clientY,a:a,on:false,mode:mode}});
   document.addEventListener("pointermove",function(e){
     if(!d)return;
     if(!d.on){if(Math.abs(e.clientX-d.x)<6&&Math.abs(e.clientY-d.y)<6)return;
-      d.on=true;band=document.createElement("div");band.id="band";band.className=d.mode;document.body.appendChild(band);document.body.classList.add("banding")}
+      d.on=true;if(d.mode==="none")return;band=document.createElement("div");band.id="band";band.className=d.mode;document.body.appendChild(band);document.body.classList.add("banding")}
     var x=Math.min(d.x,e.clientX),y=Math.min(d.y,e.clientY);
+    if(!band)return;
     band.style.left=x+"px";band.style.top=y+"px";band.style.width=Math.abs(e.clientX-d.x)+"px";band.style.height=Math.abs(e.clientY-d.y)+"px";
     e.preventDefault()});
   document.addEventListener("pointerup",function(e){
@@ -1580,9 +1597,10 @@ $("findBtn").onclick=function(){findBox()};$("fX").onclick=function(){findBox(fa
     // 끌고 난 뒤에 따라오는 클릭·오른쪽 메뉴는 무시
     var stop=function(ev){ev.stopPropagation();ev.preventDefault()};
     document.addEventListener("click",stop,true);setTimeout(function(){document.removeEventListener("click",stop,true)},0);
+    if(D.mode==="none")return;
     if(D.mode!=="add"){document.addEventListener("contextmenu",stop,true);setTimeout(function(){document.removeEventListener("contextmenu",stop,true)},300)}
     if(!ids.length)return;
-    if(D.mode==="del"){delBoxes(ids);return}
+    if(D.mode==="del"){askDel(ids);return}
     if(D.mode==="off"){var n0=st.pick.length;st.pick=st.pick.filter(function(i){return ids.indexOf(i)<0});
       if(st.pick.length!==n0){if(ids.indexOf(st.sel)>=0){st.sel=-1;$("sheet").hidden=true}render()}
       return}
@@ -1600,7 +1618,7 @@ var KEYS=[
   {keys:["Ctrl","클릭"],d:"컨테이너 여러 개 고르기 (다시 누르면 빨간 표식 지우기)"},
   {keys:["Ctrl","드래그"],d:"네모로 끌어서 그 안의 컨테이너를 한꺼번에 고르기"},
   {keys:["Ctrl","오른쪽 버튼 드래그"],d:"네모 안의 컨테이너 선택 해제"},
-  {keys:["오른쪽 버튼 드래그"],d:"네모 안의 컨테이너 삭제"},
+  {keys:["오른쪽 버튼 드래그"],d:"네모 안의 컨테이너 삭제 (확인 창에서 Enter = 삭제, Esc = 취소)"},
   {keys:["Alt","3"],d:"되돌리기 (삭제 · 고친 값을 한 단계씩)",code:"Digit3",code2:"Numpad3",alt:1,plan:1,fn:function(){undo()}},
   {keys:["Shift","클릭"],d:"Editor 목록에서 범위로 고르기 · 열 제목은 여러 열 정렬"},
   {keys:["Alt","휠"],d:"General Plan 확대 · 축소"},
@@ -1615,6 +1633,10 @@ function helpDraw(){
 helpDraw();
 document.addEventListener("keydown",function(e){
   if(window.__STATIC__)return;
+  if(!$("ask").hidden){   // 삭제 확인 창이 떠 있는 동안은 Enter·Esc 만 받음
+    if(e.key==="Enter"){e.preventDefault();e.stopPropagation();askEnd(true)}else if(e.key==="Escape"){e.preventDefault();e.stopPropagation();askEnd(false)}
+    else if(e.key!=="Tab")e.stopPropagation();
+    return}
   if(e.key==="Alt"){e.preventDefault();return}   // Alt 만 눌렀다 떼면 브라우저 메뉴로 넘어가는 것을 막음
   for(var ki=0;ki<KEYS.length;ki++){var K=KEYS[ki];   // 단축키 표에서 찾아 실행 (한글 입력 상태에서도 되게 자판 위치 e.code 로 봄)
     if(K.code&&(K.code===e.code||K.code2===e.code)&&!!K.alt===e.altKey&&!!K.ctrl===(e.ctrlKey||e.metaKey)&&!!K.shift===e.shiftKey){
