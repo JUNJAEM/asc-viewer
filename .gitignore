@@ -13,3 +13,5 @@ __pycache__/
 tools/ccasp/
 # 전산 접속 경로가 들어 있는 갱신 스크립트 (이 PC 전용)
 tools/update_ports.py
+# 로딩 화면 그림 (회사 선박 사진 - 공개 저장소에는 올리지 않음, 팀 배포 zip 에만)
+splash.jpg

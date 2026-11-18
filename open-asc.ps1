@@ -4,6 +4,20 @@
 param([string]$Path, [string]$OutFile, [switch]$NoOpen, [switch]$Static)
 $ErrorActionPreference = 'Stop'
 $dir = Split-Path -Parent $MyInvocation.MyCommand.Path
+# Loading picture while the page is being built (optional: splash.jpg next to this script).
+$splash = $null
+$sp = Join-Path $dir 'splash.jpg'
+if ((Test-Path $sp) -and -not $NoOpen -and -not $Static) {
+    try {
+        Add-Type -AssemblyName System.Windows.Forms, System.Drawing
+        $simg = [Drawing.Image]::FromFile($sp)
+        $splash = New-Object Windows.Forms.Form
+        $splash.FormBorderStyle = 'None'; $splash.StartPosition = 'CenterScreen'; $splash.TopMost = $true; $splash.ShowInTaskbar = $false
+        $sw = 760; $splash.ClientSize = New-Object Drawing.Size($sw, [int]($sw * $simg.Height / $simg.Width))
+        $splash.BackgroundImage = $simg; $splash.BackgroundImageLayout = 'Stretch'
+        $splash.Show(); $splash.Refresh()
+    } catch { $splash = $null }
+}
 $tpl = [IO.File]::ReadAllText((Join-Path $dir 'viewer.src.html'), [Text.Encoding]::UTF8)
 $name = 'viewer'
 if ($Path -and (Test-Path -LiteralPath $Path)) {
@@ -48,3 +62,5 @@ if ($Static) {
     [IO.File]::WriteAllText($OutFile, $d, (New-Object Text.UTF8Encoding($false)))
 }
 if (-not $NoOpen) { Start-Process $OutFile }
+# keep the loading picture up until the browser window has had time to appear
+if ($splash) { $until = [DateTime]::Now.AddMilliseconds(1500); while ([DateTime]::Now -lt $until) { [Windows.Forms.Application]::DoEvents(); Start-Sleep -Milliseconds 30 }; $splash.Close() }
