@@ -21,14 +21,54 @@ if ((Test-Path $sp) -and -not $NoOpen -and -not $Static) {
 }
 $tpl = [IO.File]::ReadAllText((Join-Path $dir 'viewer.src.html'), [Text.Encoding]::UTF8)
 $name = 'viewer'
+# One viewer window for many plans: the page polls this small file, and a later double-click writes the new plan into it.
+$tmpDir = Join-Path $env:TEMP 'asc-viewer'
+if (-not (Test-Path $tmpDir)) { New-Item -ItemType Directory -Path $tmpDir | Out-Null }
+$inbox = Join-Path $tmpDir 'inbox.js'
+$inboxJs = "window.__INBOX__='" + ([Uri]$inbox).AbsoluteUri + "';"
+if ($Static) { $inboxJs = '' }
+Add-Type @'
+using System; using System.Text; using System.Runtime.InteropServices;
+public class AscWin {
+  delegate bool EnumProc(IntPtr h, IntPtr l);
+  [DllImport("user32.dll")] static extern bool EnumWindows(EnumProc cb, IntPtr l);
+  [DllImport("user32.dll")] static extern bool IsWindowVisible(IntPtr h);
+  [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern int GetWindowText(IntPtr h, StringBuilder s, int n);
+  [DllImport("user32.dll")] static extern bool IsIconic(IntPtr h);
+  [DllImport("user32.dll")] static extern bool ShowWindow(IntPtr h, int c);
+  [DllImport("user32.dll")] static extern bool SetForegroundWindow(IntPtr h);
+  // A browser window whose title is "<file> (middle dot) PLAN VIEWER" (optionally followed by " - <browser>") or the empty viewer.
+  public static IntPtr Find() {
+    IntPtr found = IntPtr.Zero; string dot = "\u00B7 PLAN VIEWER\u200B", emp = "PLAN VIEWER MADE BY JUNJAE\u200B";
+    EnumWindows((h, l) => { if (!IsWindowVisible(h)) return true; var s = new StringBuilder(400); GetWindowText(h, s, 400); string t = s.ToString();
+      int i = t.IndexOf(dot); bool hit = (i >= 0 && (t.Length == i + dot.Length || t.Substring(i + dot.Length).StartsWith(" - "))) || t == emp || t.StartsWith(emp + " - ");
+      if (hit) { found = h; return false; } return true; }, IntPtr.Zero);
+    return found; }
+  public static void Front(IntPtr h) { if (IsIconic(h)) ShowWindow(h, 9); SetForegroundWindow(h); }
+}
+'@
 if ($Path -and (Test-Path -LiteralPath $Path)) {
     $full = (Resolve-Path -LiteralPath $Path).ProviderPath
     $name = [IO.Path]::GetFileName($full)
     $b64 = [Convert]::ToBase64String([IO.File]::ReadAllBytes($full))
     $jsName = ($name -replace '\\', '\\' -replace "'", "\'")
     $flag = ''; if ($Static) { $flag = 'window.__STATIC__=1;' }
-    $tpl = $tpl.Replace('/*__ASC_DATA__*/', $flag + "window.__ASC__={name:'$jsName',b64:'$b64'};")
-}
+    # Already-open viewer window? Then hand the file over to it (it shows up there as one more tab) instead of opening another window.
+    if (-not $OutFile -and -not $NoOpen -and -not $Static) {
+        try {
+            $hw = [AscWin]::Find()
+            if ($hw -ne [IntPtr]::Zero) {
+                $ms = [int64]([DateTime]::UtcNow - [DateTime]'1970-01-01').TotalMilliseconds
+                $js = "window.__ASC_INBOX__&&window.__ASC_INBOX__({id:'" + [Guid]::NewGuid().ToString('N') + "',t:" + $ms + ",name:'" + $jsName + "',b64:'" + $b64 + "'});"
+                [IO.File]::WriteAllText($inbox, $js, (New-Object Text.UTF8Encoding($false)))
+                [AscWin]::Front($hw)
+                if ($splash) { Start-Sleep -Milliseconds 700; $splash.Close() }
+                return
+            }
+        } catch { }
+    }
+    $tpl = $tpl.Replace('/*__ASC_DATA__*/', $flag + $inboxJs + "window.__ASC__={name:'$jsName',b64:'$b64'};")
+} else { $tpl = $tpl.Replace('/*__ASC_DATA__*/', $inboxJs) }
 $shipsUrl = ([Uri](Join-Path $dir 'ships.js')).AbsoluteUri
 $tpl = $tpl.Replace('src="ships.js"', 'src="' + $shipsUrl + '"')
 $mailCfg = Join-Path $dir 'mail-config.js'   # fixed mail recipients (not on GitHub); optional
@@ -62,6 +102,15 @@ if ($Static) {
     if ($d -notmatch 'class="win sbp"') { throw 'static render failed' }
     [IO.File]::WriteAllText($OutFile, $d, (New-Object Text.UTF8Encoding($false)))
 }
-if (-not $NoOpen) { Start-Process $OutFile }
+if (-not $NoOpen) {
+    # Open as its own window (no tabs / address bar) when the default browser is Chromium-based, so the next file can find this window by its title.
+    $exe = $null
+    try {
+        $prog = (Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice').ProgId
+        $cmd = (Get-ItemProperty ("Registry::HKEY_CLASSES_ROOT\" + $prog + "\shell\open\command")).'(default)'
+        if ($cmd -match '^"([^"]+)"' -or $cmd -match '^(\S+\.exe)') { $cand = $Matches[1]; if ((Test-Path $cand) -and ($cand -match '(chrome|msedge|whale|brave)\.exe$')) { $exe = $cand } }
+    } catch { }
+    if ($exe -and -not $Static) { Start-Process -FilePath $exe -ArgumentList ('--app="' + ([Uri]$OutFile).AbsoluteUri + '"') } else { Start-Process $OutFile }
+}
 # keep the loading picture up until the browser window has had time to appear
 if ($splash) { $until = [DateTime]::Now.AddMilliseconds(1500); while ([DateTime]::Now -lt $until) { [Windows.Forms.Application]::DoEvents(); Start-Sleep -Milliseconds 30 }; $splash.Close() }

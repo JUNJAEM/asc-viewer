@@ -481,7 +481,7 @@ body.static .cr{display:none}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-18 11:08 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-18 11:13 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -1383,6 +1383,7 @@ function loadBytes(u,name){   // 바이트를 1:1 글자로 읽어야 저장할 
 }
 // ---------- 플랜 탭: 플랜을 연 채로 다른 파일을 열면 탭이 하나 더 생김. 탭을 누르면 그 플랜으로 바뀜(한 번에 하나만 보임) ----------
 // 지금 보이는 플랜은 st 에 살아 있고, 나머지 탭은 st 에서 아래 항목만 떠 둔 사본을 TABS 에 넣어 둠.
+var ZW=window.__INBOX__?"\u200B":"";   // PC 설치판 창 표시(제목 끝의 안 보이는 글자): 실행 파일이 이 창을 찾아 다음 파일을 넘겨줌
 var TABS=[],CUR=-1,TKEYS=["plan","name","example","filter","q","sel","open","ship","shipBad","pick","lines","orig","eol","plan0","p0","undo","mod","saved","raw"];
 function tabSave(){if(CUR<0||!st.plan)return;var o={};TKEYS.forEach(function(k){o[k]=st[k]});TABS[CUR]=o}
 function tabDraw(){var t=$("tabs");t.hidden=TABS.length<2;if(t.hidden){t.innerHTML="";return}
@@ -1390,7 +1391,7 @@ function tabDraw(){var t=$("tabs");t.hidden=TABS.length<2;if(t.hidden){t.innerHT
     return '<span class="tab'+(i===CUR?' on':'')+'"><button type="button" class="tn" role="tab" aria-selected="'+(i===CUR)+'" data-tab="'+i+'" title="'+esc(S.name||"")+'">'+esc(nm)+'<small>'+(S.plan?S.plan.boxes.length+"개":"")+'</small></button>'+
       '<button type="button" class="tx" data-tabx="'+i+'" aria-label="'+esc(nm)+' 닫기" title="이 플랜 닫기">×</button></span>'}).join("")}
 function tabShow(){   // st 가 바뀐 뒤 화면 맞추기
-  $("q").value=st.q||"";$("sheet").hidden=true;sumReset();document.title=(st.name||"").replace(/\.(asc|edi)$/i,"")+" · PLAN VIEWER";
+  $("q").value=st.q||"";$("sheet").hidden=true;sumReset();document.title=(st.name||"").replace(/\.(asc|edi)$/i,"")+" · PLAN VIEWER"+ZW;
   $("note").hidden=true;render();autoFit();tabDraw()}
 function tabGo(i){if(i===CUR||!TABS[i])return;tabSave();CUR=i;var T=TABS[i];TKEYS.forEach(function(k){st[k]=T[k]});st.sel=-1;tabShow()}
 var TABX=-1;
@@ -1400,7 +1401,7 @@ function tabClose(i){
   TABX=-1;if(i!==CUR)tabSave();
   TABS.splice(i,1);
   if(!TABS.length){CUR=-1;TKEYS.forEach(function(k){st[k]=null});st.pick=[];st.undo=[];st.sel=-1;st.name="";st.ship="";document.body.classList.add("empty");
-    document.title="PLAN VIEWER MADE BY JUNJAE";$("note").hidden=true;$("sheet").hidden=true;$("v3").hidden=true;tabDraw();return}
+    document.title="PLAN VIEWER MADE BY JUNJAE"+ZW;$("note").hidden=true;$("sheet").hidden=true;$("v3").hidden=true;tabDraw();return}
   var n=i===CUR?Math.min(i,TABS.length-1):(i<CUR?CUR-1:CUR);CUR=-1;
   var T=TABS[n];CUR=n;TKEYS.forEach(function(k){st[k]=T[k]});st.sel=-1;tabShow()}
 document.addEventListener("click",function(e){var a=e.target.closest&&e.target.closest("[data-tab]"),x=e.target.closest&&e.target.closest("[data-tabx]");
@@ -1414,7 +1415,7 @@ function load(text,name){
   if(same>=0)CUR=same;else{TABS.push({name:name});CUR=TABS.length-1}
   st.raw=null;
   st.plan=P;st.name=name;st.example=false;pickShip(detectShip(name));st.filter=null;st.sel=-1;st.pick=[];st.lines=st.orig=st.plan0=st.p0=null;st.undo=[];st.mod=false;st.saved="";sumReset();st.open=null;st.q="";$("q").value="";$("sheet").hidden=true;
-  document.title=name.replace(/\.(asc|edi)$/i,"")+" · PLAN VIEWER";
+  document.title=name.replace(/\.(asc|edi)$/i,"")+" · PLAN VIEWER"+ZW;
   render(); if(typeof autoFit==="function")autoFit(); else toBow();
   tabDraw();
 }
@@ -1969,6 +1970,14 @@ $("q").addEventListener("input",function(e){st.q=e.target.value.trim().toUpperCa
 
 setZoom(zoom);
 if(window.__ICON__){$("logo").src=window.__ICON__;$("logo").hidden=false}   // 이 PC 전용 그림 (실행 파일이 넣어 줌)
+// PC 설치판: 이미 떠 있는 뷰어 창이 있으면, 다음에 더블클릭한 파일은 새 창 대신 이 창의 탭으로 들어옴.
+// 실행 파일(open-asc.ps1)이 작은 파일(inbox.js)에 새 플랜을 적어 두고, 이 화면이 그 파일을 1초에 한 번쯤 읽어 봄.
+if(window.__INBOX__&&!window.__STATIC__){
+  var IN0=Date.now()-1500,INS={};
+  window.__ASC_INBOX__=function(m){if(!m||INS[m.id]||m.t<IN0)return;INS[m.id]=1;
+    try{var bn=atob(m.b64),uu=new Uint8Array(bn.length);for(var i2=0;i2<bn.length;i2++)uu[i2]=bn.charCodeAt(i2);loadBytes(uu,m.name||"plan.asc");window.focus()}catch(_){}};
+  setInterval(function(){var sc=document.createElement("script");sc.src=window.__INBOX__+"?"+Date.now();sc.onload=sc.onerror=function(){sc.remove()};document.head.appendChild(sc)},800);
+}
 var E=window.__ASC__;
 if(E&&E.b64){var bin=atob(E.b64),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
   loadBytes(u,E.name||"plan.asc")}
