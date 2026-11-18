@@ -80,6 +80,9 @@ def main():
     with open(OUT, "w", encoding="utf-8", newline="\n") as f:
         f.write("window.ASC_SHIPS=" + json.dumps(ships, ensure_ascii=False, separators=(",", ":")) + ";\n")
         f.write("window.ASC_PORTS=" + json.dumps(ports, ensure_ascii=False, separators=(",", ":"), sort_keys=True) + ";\n")
+        gp = os.path.join(HERE, "ports_geo.json")   # 포트 위도·경도 (tools/build_geo.py), 3D VIEW 의 실제 바람·파도에 씀
+        geo = json.load(open(gp, encoding="utf-8")) if os.path.exists(gp) else {}
+        f.write("window.ASC_GEO=" + json.dumps(geo, separators=(",", ":"), sort_keys=True) + ";\n")
     print("ships", len(ships), "| size KB", os.path.getsize(OUT) // 1024, "| fail", fail)
     print("no service:", sorted(c for c in ships if not ships[c]["s"]))
 
