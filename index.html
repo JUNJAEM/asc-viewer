@@ -481,7 +481,7 @@ body.static .cr{display:none}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-18 11:13 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-18 11:20 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -1394,6 +1394,7 @@ function tabShow(){   // st 가 바뀐 뒤 화면 맞추기
   $("q").value=st.q||"";$("sheet").hidden=true;sumReset();document.title=(st.name||"").replace(/\.(asc|edi)$/i,"")+" · PLAN VIEWER"+ZW;
   $("note").hidden=true;render();autoFit();tabDraw()}
 function tabGo(i){if(i===CUR||!TABS[i])return;tabSave();CUR=i;var T=TABS[i];TKEYS.forEach(function(k){st[k]=T[k]});st.sel=-1;tabShow()}
+function tabStep(d){if(TABS.length<2)return;tabGo((CUR+d+TABS.length)%TABS.length)}
 var TABX=-1;
 function tabClose(i){
   var S=i===CUR?st:TABS[i],dirty=0;if(S.lines)for(var k=0;k<S.lines.length;k++)if(S.lines[k]!==S.orig[k])dirty++;
@@ -1927,6 +1928,9 @@ function v3Open(on){if(on==null)on=$("v3").hidden;$("v3").hidden=!on;var b=$("v3
 var KEYS=[
   {keys:["F1"],d:"도움말 열기 · 닫기",code:"F1",fn:function(){helpBox()}},
   {keys:["Alt","E"],d:"EDITOR / PIVOT 켜기 · 끄기",code:"KeyE",alt:1,plan:1,fn:function(){$("edBtn").click()}},
+  {keys:["Ctrl","Tab"],d:"다음 플랜 탭으로 (PC 설치판 창에서. 브라우저 탭으로 열었을 때는 Alt + T)",code:"Tab",ctrl:1,fn:function(){tabStep(1)}},
+  {keys:["Ctrl","Shift","Tab"],d:"이전 플랜 탭으로",code:"Tab",ctrl:1,shift:1,fn:function(){tabStep(-1)}},
+  {keys:["Alt","T"],d:"다음 플랜 탭으로 (어디서나)",code:"KeyT",alt:1,fn:function(){tabStep(1)}},
   {keys:["Alt","F"],d:"컨테이너 찾기 열기 · 닫기",code:"KeyF",alt:1,plan:1,fn:function(){findBox()}},
   {keys:["Ctrl","클릭"],d:"컨테이너 여러 개 고르기 (Bay Plan 에서는 Container Editor 도 같이 떠요)"},
   {keys:["Ctrl","오른쪽 버튼 클릭"],d:"고른 컨테이너 선택 해제 (빨간 표식 지우기)"},
