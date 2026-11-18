@@ -482,7 +482,7 @@ body.static .cr{display:none}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-18 15:08 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-18 15:13 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -1739,7 +1739,7 @@ var GA=(function(){var o={MJEP:{nav:20.2,eye:22.0,lv:5}};
 var HEX={},BAY2P={},V3={yaw:-0.62,pit:0.5,zoom:1,hold:false,faces:[],hov:null,M:null,port:{}};
 // ---------- 그 항의 실제 바람·파도 ----------
 // 파일 이름에서 포트를 읽음: 5글자(JPOIT) 먼저, 없으면 회사 3글자(OIT). 좌표는 ships.js 의 ASC_GEO(tools/build_geo.py).
-// 날씨는 Open-Meteo(열쇠 없이 쓰는 공개 예보, open-meteo.com)에 위도·경도만 보내서 받음. 인터넷이 막힌 곳에서는 그냥 안 나옴.
+// 날씨는 공개 예보 서버에 위도·경도만 보내서 받음(wxLoad). 인터넷이 막힌 곳에서는 그냥 안 나옴.
 var WX={},WXSKIP={PRE:1,FIN:1,ASC:1,EDI:1,NEW:1,REV:1,PLAN:1,BAY:1,FINAL:1,REAL:1};
 function portNorm(c){c=String(c||"").toUpperCase().replace(/[^A-Z]/g,"");var G=window.ASC_GEO||{},P=window.ASC_PORTS||{};
   if(c.length===5&&G[c])return c;if(c.length===3&&P[c])return P[c];return ""}
@@ -1754,14 +1754,27 @@ function wxLoad(code){
   var geo=(window.ASC_GEO||{})[code];if(!code||!geo||!window.fetch)return;
   var w=WX[code];if(w&&(w.busy||Date.now()-w.at<30*60000))return;
   w=WX[code]={busy:true,at:Date.now()};
-  var q="latitude="+geo[0]+"&longitude="+geo[1]+"&timezone=auto";
+  var la=geo[0],lo=geo[1],now=new Date(),iso=now.toISOString().slice(0,13)+":00:00Z";
   function get(u){return fetch(u).then(function(r){return r.ok?r.json():null}).catch(function(){return null})}
-  Promise.all([get("https://api.open-meteo.com/v1/forecast?"+q+"&current=wind_speed_10m,wind_direction_10m,wind_gusts_10m&wind_speed_unit=ms"),
-               get("https://marine-api.open-meteo.com/v1/marine?"+q+"&current=wave_height,wave_direction,wave_period")]).then(function(r){
-    var a=r[0]&&r[0].current,m=r[1]&&r[1].current;w.busy=false;w.at=Date.now();
-    if(a&&a.wind_speed_10m!=null){w.wind=a.wind_speed_10m;w.dir=a.wind_direction_10m;w.gust=a.wind_gusts_10m;w.time=a.time}
-    if(m&&m.wave_height!=null){w.wave=m.wave_height;w.wdir=m.wave_direction;w.per=m.wave_period}
-    w.fail=w.wind==null&&w.wave==null;if(!$("v3").hidden)v3Draw()})}
+  // 바람: 노르웨이 기상청(api.met.no, 전 세계, 열쇠 없음, CC BY 4.0). 파도: 미국 NOAA 의 WaveWatch III 전 세계 예보(하와이대 PacIOOS 서버, 열쇠 없음).
+  // 둘 중 못 받은 것만 Open-Meteo 에 다시 물어봄.
+  var b=encodeURIComponent("[("+iso+")][(0.0)][("+la+")][("+(lo<0?lo+360:lo)+")]");
+  Promise.all([get("https://api.met.no/weatherapi/locationforecast/2.0/compact?lat="+la+"&lon="+lo),
+               get("https://pae-paha.pacioos.hawaii.edu/erddap/griddap/ww3_global.json?Thgt"+b+",Tper"+b+",Tdir"+b)]).then(function(r){
+    var ts=r[0]&&r[0].properties&&r[0].properties.timeseries,row=r[1]&&r[1].table&&r[1].table.rows&&r[1].table.rows[0],src=[];
+    if(ts&&ts.length){var k=0;while(k<ts.length-1&&new Date(ts[k+1].time)<=now)k++;var d=ts[k].data.instant.details;
+      if(d&&d.wind_speed!=null){w.wind=d.wind_speed;w.dir=d.wind_from_direction;w.time=ts[k].time;src.push("MET Norway")}}
+    if(row&&row[4]!=null&&isFinite(row[4])){w.wave=row[4];w.per=row[5];w.wdir=row[6];src.push("NOAA WW3")}
+    var q="latitude="+la+"&longitude="+lo+"&timezone=GMT",more=[];
+    more.push(w.wind==null?get("https://api.open-meteo.com/v1/forecast?"+q+"&current=wind_speed_10m,wind_direction_10m,wind_gusts_10m&wind_speed_unit=ms"):null);
+    more.push(w.wave==null?get("https://marine-api.open-meteo.com/v1/marine?"+q+"&current=wave_height,wave_direction,wave_period"):null);
+    return Promise.all(more).then(function(r2){
+      var a=r2[0]&&r2[0].current,m=r2[1]&&r2[1].current,om=false;
+      if(a&&a.wind_speed_10m!=null){w.wind=a.wind_speed_10m;w.dir=a.wind_direction_10m;w.gust=a.wind_gusts_10m;w.time=a.time+"Z";om=true}
+      if(m&&m.wave_height!=null){w.wave=m.wave_height;w.wdir=m.wave_direction;w.per=m.wave_period;om=true}
+      if(om)src.push("Open-Meteo");w.src=src.join(" · ");
+      w.busy=false;w.at=Date.now();w.fail=w.wind==null&&w.wave==null;if(!$("v3").hidden)v3Draw()})})}
+function wxWhen(t){var d=new Date(t);if(isNaN(d))return "";function z(n){return (n<10?"0":"")+n}return (d.getMonth()+1)+"/"+d.getDate()+" "+z(d.getHours())+":"+z(d.getMinutes())}
 function compass(d){return ["북","북동","동","남동","남","남서","서","북서"][Math.round(d/45)%8]}
 function v3Model(){
   var P=st.plan,B=P.boxes,sh=curShip(),g=sh&&sh.g||[0,0,0,-1,-1],odd={},evn={},k,rows={},holdT=0,deckT=0;
@@ -1932,11 +1945,11 @@ function v3Draw(){
   // 그 항의 지금 날씨 + 흘수 (둘째 줄), 바람 방향 나침반
   var pc=v3Port(),wl2="";
   if(pc){if(!(window.ASC_GEO||{})[pc])wl2=pc+"  좌표를 모르는 포트";else if(!wx||wx.busy)wl2=pc+"  날씨 불러오는 중…";else if(wx.fail)wl2=pc+"  날씨를 못 불러왔어요 (인터넷 확인)";
-    else wl2=pc+((window.ASC_GEO[pc]||[])[2]?" (위치 추정)":"")+"  "+(wx.wind!=null?compass(wx.dir)+"풍 "+wx.wind.toFixed(1)+" m/s"+(wx.gust!=null?" (돌풍 "+wx.gust.toFixed(1)+")":""):"바람 자료 없음")+"   "+(wx.wave!=null?"파고 "+wx.wave.toFixed(1)+" m"+(wx.per?" · 주기 "+Math.round(wx.per)+"초":""):"파고 자료 없음")}
+    else wl2=pc+((window.ASC_GEO[pc]||[])[2]?" (위치 추정)":"")+"  "+(wx.wind!=null?compass(wx.dir)+"풍 "+wx.wind.toFixed(1)+" m/s"+(wx.gust!=null?" (돌풍 "+wx.gust.toFixed(1)+")":""):"바람 자료 없음")+"   "+(wx.wave!=null?"파고 "+wx.wave.toFixed(1)+" m"+(wx.per?" · 주기 "+Math.round(wx.per)+"초":""):"파고 자료 없음 (항 안쪽이라 파도 예보가 없는 곳)")}
   else wl2="파일 이름에서 포트를 못 읽었어요";
   lab(wl2,[14,40],"#0b1f47");
   if(wx&&wx.wave!=null)lab("롤링 ±"+rollA.toFixed(1)+"°  피칭 ±"+pitA.toFixed(1)+"°  (파고로 어림한 값)",[14,60],"#0b1f47");
-  if(wx&&wx.time){g.font="11px Arial";lab(wx.time.replace("T"," ")+" 현지 · 날씨 Open-Meteo",[14,wx.wave!=null?77:57],"#33415c")}
+  if(wx&&wx.time){g.font="11px Arial";lab(wxWhen(wx.time)+" 기준 · "+(wx.src||""),[14,wx.wave!=null?77:57],"#33415c")}
   if(wx&&wx.wind!=null){var cx=w-58,cy=64,rr=24,ang=(wx.dir+180)*Math.PI/180;   // 바람이 불어 가는 쪽으로 화살표 (위가 북)
     g.fillStyle="rgba(255,255,255,.82)";g.strokeStyle="#0b1f47";g.lineWidth=1.2;g.beginPath();g.arc(cx,cy,rr+7,0,7);g.fill();g.stroke();
     g.font="bold 10px Arial";g.textAlign="center";g.fillStyle="#b00000";g.fillText("N",cx,cy-rr+4);
