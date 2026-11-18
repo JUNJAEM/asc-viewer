@@ -1582,6 +1582,7 @@ function setZoom(z){var w=$("gpw"),fx=w.scrollWidth?(w.scrollLeft+w.clientWidth/
   $("gp").style.setProperty("--ms",(15*zoom/100).toFixed(2)+"px");
   if(ZS.indexOf(zoom)<0){ZS.push(zoom);ZS.sort(function(a,b){return a-b})}
   $("zS").innerHTML=ZS.map(function(v){return '<option value="'+v+'"'+(v===zoom?' selected':'')+'>'+v+'%</option>'}).join("");
+  if(typeof gpFit==="function")gpFit();
   w.scrollLeft=fx*w.scrollWidth-w.clientWidth/2; w.scrollTop=fy*w.scrollHeight-w.clientHeight/2}   // 보던 자리를 가운데로 유지
 function stepZoom(d){var i=ZS.indexOf(zoom);setZoom(ZS[Math.max(0,Math.min(ZS.length-1,i+d))])}
 $("lay").value=LAYOUT;
@@ -1592,8 +1593,19 @@ $("lay").value=LAYOUT;
 var AUTOZ=true, LAYSET=false; try{LAYSET=localStorage.getItem("ascGpLayout")!==null}catch(_){}
 // 폰인지: 세로로 든 폰(폭이 좁음) 또는 가로로 눕힌 폰(터치 화면인데 높이가 낮음)
 function isPhone(){return window.innerWidth<700||(TOUCH&&window.innerHeight<520)}
+// General Plan 창을 그림에 맞춤: 그림이 차지한 폭만큼만 창을 잡아서 옆에 빈 자리가 남지 않게 (세로는 원래 그림 높이만큼).
+// 폰은 화면 폭 그대로. 그림이 화면보다 넓으면 화면 폭까지만(그 안에서 스크롤).
+var FITTING=false;
+function gpFit(){
+  var win=$("gpWin"),w=$("gpw"),g=$("gp");if(!win||!w||!g)return;
+  if(!st.plan||window.__STATIC__||isPhone()||FITTING){if(!FITTING)win.style.width="";return}
+  win.style.width="";var used=g.scrollWidth;
+  if(LAYOUT==="wrap"){var l=1e9,r=-1e9;[].forEach.call(g.querySelectorAll(".gh"),function(e){var q=e.getBoundingClientRect();if(q.width){l=Math.min(l,q.left);r=Math.max(r,q.right)}});if(r>l)used=r-l+16}
+  var full=win.offsetWidth,extra=full-w.clientWidth,W=Math.min(full,Math.max(660,Math.ceil(used)+extra+4));
+  if(W<full-2)win.style.width=W+"px"}
 function autoFit(){
   if(!st.plan||window.__STATIC__)return;
+  FITTING=true;$("gpWin").style.width="";
   var w=$("gpw"),g=$("gp"),W=window.innerWidth,phone=isPhone(),land=phone&&W>window.innerHeight,want=LAYSET?LAYOUT:(phone?"wrap":"row");
   function lay(v){if(LAYOUT!==v){LAYOUT=v;$("lay").value=v;render()}}
   // 쓸 수 있는 높이: PC는 창 아래까지, 폰은 General Plan 을 화면 위로 올렸을 때의 높이(위쪽 요약은 밀어 올려 봄)
@@ -1613,10 +1625,11 @@ function autoFit(){
   }
   z=Math.max(ZS[0],Math.min(300,Math.floor(z/5)*5));setZoom(z);
   var n2=0;while((g.scrollWidth>w.clientWidth+1||(!w.style.height&&g.scrollHeight>avH()+1))&&z>ZS[0]&&n2++<20){z-=5;setZoom(z)}
+  FITTING=false;gpFit();
   AUTOZ=true;toBow();
   if(phone&&!st.example)$("gpWin").scrollIntoView({block:"start"});   // 폰: 파일을 열면 General Plan 이 바로 보이게
 }
-$("lay").onchange=function(e){LAYOUT=e.target.value;LAYSET=true;try{localStorage.setItem("ascGpLayout",LAYOUT)}catch(_){}render();if(AUTOZ)autoFit();else toBow()};
+$("lay").onchange=function(e){LAYOUT=e.target.value;LAYSET=true;try{localStorage.setItem("ascGpLayout",LAYOUT)}catch(_){}render();if(AUTOZ)autoFit();else{gpFit();toBow()}};
 $("zO").onclick=function(){AUTOZ=false;stepZoom(-1)}; $("zI").onclick=function(){AUTOZ=false;stepZoom(1)};
 $("zS").onchange=function(e){AUTOZ=false;setZoom(+e.target.value)};
 // ---------- 이미지로 저장: General Plan + 옆 표를 그대로 PNG 로 ----------
