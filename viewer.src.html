@@ -274,7 +274,8 @@ body.empty #helpBtn{display:inline-block}
 #fbox{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));z-index:40;display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;
   max-width:calc(100vw - 32px);padding:8px 10px;background:linear-gradient(#f7faff,#e3ebf6);border:1px solid #5d7fae;border-radius:8px;box-shadow:0 8px 24px rgba(0,20,60,.4);font-size:12.5px}
 #fbox b{font-size:12.5px}
-#fbox #q{width:170px;padding:4px 7px}
+#fbox{cursor:move;touch-action:none;user-select:none;-webkit-user-select:none}
+#fbox #q{cursor:text;user-select:text;-webkit-user-select:text;width:230px;padding:4px 7px}
 #fbox #qn{font-size:12px;min-width:0}
 #fbox #fX{font:inherit;font-weight:700;border:1px solid #707f96;border-radius:3px;background:var(--btn,#eee);width:24px;height:24px;cursor:pointer;padding:0}
 body.static #fbox{display:none}
@@ -524,7 +525,7 @@ body.static .cr{display:none}
   <div class="body"><p id="askT"></p><div class="askb"><button type="button" id="askY">삭제</button><button type="button" id="askN">취소</button></div></div></div></div>
 <div id="pkTip" hidden role="tooltip"></div>
 <div id="fbox" hidden role="search"><b>컨테이너 찾기</b>
-  <input id="q" type="search" placeholder="번호 일부 (예: 8172320)" autocomplete="off" aria-label="컨테이너 번호">
+  <input id="q" type="search" placeholder="번호 또는 위치 (예: 8172320, 250884)" autocomplete="off" aria-label="컨테이너 번호 또는 위치">
   <span id="qn"></span><button type="button" id="fX" aria-label="닫기" title="닫기 (Alt + F 또는 Esc)">×</button></div>
 <div id="sheet" hidden><div class="edt"><span>Container Editor</span><small>보기 전용</small></div><div class="in">
   <div class="cn" id="sCn"></div><dl id="sDl"></dl><div id="eMsg"></div>
@@ -717,6 +718,9 @@ function panels(H,sh){
   return {P:P,rs:rowOrder(Object.keys(rset).map(Number)),T:tiersOf(Object.keys(tset).map(Number))};
 }
 
+// 찾기: 컨테이너 번호의 일부, 또는 위치(베이-로우-티어). 위치는 하이픈 없이 250884 처럼 쳐도 되고 앞부분만(2508) 쳐도 됨
+function qHit(b){var q=st.q.replace(/[\s-]/g,"");if(!q)return false;
+  return b.cntr.indexOf(q)>=0||(/^\d{1,6}$/.test(q)&&(pad(b.bay)+pad(b.row)+pad(b.tier)).indexOf(q)===0)}
 function render(){
   var P=st.plan; if(!P)return;
   var B=P.boxes, groups={}, order=[];
@@ -789,7 +793,7 @@ function render(){
   var q=st.q, hits=0, GH=[];
   BP={};ORD=[];FIRSTHIT="";PANELS={};BOXP={};
   function kc(b){return ' k'+b.pod.replace(/\W/g,"_")+' l'+b.pol.replace(/\W/g,"_")}
-  function dimmed(b){return (st.filter&&(st.filter[0]==="@"?b.pol!==st.filter.slice(1):keyOf(b)!==st.filter))||(q&&b.cntr.indexOf(q)<0)||(ES.fade&&st.pick.length&&st.pick.indexOf(b.i)<0)}
+  function dimmed(b){return (st.filter&&(st.filter[0]==="@"?b.pol!==st.filter.slice(1):keyOf(b)!==st.filter))||(q&&!qHit(b))||(ES.fade&&st.pick.length&&st.pick.indexOf(b.i)<0)}
   function marks(b){var d=b.dgno?((P.dg[b.dgno]||[])[0]||{}).cls||"DG":"";   // General Plan 칸 구석 표시 (Bay Plan 과 같은 자리)
     return (b.hc?'<i class="mh">H</i>':'')+(d?'<i class="md">'+esc(d)+'</i>':'')+
       (b.tk||b.fe==="E"?'<i class="me">'+(b.tk?"T":"")+(b.fe==="E"?"E":"")+'</i>':'')+(b.rf?'<i class="mrr">R</i>':'')}
@@ -799,7 +803,7 @@ function render(){
     // General Plan (축소)
     GH.push('<div class="gh">'+X.P.map(function(p){
       function line(ts){return ts.map(function(t){return rs.map(function(r){var c=p.cell(r,t);
-        if(c.b){var mh=q&&c.b.cntr.indexOf(q)>=0;if(mh&&!FIRSTHIT)FIRSTHIT=p.id;
+        if(c.b){var mh=q&&qHit(c.b);if(mh&&!FIRSTHIT)FIRSTHIT=p.id;
           return '<div class="m b'+(PP?' pp':'')+(c.f40?' f40':'')+(mh?' hit':'')+(dimmed(c.b)?' dim':'')+(st.pick.indexOf(c.b.i)>=0?' pk':'')+kc(c.b)+'" data-i="'+c.b.i+'" style="'+sty(c.b)+'">'+marks(c.b)+'</div>'}
         return c.x?'<div class="m">×</div>':'<div class="m'+(c.slot?'':' n')+'"></div>'}).join("")+'<div class="mt">'+pad(t)+'</div>'}).join("")}
       var mrow=rs.map(function(r){return '<div class="mr">'+pad(r)+'</div>'}).join("")+'<div class="mr"></div>';
@@ -813,7 +817,7 @@ function render(){
       function tierRows(ts){return ts.map(function(t){return rs.map(function(r){
         var c=p.cell(r,t),b=c.b;
         if(!b)return c.x?'<div class="c xx">×</div>':'<div class="c'+(!c.slot?' no':c.slot===3?' rp':'')+'"></div>';
-        var cls="c b"+(PP?" pp":"")+(c.f40?" f40":"")+(c.out?" out":"")+kc(b), hit=q&&b.cntr.indexOf(q)>=0;
+        var cls="c b"+(PP?" pp":"")+(c.f40?" f40":"")+(c.out?" out":"")+kc(b), hit=q&&qHit(b);
         if(hit){cls+=" hit";hits++} if(dimmed(b))cls+=" dim"; if(b.i===st.sel)cls+=" sel"; if(st.pick.indexOf(b.i)>=0)cls+=" pk"; if(st.lines&&st.lines[b.li]!==st.orig[b.li])cls+=" ed";
         if(!(b.i in BOXP))BOXP[b.i]=p.id;
         var d=b.dgno?((P.dg[b.dgno]||[])[0]||{}).cls||"DG":"";
@@ -832,7 +836,7 @@ function render(){
   // 배열: 한 줄(선수가 오른쪽 끝, 가로 스크롤) / 여러 줄(CASP처럼 창 폭에 맞춰 접힘, 줄마다 오른쪽부터)
   $("gp").className="gp"+(LAYOUT==="wrap"?" wrap":"");
   $("gp").innerHTML=LAYOUT==="wrap"?GH.join(""):GH.slice().reverse().join(""); drawWin();
-  var mh2=q?B.filter(function(b){return b.cntr.indexOf(q)>=0}).length:0;
+  var mh2=q?B.filter(function(b){return qHit(b)}).length:0;
   $("qn").textContent=q?(mh2?mh2+"개 찾았어요 · Enter를 누르면 그 베이가 열려요":"없어요"):"";
   $("fname").textContent=st.name||"(예시)";
   var nt=$("note");
@@ -1584,7 +1588,18 @@ document.addEventListener("keydown",function(e){if(!st.open||/^(INPUT|SELECT)$/.
 $("q").addEventListener("keydown",function(e){if(e.key==="Enter"&&FIRSTHIT)openBay(FIRSTHIT)});
 // 찾기 창: Alt+F 로 열고 닫음(닫으면 검색도 지움), Alt+E = EDITOR / PIVOT 켜고 끄기
 function findBox(on){var f=$("fbox");if(on==null)on=f.hidden;f.hidden=!on;
-  if(on){$("q").focus();$("q").select()}else{$("q").value="";if(st.q){st.q="";render()}$("q").blur()}}
+  if(on){var fr=f.getBoundingClientRect();if(fr.left<0||fr.top<0||fr.right>window.innerWidth||fr.bottom>window.innerHeight){f.style.left=f.style.top=f.style.right=""}   // 옮겨 둔 자리가 화면 밖이면 원래 자리로
+    $("q").focus();$("q").select()}else{$("q").value="";if(st.q){st.q="";render()}$("q").blur()}}
+// 찾기 창은 빈 곳을 잡고 끌어서 옮길 수 있음 (자리는 이 기기에 기억)
+(function(){var f=$("fbox"),d=null;
+  function put(x,y){x=Math.max(0,Math.min(window.innerWidth-f.offsetWidth,x));y=Math.max(0,Math.min(window.innerHeight-f.offsetHeight,y));
+    f.style.left=x+"px";f.style.top=y+"px";f.style.right="auto";return [x,y]}
+  try{var sv=JSON.parse(localStorage.getItem("ascFindPos")||"null");if(sv)window.addEventListener("load",function(){f.style.left=sv[0]+"px";f.style.top=sv[1]+"px";f.style.right="auto"})}catch(_){}
+  f.addEventListener("pointerdown",function(e){if(e.target.closest("input,button"))return;var r=f.getBoundingClientRect();d={dx:e.clientX-r.left,dy:e.clientY-r.top};f.setPointerCapture(e.pointerId);e.preventDefault()});
+  f.addEventListener("pointermove",function(e){if(d)d.p=put(e.clientX-d.dx,e.clientY-d.dy)});
+  function end(){if(d&&d.p)try{localStorage.setItem("ascFindPos",JSON.stringify(d.p))}catch(_){}d=null}
+  f.addEventListener("pointerup",end);f.addEventListener("pointercancel",end);
+})();
 $("findBtn").onclick=function(){findBox()};$("fX").onclick=function(){findBox(false)};
 // ---------- 끌기(네모): Bay Plan 창·General Plan 에서 마우스로 ----------
 // Ctrl + 왼쪽 버튼 = 네모 안 고르기(기존 선택에 더함) / Ctrl + 오른쪽 버튼 = 네모 안 선택 해제 / 오른쪽 버튼만 = 네모 안 컨테이너 삭제(Alt+3 으로 되돌림).
