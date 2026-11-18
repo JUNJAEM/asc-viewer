@@ -238,6 +238,7 @@ body.static #sumWin .rz{display:none}
 @container (max-width:210px){ #sum .chipb small{display:none} #sum .kv span{font-size:10.5px} }
 /* 끌어서 고르기 (네모) */
 #band{position:fixed;z-index:70;border:1px dashed #b00000;background:rgba(255,40,40,.14);pointer-events:none}
+#band.rm{border-color:#3a4a66;background:rgba(90,110,150,.2)}
 body.banding{user-select:none;-webkit-user-select:none;cursor:crosshair}
 /* EXPORT PLAN 메뉴 */
 .expw{position:relative;display:inline-block}
@@ -441,7 +442,7 @@ body.static .cr{display:none}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-18 09:07 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-18 09:10 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -1530,13 +1531,13 @@ $("findBtn").onclick=function(){findBox()};$("fX").onclick=function(){findBox(fa
   var d=null,band=null;
   function area(t){return t.closest&&(t.closest("#bwB")||t.closest("#gp"))}
   document.addEventListener("pointerdown",function(e){
-    if(e.pointerType!=="mouse"||e.button!==0||window.__STATIC__||!st.plan)return;
+    if(e.pointerType!=="mouse"||(e.button!==0&&e.button!==2)||window.__STATIC__||!st.plan)return;
     var a=area(e.target);if(!a||e.target.closest("input,select"))return;
-    d={x:e.clientX,y:e.clientY,a:a,on:false,add:e.ctrlKey||e.metaKey}});
+    d={x:e.clientX,y:e.clientY,a:a,on:false,add:e.ctrlKey||e.metaKey,rm:e.button===2}});   // rm: 오른쪽 버튼으로 끌면 선택 해제
   document.addEventListener("pointermove",function(e){
     if(!d)return;
     if(!d.on){if(Math.abs(e.clientX-d.x)<6&&Math.abs(e.clientY-d.y)<6)return;
-      d.on=true;band=document.createElement("div");band.id="band";document.body.appendChild(band);document.body.classList.add("banding")}
+      d.on=true;band=document.createElement("div");band.id="band";if(d.rm)band.className="rm";document.body.appendChild(band);document.body.classList.add("banding")}
     var x=Math.min(d.x,e.clientX),y=Math.min(d.y,e.clientY);
     band.style.left=x+"px";band.style.top=y+"px";band.style.width=Math.abs(e.clientX-d.x)+"px";band.style.height=Math.abs(e.clientY-d.y)+"px";
     e.preventDefault()});
@@ -1549,6 +1550,11 @@ $("findBtn").onclick=function(){findBox()};$("fX").onclick=function(){findBox(fa
       if(r.right>x1&&r.left<x2&&r.bottom>y1&&r.top<y2&&ids.indexOf(i)<0)ids.push(i)});
     // 끌고 난 뒤에 따라오는 클릭 한 번은 무시 (칸 하나만 다시 골라지지 않게)
     var stop=function(ev){ev.stopPropagation();ev.preventDefault()};document.addEventListener("click",stop,true);setTimeout(function(){document.removeEventListener("click",stop,true)},0);
+    if(D.rm){   // 오른쪽 버튼: 네모 안의 것만 선택에서 뺌. 뒤따라오는 오른쪽 메뉴는 띄우지 않음
+      var nomenu=function(ev){ev.preventDefault()};document.addEventListener("contextmenu",nomenu,true);setTimeout(function(){document.removeEventListener("contextmenu",nomenu,true)},300);
+      var n0=st.pick.length;st.pick=st.pick.filter(function(i){return ids.indexOf(i)<0});
+      if(st.pick.length!==n0){if(ids.indexOf(st.sel)>=0){st.sel=-1;$("sheet").hidden=true}render()}
+      return}
     if(!ids.length&&D.add)return;
     if(D.add)ids.forEach(function(i){if(st.pick.indexOf(i)<0)st.pick.push(i)});else st.pick=ids;
     st.sel=-1;$("sheet").hidden=true;render()}
@@ -1563,6 +1569,7 @@ var KEYS=[
   {keys:["Alt","F"],d:"컨테이너 찾기 열기 · 닫기",code:"KeyF",alt:1,plan:1,fn:function(){findBox()}},
   {keys:["Ctrl","클릭"],d:"컨테이너 여러 개 고르기 (다시 누르면 빨간 표식 지우기)"},
   {keys:["드래그"],d:"네모로 끌어서 그 안의 컨테이너를 한꺼번에 고르기 (Ctrl을 누른 채 끌면 기존 선택에 더하기)"},
+  {keys:["오른쪽 버튼 드래그"],d:"네모로 끌어서 그 안의 컨테이너 선택 해제"},
   {keys:["Shift","클릭"],d:"Editor 목록에서 범위로 고르기 · 열 제목은 여러 열 정렬"},
   {keys:["Alt","휠"],d:"General Plan 확대 · 축소"},
   {keys:["더블클릭"],d:"베이를 Bay Plan 창으로 열기"},
@@ -1571,7 +1578,7 @@ var KEYS=[
   {keys:["Esc"],d:"열려 있는 창 닫기"}
 ];
 function helpDraw(){
-  function kb(a){return a.map(function(x){return /^(클릭|휠|더블클릭|드래그)$/.test(x)?x:"<kbd>"+esc(x)+"</kbd>"}).join(" + ")}
+  function kb(a){return a.map(function(x){return /^(클릭|휠|더블클릭|드래그|오른쪽 버튼 드래그)$/.test(x)?x:"<kbd>"+esc(x)+"</kbd>"}).join(" + ")}
   $("helpT").innerHTML=KEYS.map(function(K){return "<tr><td>"+kb(K.keys)+(K.or?" "+kb(K.or):"")+"</td><td>"+esc(K.d)+"</td></tr>"}).join("")}
 helpDraw();
 document.addEventListener("keydown",function(e){
