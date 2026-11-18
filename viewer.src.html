@@ -236,6 +236,7 @@ body.static #sumWin .rz{display:none}
 @container (max-width:210px){ #sum .chipb small{display:none} #sum .kv span{font-size:10.5px} }
 /* 끌어서 고르기 (네모) */
 #band{position:fixed;z-index:70;border:1px dashed #b00000;background:rgba(255,40,40,.14);pointer-events:none}
+#band.none{border:1px dashed #4d6fa8;background:rgba(90,140,220,.10)}   /* Ctrl 없는 왼쪽 끌기: 네모만 보이고 아무것도 고르지 않음 */
 #band.off{border-color:#3a4a66;background:rgba(90,110,150,.2)}
 #band.del{border:2px solid #000;background:repeating-linear-gradient(45deg,rgba(0,0,0,.28) 0 6px,rgba(0,0,0,.08) 6px 12px)}
 body.banding{user-select:none;-webkit-user-select:none;cursor:crosshair}
@@ -1575,12 +1576,12 @@ $("findBtn").onclick=function(){findBox()};$("fX").onclick=function(){findBox(fa
   document.addEventListener("pointerdown",function(e){
     if(e.pointerType!=="mouse"||(e.button!==0&&e.button!==2)||window.__STATIC__||!st.plan)return;
     var a=area(e.target),ct=e.ctrlKey||e.metaKey;if(!a||e.target.closest("input,select"))return;
-    var mode=e.button===0?(ct?"add":"none"):(ct?"off":"del");   // none: Ctrl 없는 왼쪽 끌기 — 네모도 안 그리고 아무것도 안 고름
+    var mode=e.button===0?(ct?"add":"none"):(ct?"off":"del");   // none: Ctrl 없는 왼쪽 끌기 — 네모는 그려지지만 아무것도 안 고름
     d={x:e.clientX,y:e.clientY,a:a,on:false,mode:mode}});
   document.addEventListener("pointermove",function(e){
     if(!d)return;
     if(!d.on){if(Math.abs(e.clientX-d.x)<6&&Math.abs(e.clientY-d.y)<6)return;
-      d.on=true;if(d.mode==="none")return;band=document.createElement("div");band.id="band";band.className=d.mode;document.body.appendChild(band);document.body.classList.add("banding")}
+      d.on=true;band=document.createElement("div");band.id="band";band.className=d.mode;document.body.appendChild(band);document.body.classList.add("banding")}
     var x=Math.min(d.x,e.clientX),y=Math.min(d.y,e.clientY);
     if(!band)return;
     band.style.left=x+"px";band.style.top=y+"px";band.style.width=Math.abs(e.clientX-d.x)+"px";band.style.height=Math.abs(e.clientY-d.y)+"px";
