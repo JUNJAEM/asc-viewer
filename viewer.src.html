@@ -299,6 +299,20 @@ body.static #tabs{display:none!important}
 #fbox{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));z-index:40;display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;
   max-width:calc(100vw - 32px);padding:8px 10px;background:linear-gradient(#f7faff,#e3ebf6);border:1px solid #5d7fae;border-radius:8px;box-shadow:0 8px 24px rgba(0,20,60,.4);font-size:12.5px}
 #fbox b{font-size:12.5px}
+#mailV{position:fixed;inset:0;z-index:14;background:rgba(20,45,85,.28);display:flex;align-items:stretch;justify-content:center;padding:14px}#mailV[hidden]{display:none}
+.mwin{width:min(1180px,100%);display:flex;flex-direction:column;min-height:0}
+.mwin .tb{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.mwin .tb .sp{flex:1}.mwin .tb small{font-weight:400;opacity:.9}
+.mwin .tb select,.mwin .tb input,.mwin .tb button{font:inherit;font-size:12.5px;padding:2px 8px;border:1px solid var(--edge);border-radius:3px;background:#fff;color:#111}.mwin .tb input{width:210px}
+.mlc{display:flex;flex-wrap:wrap;gap:6px;padding:8px 12px;border-bottom:1px solid var(--edge);background:var(--chrome)}
+.mlc button{font:inherit;font-size:12.5px;font-weight:700;padding:3px 11px;border:1px solid var(--edge);border-radius:14px;background:#fff;color:#111;cursor:pointer}
+.mlc button[aria-pressed="true"]{background:#0b3f94;color:#fff;border-color:#0b3f94}.mlc button span{font-weight:400;opacity:.8;margin-left:5px}
+.mlb{flex:1 1 auto;min-height:0;overflow:auto;background:var(--win)}
+#mlT{border-collapse:collapse;width:100%;font-size:12.5px}#mlT th{position:sticky;top:0;background:#eef3fa;text-align:left;padding:5px 10px;border-bottom:1px solid var(--edge);white-space:nowrap}
+#mlT td{padding:5px 10px;border-bottom:1px solid #e6ebf2;vertical-align:top}#mlT td.mw{white-space:nowrap;color:#33415c}#mlT td.mc{white-space:nowrap;font-weight:700;color:#0b3f94}
+#mlT td.ms{font-weight:700}#mlT td.mf small{display:block;font-weight:400;color:#556}
+#mlT .fb{font:inherit;font-size:12px;font-weight:700;margin:0 4px 3px 0;padding:2px 8px;border:1px solid #0b3f94;border-radius:4px;background:#fff;color:#0b3f94;cursor:pointer;max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#mlT .fb:hover{background:#0b3f94;color:#fff}#mlT .fb.edi{border-color:#7a5a00;color:#7a5a00}#mlT .fb.edi:hover{background:#7a5a00;color:#fff}
+.mlb .emp{padding:26px 16px;color:#445;line-height:1.7}
 .bpl[hidden]{display:none}.bpl{min-height:30px}.bpl .plNm{color:#0b3f94}
 .bpl{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;padding:5px 12px;border-bottom:1px solid var(--edge);background:var(--chrome);font-size:12px}
 .seg{display:inline-flex}.seg button{font:inherit;font-size:12px;font-weight:700;padding:2px 9px;border:1px solid var(--edge);background:#fff;color:#111;cursor:pointer;margin-left:-1px}
@@ -307,7 +321,7 @@ body.static #tabs{display:none!important}
 #plStrip{position:fixed;top:6px;left:50%;transform:translateX(-50%);width:max-content;max-width:94vw;z-index:45;display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;padding:6px 12px;margin:0;border:1px solid #0b3f94;border-radius:6px;background:#eaf2ff;font-size:12.5px;box-shadow:0 3px 10px rgba(0,20,60,.2)}
 #plStrip[hidden]{display:none}#plStrip b{color:#0b3f94}
 @media (hover:none){#plTop,#plStrip{display:none}}
-body.empty #plTop{display:none}
+body.empty #plTop{display:none}body.empty #mailBtn{order:-1}
 .seg button[aria-pressed="true"]{background:#0b3f94;color:#fff;border-color:#0b3f94}
 .plBrush,#llForm{display:flex;flex-wrap:wrap;gap:3px 5px;align-items:center;font-weight:700}.plBrush[hidden],#llForm[hidden]{display:none}
 .plBrush input,#llForm input{font:inherit;font-weight:700;width:46px;padding:0 3px;border:1px solid var(--edge);border-radius:3px;text-transform:uppercase}.plBrush input.w,#llForm input.w{width:54px}
@@ -529,6 +543,7 @@ body.static .cr{display:none}
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
+      <button class="btn" id="mailBtn" type="button" hidden title="팀 메일로 온 플랜(ASC · EDI)을 아웃룩에서 바로 불러와요 (Alt + M)">메일함</button>
       <span class="pltop" id="plTop"><span class="seg plModes"><button type="button" data-pm="v" title="보기만 (플래닝 끔)">보기</button><button type="button" data-pm="ll" title="Planning by Load List (Alt + S)">로드리스트</button><button type="button" data-pm="pal" title="Planning by Palette (Alt + Q)">팔레트</button><button type="button" data-pm="sft" title="Shift Mode (Alt + W) — 컨테이너를 눌러 빼낸 뒤 다른 자리에 다시 싣기">Shift</button></span>
     <span class="seg plMir"><button type="button" data-mir="S" title="Single — 누른 칸에만 (Alt + Z)">S</button><button type="button" data-mir="2FA" title="Mirror for Fore and Aft — 같은 해치의 앞·뒤 20' 베이에 같이 (Alt + C)">2F/A</button></span></span>
       <button class="btn" id="edBtn" type="button" aria-pressed="false" title="컨테이너 목록(Editor)과 집계표(Pivot) 창을 켜고 꺼요 (Alt + E)">EDITOR / PIVOT</button>
@@ -610,6 +625,13 @@ body.static .cr{display:none}
   <div class="tb">도움말 · 단축키<span class="sp"></span><button type="button" id="hX" aria-label="닫기">×</button></div>
   <div class="body"><table id="helpT">
   </table></div></div></div>
+<div id="mailV" hidden><div class="win mwin" role="dialog" aria-label="메일함">
+  <div class="tb">메일함 <small id="mlS"></small><span class="sp"></span>
+    <select id="mlD" aria-label="기간"><option value="1">오늘 · 어제</option><option value="3" selected>최근 3일</option><option value="7">최근 7일</option><option value="14">최근 14일</option></select>
+    <input id="mlQ" type="search" placeholder="제목 · 선박 · 보낸 곳" autocomplete="off" aria-label="메일 찾기">
+    <button type="button" id="mlR" title="아웃룩에서 다시 읽기">새로고침</button><button type="button" id="mlX" aria-label="닫기" title="닫기 (Esc)">×</button></div>
+  <div class="mlc" id="mlC"></div>
+  <div class="mlb" id="mlB"></div></div></div>
 <div id="ask" hidden><div class="win hwin" role="alertdialog" aria-label="컨테이너 삭제">
   <div class="tb">컨테이너 삭제</div>
   <div class="body"><p id="askT"></p><div class="askb"><button type="button" id="askY">삭제</button><button type="button" id="askN">취소</button></div></div></div></div>
@@ -2111,6 +2133,61 @@ function tDraw(){
         else{tog(cs.dataset.s);render()}}}
   },true);
 })();
+// ---------- 메일함 (PC 설치판) ----------
+// 팀 메일로 온 플랜(ASC · EDI)을 폰·PC 에 내려받았다 다시 올릴 필요 없이, 아웃룩에서 바로 목록으로 보고 눌러서 엶.
+// 이 PC 의 도우미(mail-server.ps1)가 아웃룩을 읽어 127.0.0.1 로만 알려 줌 — 메일·첨부는 이 PC 밖으로 나가지 않음.
+// 분류(부산운항팀 발신 / 부산검수 국보·신양 / 울산 / 광양 / 일본 / 중국 …)는 보낸 곳 주소로 정함: mail-rules.json. 연 플랜의 이름은 메일 제목.
+var ML={items:[],cat:"",q:"",busy:false,err:"",at:"",days:3,order:[]};
+function mlSrv(){return new Promise(function(ok){
+  if(!window.__MAILSRVJS__)return ok(null);
+  var sc=document.createElement("script");window.__MAILSRV__=null;sc.src=window.__MAILSRVJS__+"?"+Date.now();
+  sc.onload=function(){sc.remove();ok(window.__MAILSRV__)};sc.onerror=function(){sc.remove();ok(null)};document.head.appendChild(sc)})}
+function mlGet(path,bin){return mlSrv().then(function(S){if(!S)throw new Error("off");
+  return fetch("http://127.0.0.1:"+S.port+path+(path.indexOf("?")<0?"?":"&")+"t="+S.token).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return bin?r.arrayBuffer():r.json()})})}
+function mlLoad(){
+  if(ML.busy)return;ML.busy=true;ML.err="";mlDraw();
+  mlGet("/list?days="+ML.days).then(function(d){ML.items=d.items||[];ML.at=d.at||""}).catch(function(e){ML.err=String(e&&e.message||e)}).then(function(){ML.busy=false;mlDraw()})}
+function mlCat(c){return {JP:"일본",CN:"중국",ETC:"기타"}[c]||c}
+function mlDraw(){
+  var L=ML.items,q=ML.q.trim().toUpperCase(),cnt={},cats=[];
+  L.forEach(function(m){var c=mlCat(m.cat);m.c=c;if(!(c in cnt)){cnt[c]=0;cats.push(c)}cnt[c]++});
+  var ord=["부산운항팀 발신","부산검수 · 국보","부산검수 · 신양","울산","광양","일본","중국","본선","본사 · 사내","국내기타","기타"];
+  cats.sort(function(a,b){var x=ord.indexOf(a),y=ord.indexOf(b);return (x<0?99:x)-(y<0?99:y)||a.localeCompare(b)});
+  if(ML.cat&&!(ML.cat in cnt))ML.cat="";
+  $("mlC").innerHTML='<button type="button" data-mc="" aria-pressed="'+(!ML.cat)+'">전체<span>'+L.length+'</span></button>'+
+    cats.map(function(c){return '<button type="button" data-mc="'+esc(c)+'" aria-pressed="'+(ML.cat===c)+'">'+esc(c)+'<span>'+cnt[c]+'</span></button>'}).join("");
+  $("mlS").textContent=ML.busy?"아웃룩에서 읽는 중… (처음에는 20초쯤 걸려요)":ML.err?"":(ML.at?ML.at+" 기준 · ":"")+"파일을 누르면 플랜으로 열려요";
+  var B=$("mlB");
+  if(ML.err){B.innerHTML='<div class="emp"><b>메일 도우미에 연결하지 못했어요.</b><br>아웃룩이 켜져 있는지 확인하고, 플랜 파일을 하나 더블클릭해서 뷰어를 다시 열어 주세요 (그때 도우미가 같이 켜져요).<br>메일함은 PC 에 설치한 뷰어에서만 돼요.</div>';return}
+  var R=L.filter(function(m){return (!ML.cat||m.c===ML.cat)&&(!q||(m.sub+" "+m.from+" "+m.fd+" "+m.files.map(function(f){return f.n}).join(" ")).toUpperCase().indexOf(q)>=0)});
+  if(!R.length){B.innerHTML='<div class="emp">'+(ML.busy?"읽는 중이에요…":"이 조건에 맞는 메일이 없어요.")+'</div>';return}
+  B.innerHTML='<table id="mlT"><thead><tr><th>받은 시각</th><th>분류</th><th>제목</th><th>보낸 곳</th><th>플랜 파일</th></tr></thead><tbody>'+R.slice(0,400).map(function(m){
+    return '<tr><td class="mw">'+esc(m.when.slice(5))+'</td><td class="mc">'+esc(m.c)+'</td><td class="ms">'+esc(m.sub||"(제목 없음)")+'</td><td class="mf">'+esc(m.from)+'<small>'+esc(m.fd)+'</small></td><td>'+
+      m.files.map(function(f){var edi=/\.edi$/i.test(f.n);return '<button type="button" class="fb'+(edi?' edi':'')+'" data-mid="'+esc(m.id)+'" data-mi="'+f.i+'" title="'+esc(f.n)+'">'+esc(f.n)+'</button>'}).join("")+'</td></tr>'}).join("")+
+    '</tbody></table>'+(R.length>400?'<div class="emp">앞의 400건만 보여요. 기간을 줄이거나 찾기로 좁혀 주세요.</div>':'')}
+function mlOpen(on){if(on==null)on=$("mailV").hidden;$("mailV").hidden=!on;if(on){if(!ML.items.length||ML.err)mlLoad();else mlDraw();setTimeout(function(){$("mlQ").focus()},50)}}
+function mlPick(id,i,btn){
+  var m=ML.items.filter(function(x){return x.id===id})[0];if(!m)return;var f=m.files.filter(function(x){return String(x.i)===String(i)})[0];if(!f)return;
+  var old=btn.textContent;btn.textContent="여는 중…";btn.disabled=true;
+  mlGet("/file?id="+encodeURIComponent(id)+"&i="+i,true).then(function(buf){
+    var ext=(/\.[a-z0-9]+$/i.exec(f.n)||[".asc"])[0],nm=String(m.sub||f.n).replace(/^\s*((RE|FW|FWD)\s*:\s*)+/i,"").replace(/[\\\/:*?"<>|\r\n\t]+/g," ").replace(/\s+/g," ").trim().slice(0,90);
+    var same=m.files.filter(function(x){return /\.[a-z0-9]+$/i.exec(x.n)&&/\.[a-z0-9]+$/i.exec(x.n)[0].toLowerCase()===ext.toLowerCase()}).length>1;   // 한 메일에 같은 종류가 여러 개면 원래 파일 이름을 덧붙여 구분
+    mlOpen(false);loadBytes(new Uint8Array(buf),(nm||"plan")+(same?" - "+f.n.replace(/\.[a-z0-9]+$/i,""):"")+ext);
+    if(!st.ship){var c=detectShip(f.n);if(c){pickShip(c);render();tabDraw()}}                                 // 제목에서 선박을 못 찾으면 원래 파일 이름으로
+  }).catch(function(e){say("메일에서 파일을 가져오지 못했어요 ("+String(e&&e.message||e)+"). 메일함에서 새로고침한 뒤 다시 해 주세요.",true)}).then(function(){btn.textContent=old;btn.disabled=false})}
+(function(){
+  if(!window.__MAILSRVJS__||window.__STATIC__)return;
+  $("mailBtn").hidden=false;
+  $("mailBtn").onclick=function(){mlOpen()};$("mlX").onclick=function(){mlOpen(false)};$("mlR").onclick=function(){mlLoad()};
+  $("mlD").onchange=function(){ML.days=+this.value||3;mlLoad()};
+  $("mlQ").addEventListener("input",function(){ML.q=this.value;mlDraw()});
+  $("mlQ").addEventListener("keydown",function(e){e.stopPropagation();if(e.key==="Escape")mlOpen(false)});
+  $("mlC").addEventListener("click",function(e){var b=e.target.closest("[data-mc]");if(b){ML.cat=b.dataset.mc;mlDraw()}});
+  $("mlB").addEventListener("click",function(e){var b=e.target.closest(".fb");if(b)mlPick(b.dataset.mid,b.dataset.mi,b)});
+  $("mailV").addEventListener("click",function(e){if(e.target.id==="mailV")mlOpen(false)});
+  document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!$("mailV").hidden&&$("ask").hidden){e.stopPropagation();mlOpen(false)}},true);
+  setInterval(function(){mlGet("/ping").catch(function(){})},5*60000);   // 뷰어가 떠 있는 동안 도우미가 꺼지지 않게
+})();
 // ---------- 3D VIEW ----------
 // 선박 모양은 도면이 아니라 cCASP 구조에서 만든 것: 전장·폭·깊이, 베이·로우·티어 칸, 거주구가 어느 베이 뒤에 있는지(ships.js 의 g).
 // 그리기는 캔버스 하나로 직접(외부 라이브러리 없음): 모든 것을 같은 크기의 상자 칸으로 쪼개서, 먼 것부터 덧칠.
@@ -2433,6 +2510,7 @@ var KEYS=[
   {keys:["Alt","E"],d:"EDITOR / PIVOT 켜기 · 끄기",code:"KeyE",alt:1,plan:1,fn:function(){$("edBtn").click()}},
   {keys:["Ctrl","Tab"],d:"다음 플랜 탭으로 (마지막 탭 다음은 첫 탭)",code:"Tab",ctrl:1,fn:function(){tabStep(1)}},
   {keys:["Alt","F"],d:"컨테이너 찾기 열기 · 닫기",code:"KeyF",alt:1,plan:1,fn:function(){findBox()}},
+  {keys:["Alt","M"],d:"메일함 열기 · 닫기 — 팀 메일로 온 플랜을 아웃룩에서 바로 열기 (PC 설치판)",code:"KeyM",alt:1,fn:function(){if(window.__MAILSRVJS__&&!window.__STATIC__)mlOpen()}},
   {keys:["Ctrl","클릭"],or:["Ctrl","드래그"],d:"컨테이너 지정 (지정된 것이 없을 때). 지정된 것이 있으면 → 빈 칸 = 그 자리로 이동, 같은 개수의 다른 컨테이너 = 자리 교체(확인 창)"},
   {keys:["Ctrl","Alt","클릭"],or:["Ctrl","Alt","드래그"],d:"지정에 더하기 (여러 개 지정)"},
   {keys:["Ctrl","오른쪽 버튼 클릭"],or:["Ctrl","오른쪽 버튼 드래그"],d:"그 컨테이너 지정 해제"},

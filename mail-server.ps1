@@ -1,0 +1,125 @@
+# Mail helper for the PLAN VIEWER "mail" tab (PC only).
+# Reads Outlook on this PC (read-only) and hands the viewer page a list of recent mails that carry .asc / .edi plans, and the attachment itself when asked.
+# Nothing leaves this PC: it only answers on 127.0.0.1 and only to requests that carry the random token written to %TEMP%\asc-viewer\mailsrv.js.
+# Started (hidden) by open-asc.ps1; stops by itself when no viewer page has asked for anything for 15 minutes.
+# Keep this file ASCII only (Windows PowerShell 5.1). Category names and sender rules live in mail-rules.json (UTF-8, this PC / team only).
+param([int]$Days = 7)
+$ErrorActionPreference = 'Stop'
+$dir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$tmp = Join-Path $env:TEMP 'asc-viewer'
+if (-not (Test-Path $tmp)) { New-Item -ItemType Directory -Path $tmp | Out-Null }
+$mutex = New-Object Threading.Mutex($false, 'Local\asc-viewer-mail-server')
+if (-not $mutex.WaitOne(0)) { exit }     # already running
+$log = Join-Path $tmp 'mailsrv.log'
+function Log($m) { try { Add-Content -LiteralPath $log -Value ((Get-Date).ToString('MM-dd HH:mm:ss') + '  ' + $m) -Encoding UTF8 } catch { } }
+
+# ---- listener on a free loopback port + token file for the page
+$listener = $null; $port = 0
+foreach ($p in 47815..47835) { try { $l = New-Object Net.Sockets.TcpListener([Net.IPAddress]::Loopback, $p); $l.Start(); $listener = $l; $port = $p; break } catch { } }
+if (-not $listener) { Log 'no free port'; exit }
+$token = [Guid]::NewGuid().ToString('N') + [Guid]::NewGuid().ToString('N')
+[IO.File]::WriteAllText((Join-Path $tmp 'mailsrv.js'), "window.__MAILSRV__={port:$port,token:'$token'};", (New-Object Text.UTF8Encoding($false)))
+Log "listening on $port"
+
+# ---- rules: first match wins. Each rule: cat (name shown), and any of from (domain endings), fromName (regex), subject (regex on subject + file names), folder (text in folder path)
+$rules = @()
+$rf = Join-Path $dir 'mail-rules.json'
+if (Test-Path $rf) { try { $rules = @((Get-Content -LiteralPath $rf -Raw -Encoding UTF8 | ConvertFrom-Json).rules) } catch { Log ('rules: ' + $_.Exception.Message) } }
+function CatOf($o) {
+    foreach ($r in $rules) {
+        $ok = $true
+        if ($r.from) { $hit = $false; foreach ($d in $r.from) { if ($o.fd -eq $d -or $o.fd.EndsWith('.' + $d) -or ($d.StartsWith('.') -and $o.fd.EndsWith($d))) { $hit = $true; break } }; if (-not $hit) { $ok = $false } }
+        if ($ok -and $r.fromName -and ($o.from -notmatch $r.fromName)) { $ok = $false }
+        if ($ok -and $r.subject -and (($o.sub + ' ' + ($o.files | ForEach-Object { $_.n })) -notmatch $r.subject)) { $ok = $false }
+        if ($ok -and $r.folder -and ($o.folder.IndexOf([string]$r.folder, [StringComparison]::OrdinalIgnoreCase) -lt 0)) { $ok = $false }
+        if ($ok) { return [string]$r.cat }
+    }
+    if ($o.fd.EndsWith('.jp')) { return 'JP' }
+    if ($o.fd.EndsWith('.cn')) { return 'CN' }
+    return 'ETC'
+}
+
+# ---- Outlook scan (read-only), kept in memory and refreshed incrementally
+$cache = @{}; $lastScan = [DateTime]::MinValue; $scanDays = 0
+function Outlook { try { return [Runtime.InteropServices.Marshal]::GetActiveObject('Outlook.Application') } catch { return (New-Object -ComObject Outlook.Application) } }
+function Walk($f, $path, $since, $sentId) {
+    $p = if ($path) { $path + '/' + $f.Name } else { $f.Name }
+    try {
+        if ($f.DefaultItemType -eq 0 -and $f.Items.Count -gt 0) {
+            $field = if ($f.EntryID -eq $sentId) { 'SentOn' } else { 'ReceivedTime' }
+            $items = $f.Items.Restrict("[$field] >= '" + $since.ToString('yyyy-MM-dd HH:mm') + "'")
+            foreach ($m in $items) {
+                try {
+                    if ($m.Class -ne 43 -or $m.Attachments.Count -eq 0) { continue }
+                    $id = $m.EntryID; if ($script:cache.ContainsKey($id)) { continue }
+                    $files = @(); $k = 0
+                    foreach ($a in $m.Attachments) { $k++; if ($a.FileName -match '\.(asc|edi)$') { $files += @{ i = $k; n = [string]$a.FileName; s = [int]$a.Size } } }
+                    if (-not $files.Count) { continue }
+                    $addr = ''; try { $addr = if ($m.SenderEmailType -eq 'EX') { $m.Sender.GetExchangeUser().PrimarySmtpAddress } else { $m.SenderEmailAddress } } catch { }
+                    $when = if ($field -eq 'SentOn') { $m.SentOn } else { $m.ReceivedTime }
+                    $o = @{ id = $id; sub = [string]$m.Subject; from = [string]$m.SenderName; fd = ([string]$addr).Split('@')[-1].ToLower(); when = $when.ToString('yyyy-MM-dd HH:mm'); folder = $p; files = $files }
+                    $o.cat = CatOf $o
+                    $script:cache[$id] = $o
+                } catch { }
+            }
+        }
+    } catch { }
+    foreach ($c in $f.Folders) { Walk $c $p $since $sentId }
+}
+function Scan($days) {
+    $ns = (Outlook).GetNamespace('MAPI')
+    $since = (Get-Date).AddDays(-$days)
+    if ($script:lastScan -ne [DateTime]::MinValue -and $days -le $script:scanDays) { $since = $script:lastScan.AddMinutes(-10) }
+    $t0 = Get-Date
+    $sentId = ''; try { $sentId = $ns.GetDefaultFolder(5).EntryID } catch { }
+    $root = $ns.GetDefaultFolder(6).Parent      # the mailbox that holds the inbox
+    Walk $root '' $since $sentId
+    $script:lastScan = $t0; if ($days -gt $script:scanDays) { $script:scanDays = $days }
+    $cut = (Get-Date).AddDays(-[Math]::Max($days, $script:scanDays)).ToString('yyyy-MM-dd HH:mm')
+    foreach ($k in @($script:cache.Keys)) { if ($script:cache[$k].when -lt $cut) { $script:cache.Remove($k) } }
+    Log ("scan " + $days + "d: " + $script:cache.Count + " mails, " + [int]((Get-Date) - $t0).TotalSeconds + "s")
+}
+function ListJson($days) {
+    if (((Get-Date) - $script:lastScan).TotalSeconds -gt 45 -or $days -gt $script:scanDays) { Scan $days }
+    $cut = (Get-Date).AddDays(-$days).ToString('yyyy-MM-dd HH:mm'); $seen = @{}; $out = New-Object Collections.ArrayList
+    foreach ($o in ($script:cache.Values | Sort-Object { $_.when } -Descending)) {
+        if ($o.when -lt $cut) { continue }
+        $key = $o.sub + '|' + $o.when + '|' + $o.fd + '|' + (($o.files | ForEach-Object { $_.n }) -join ',')
+        if ($seen.ContainsKey($key)) { continue }; $seen[$key] = 1
+        [void]$out.Add(@{ id = $o.id; sub = $o.sub; from = $o.from; fd = $o.fd; when = $o.when; cat = $o.cat; files = @($o.files) })
+    }
+    return (@{ at = (Get-Date).ToString('HH:mm'); days = $days; items = @($out) } | ConvertTo-Json -Depth 5 -Compress)
+}
+function FileBytes($id, $i) {
+    $ns = (Outlook).GetNamespace('MAPI'); $m = $ns.GetItemFromID($id); $a = $m.Attachments.Item([int]$i)
+    if ($a.FileName -notmatch '\.(asc|edi)$') { throw 'not a plan file' }
+    $t = Join-Path $tmp ('att_' + [Guid]::NewGuid().ToString('N') + '.tmp'); $a.SaveAsFile($t)
+    $b = [IO.File]::ReadAllBytes($t); Remove-Item -LiteralPath $t -Force; return $b
+}
+
+# ---- tiny HTTP loop
+function Send($st, $code, $type, [byte[]]$body) {
+    $h = "HTTP/1.1 $code`r`nContent-Type: $type`r`nContent-Length: " + $body.Length + "`r`nAccess-Control-Allow-Origin: *`r`nAccess-Control-Allow-Private-Network: true`r`nCache-Control: no-store`r`nConnection: close`r`n`r`n"
+    $hb = [Text.Encoding]::ASCII.GetBytes($h); $st.Write($hb, 0, $hb.Length); if ($body.Length) { $st.Write($body, 0, $body.Length) }
+}
+$utf8 = New-Object Text.UTF8Encoding($false); $lastReq = Get-Date
+while ($true) {
+    if (-not $listener.Pending()) { if (((Get-Date) - $lastReq).TotalMinutes -gt 15) { break }; Start-Sleep -Milliseconds 200; continue }
+    $c = $listener.AcceptTcpClient()
+    try {
+        $c.ReceiveTimeout = 3000; $st = $c.GetStream(); $buf = New-Object byte[] 8192; $n = $st.Read($buf, 0, $buf.Length)
+        $line = ([Text.Encoding]::ASCII.GetString($buf, 0, $n) -split "`r`n")[0]
+        if ($line -match '^OPTIONS ') { Send $st '204 No Content' 'text/plain' ([byte[]]@()); continue }
+        if ($line -notmatch '^GET (/[a-z]*)\??(\S*) ') { Send $st '400 Bad Request' 'text/plain' ([byte[]]@()); continue }
+        $path = $Matches[1]; $q = @{}
+        foreach ($kv in ($Matches[2] -split '&')) { $x = $kv -split '=', 2; if ($x.Count -eq 2) { $q[$x[0]] = [Uri]::UnescapeDataString($x[1]) } }
+        if ($q['t'] -ne $token) { Send $st '403 Forbidden' 'text/plain' ([byte[]]@()); continue }
+        $lastReq = Get-Date
+        if ($path -eq '/ping') { Send $st '200 OK' 'text/plain' ($utf8.GetBytes('ok')) }
+        elseif ($path -eq '/list') { $d = 7; if ($q['days'] -match '^\d+$') { $d = [Math]::Min(30, [Math]::Max(1, [int]$q['days'])) }; Send $st '200 OK' 'application/json; charset=utf-8' ($utf8.GetBytes((ListJson $d))) }
+        elseif ($path -eq '/file') { Send $st '200 OK' 'application/octet-stream' (FileBytes $q['id'] $q['i']) }
+        else { Send $st '404 Not Found' 'text/plain' ([byte[]]@()) }
+    } catch { Log ('request: ' + $_.Exception.Message); try { Send $st '500 Error' 'text/plain' ($utf8.GetBytes($_.Exception.Message)) } catch { } }
+    finally { $c.Close() }
+}
+$listener.Stop(); Remove-Item -LiteralPath (Join-Path $tmp 'mailsrv.js') -Force -ErrorAction SilentlyContinue; Log 'stopped (idle)'

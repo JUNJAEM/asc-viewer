@@ -13,3 +13,5 @@ __pycache__/
 tools/ccasp/
 # 전산 접속 경로가 들어 있는 갱신 스크립트 (이 PC 전용)
 tools/update_ports.py
+# 메일함 분류 규칙 (거래처 메일 주소가 들어 있음 — 이 PC·팀 배포용)
+mail-rules.json

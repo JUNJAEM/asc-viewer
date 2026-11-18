@@ -25,8 +25,12 @@ $name = 'viewer'
 $tmpDir = Join-Path $env:TEMP 'asc-viewer'
 if (-not (Test-Path $tmpDir)) { New-Item -ItemType Directory -Path $tmpDir | Out-Null }
 $inbox = Join-Path $tmpDir 'inbox.js'
-$inboxJs = "window.__INBOX__='" + ([Uri]$inbox).AbsoluteUri + "';"
+$inboxJs = "window.__INBOX__='" + ([Uri]$inbox).AbsoluteUri + "';window.__MAILSRVJS__='" + ([Uri](Join-Path $tmpDir 'mailsrv.js')).AbsoluteUri + "';"
 if ($Static) { $inboxJs = '' }
+# Mail tab helper: reads Outlook on this PC for the viewer's mail list (hidden, one instance, stops by itself when unused).
+if (-not $Static -and -not $OutFile -and -not $NoOpen) {
+    try { $ms = Join-Path $dir 'mail-server.ps1'; if (Test-Path $ms) { Start-Process -FilePath 'conhost.exe' -ArgumentList @('--headless', 'powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', ('"' + $ms + '"')) -WindowStyle Hidden } } catch { }
+}
 Add-Type @'
 using System; using System.Text; using System.Runtime.InteropServices;
 public class AscWin {
