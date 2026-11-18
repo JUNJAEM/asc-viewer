@@ -6,14 +6,15 @@ $ErrorActionPreference = 'Stop'
 $dir = Split-Path -Parent $MyInvocation.MyCommand.Path
 # Loading picture while the page is being built (optional: splash.jpg next to this script).
 $splash = $null
-$sp = Join-Path $dir 'splash.jpg'
+$sp = Join-Path $dir 'local\splash.jpg'   # this PC only (not shared), used first when present
+if (-not (Test-Path $sp)) { $sp = Join-Path $dir 'splash.jpg' }
 if ((Test-Path $sp) -and -not $NoOpen -and -not $Static) {
     try {
         Add-Type -AssemblyName System.Windows.Forms, System.Drawing
         $simg = [Drawing.Image]::FromFile($sp)
         $splash = New-Object Windows.Forms.Form
         $splash.FormBorderStyle = 'None'; $splash.StartPosition = 'CenterScreen'; $splash.TopMost = $true; $splash.ShowInTaskbar = $false
-        $sw = 760; $splash.ClientSize = New-Object Drawing.Size($sw, [int]($sw * $simg.Height / $simg.Width))
+        $sw = [int][Math]::Min(760, 440 * $simg.Width / $simg.Height); $splash.ClientSize = New-Object Drawing.Size($sw, [int]($sw * $simg.Height / $simg.Width))
         $splash.BackgroundImage = $simg; $splash.BackgroundImageLayout = 'Stretch'
         $splash.Show(); $splash.Refresh()
     } catch { $splash = $null }
