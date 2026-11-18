@@ -307,6 +307,7 @@ body.static #tabs{display:none!important}
 #plStrip{position:fixed;top:6px;left:50%;transform:translateX(-50%);width:max-content;max-width:94vw;z-index:45;display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;padding:6px 12px;margin:0;border:1px solid #0b3f94;border-radius:6px;background:#eaf2ff;font-size:12.5px;box-shadow:0 3px 10px rgba(0,20,60,.2)}
 #plStrip[hidden]{display:none}#plStrip b{color:#0b3f94}
 @media (hover:none){#plTop,#plStrip{display:none}}
+body.empty #plTop{display:none}
 .seg button[aria-pressed="true"]{background:#0b3f94;color:#fff;border-color:#0b3f94}
 .plBrush,#llForm{display:flex;flex-wrap:wrap;gap:3px 5px;align-items:center;font-weight:700}.plBrush[hidden],#llForm[hidden]{display:none}
 .plBrush input,#llForm input{font:inherit;font-weight:700;width:46px;padding:0 3px;border:1px solid var(--edge);border-radius:3px;text-transform:uppercase}.plBrush input.w,#llForm input.w{width:54px}
@@ -2121,6 +2122,12 @@ var GA=(function(){var o={MJEP:{nav:20.2,eye:22.0,lv:5}};
   a("HTVY OSVY VTVY PCNB",27.6);a("PCSG PCTJ",27.6,10.8);a("PCBS",27.8);a("CNVY",37.8);
   a("ICVY USVY YSVY",37.5);a("NBVY QDVY",40.55);a("MEBG",53.8);a("NBTD",31.0,11.5);
   a("SWAT SWDN SWIC SWSR",34.3);a("PCBJ PCSZ",31.1);a("YKTD YTTR",30.9);return o})();
+// 배마다 다른 겉모양 (사진을 보고 읽은 것만 — 나머지는 공통: 붉은 선체·흰 거주구·초록 연돌·초록 갑판·크레인 없음)
+// hull 선체, under 물밑, fun 연돌, band 연돌 띠, deck 갑판, house 거주구, cr 크레인 수, crc 크레인 색
+var LOOK={SHVY:{hull:"#2f6fb0",under:"#b8434a",fun:"#7fc49a",house:"#f1ecdd"},NBTD:{hull:"#1f5aa0",under:"#a8444a",fun:"#2f6bb2",deck:"#9c3a34"},
+  HRON:{hull:"#14181e",under:"#b03a30",fun:"#1c2026",band:"#32648f",cr:2,crc:"#e0b070"},PCSG:{hull:"#3a3f47",under:"#b03030",fun:"#2a2f38",deck:"#c0432e"},
+  PCBJ:{hull:"#c0453a",fun:"#f2f2f2",cr:2,crc:"#e8d58a"},PCSZ:{hull:"#8a3530",fun:"#f0c870",cr:3,crc:"#f0c870"},SDTR:{fun:"#5cb531",cr:2,crc:"#b9bfc8"},
+  NGTR:{hull:"#6a2430",fun:"#275b4b"},MZBG:{hull:"#7d3035",fun:"#5fd060"},MBBG:{hull:"#7a2a2c",fun:"#7bba63"},SWSR:{hull:"#b5452f"}};
 var HEX={},BAY2P={},V3={yaw:-0.62,pit:0.5,zoom:1,hold:false,faces:[],hov:null,M:null,port:{}};
 // ---------- 그 항의 실제 바람·파도 ----------
 // 파일 이름에서 포트를 읽음: 5글자(JPOIT) 먼저, 없으면 회사 3글자(OIT). 좌표는 ships.js 의 ASC_GEO(tools/build_geo.py).
@@ -2196,12 +2203,21 @@ function v3Model(){
   var HH=CH;if(ga){lv=ga.lv||Math.max(3,Math.round((ga.nav-D)/2.85)+1);HH=(ga.nav-D)/(lv-1)}   // HH: 거주구 한 층 높이
   for(var ix=0;ix<nx2;ix++)for(var iy=-hw;iy<=hw;iy++)for(var iz=0;iz<lv;iz++){
     if(iz===lv-1&&ix<nx2-1)continue;                           // 맨 위층(브리지)은 앞쪽 한 칸만
-    cells.push({x0:dh[0]+ix*sx,x1:dh[0]+(ix+1)*sx,y:iy*CW,z:D+iz*HH,hh:HH,c:iz===lv-1?"#eef2f8":"#f7f8fa",house:1,wn:iz>0?(iz===lv-1?2:1):0})}
+    cells.push({x0:dh[0]+ix*sx,x1:dh[0]+(ix+1)*sx,y:iy*CW,z:D+iz*HH,hh:HH,c:iz===lv-1?"#eef2f8":(LOOK[st.ship]&&LOOK[st.ship].house||"#f7f8fa"),house:1,wn:iz>0?(iz===lv-1?2:1):0})}
   // 겉모양은 자사선 사진(붉은 선체·흰 거주구·초록 연돌과 갑판·선미의 주황 구명정)을 보고 맞춘 공통 모양 — 배마다의 세부는 아님
+  var lk=LOOK[st.ship]||{},FC=lk.fun||"#1d8a4a",HC2=lk.house||"#f7f8fa";
   var topZ=D+lv*HH,bx0=dh[1]-sx,bx1=dh[1];
   [-1,1].forEach(function(sg){cells.push({x0:bx0+sx*0.25,x1:bx1,y:sg*(hw+1)*CW,z:D+(lv-1)*HH,hh:HH*0.55,c:"#eef2f8",house:1})});                    // 브리지 윙
-  for(var fz=0;fz<2;fz++)cells.push({x0:dh[0]+0.6,x1:dh[0]+Math.max(2.2,sx*0.7),y:0,z:D+(lv-1+fz)*HH*0.8,hh:HH*0.8,c:fz?"#157a3f":"#1d8a4a",house:1,w:CW*1.1});   // 연돌(초록)
-  cells.push({x0:dh[0]+0.6,x1:dh[0]+Math.max(2.2,sx*0.7),y:0,z:D+(lv-1+1.6)*HH,hh:0.5,c:"#20242c",house:1,w:CW*1.1});                                 // 연돌 꼭대기
+  // 연돌: 보통은 거주구 뒤쪽 위. 거주구가 앞에 있는 큰 배(구조에 연돌 베이가 따로 있음)는 그 베이 뒤 틈에 따로 세움
+  var fb=g[4],fx0=dh[0]+0.6,fx1=dh[0]+Math.max(2.2,sx*0.7),fz0=D+(lv-1)*HH,fh=HH*1.6,fw=CW*1.1;
+  if(fb>0&&X[fb]&&Math.abs(X[fb][0]-dh[0])>20){fx1=X[fb][0]-0.15;fx0=fx1-1.35;fz0=D;fh=Math.max(deckT*CH+5,(lv-1)*HH*0.9);fw=CW*2}
+  cells.push({x0:fx0,x1:fx1,y:0,z:fz0,hh:fh*0.62,c:FC,house:1,w:fw},{x0:fx0,x1:fx1,y:0,z:fz0+fh*0.62,hh:fh*0.16,c:lk.band||FC,house:1,w:fw},
+    {x0:fx0,x1:fx1,y:0,z:fz0+fh*0.78,hh:fh*0.16,c:FC,house:1,w:fw},{x0:fx0,x1:fx1,y:0,z:fz0+fh*0.94,hh:0.5,c:"#20242c",house:1,w:fw});
+  // 갑판 크레인(있는 배만): 베이 사이 틈의 좌현 쪽에 기둥 + 선수 쪽으로 눕힌 지브
+  if(lk.cr){var gaps=[];bays.forEach(function(b,k){var nb=bays[k+1];if(nb!==undefined&&X[b][0]-X[nb][1]>1.2&&X[nb][1]>dh[1]-0.01)gaps.push((X[b][0]+X[nb][1])/2)});
+    for(var cn=0;cn<lk.cr&&gaps.length;cn++){var gx=gaps[Math.min(gaps.length-1,Math.round((cn+0.5)*gaps.length/lk.cr-0.5))],cy=-(W/2-1.3),ch2=Math.max(12,deckT*CH+6),cc=lk.crc||"#e0b070";
+      cells.push({x0:gx-0.55,x1:gx+0.55,y:cy,z:D,hh:ch2,c:cc,house:1,w:0.6},{x0:gx-1.2,x1:gx+1.2,y:cy,z:D+ch2,hh:2.2,c:cc,house:1,w:1.2},
+        {x0:gx+1.2,x1:gx+Math.min(19,CL*3),y:cy,z:D+ch2+0.7,hh:0.8,c:cc,house:1,w:0.4})}}
   cells.push({x0:bx0+sx*0.35,x1:bx0+sx*0.35+0.7,y:0,z:topZ,hh:7,c:"#e9edf3",house:1,w:0.35});                                                       // 레이더 마스트
   cells.push({x0:bx0+sx*0.35-0.2,x1:bx0+sx*0.35+0.9,y:0,z:topZ+4.2,hh:0.45,c:"#cfd6e0",house:1,w:2.4});                                              // 가로대
   if(dh[0]-xS>5.5)cells.push({x0:Math.max(xS+1,dh[0]-6.5),x1:dh[0]-1.2,y:0,z:D+1.2,hh:2.4,c:"#f26a1b",house:1,w:1.4});                               // 선미 구명정(주황)
@@ -2220,7 +2236,7 @@ function v3Model(){
   for(var bk=0;bk<2;bk++){var yb=ya+bk*(6*2.6+10);blocks.push([yb-1.3,yb+5*2.6+1.3]);
     for(var bx=xS-34,ci=0;bx<xB+34;bx+=6.4,ci++){if(ci%10===9)continue;
       for(var rr=0;rr<6;rr++){var hn=Math.floor(rnd()*5);if(hn)yard.push({x0:bx,x1:bx+6.1,y:yb+rr*2.6,n:hn,c:YC[Math.floor(rnd()*YC.length)]})}}}
-  return {gear:gear,shipName:sh&&sh.n||"",q0:q0,yard:yard,blocks:blocks,q1:ya+2*(6*2.6+10)+2,cells:cells,X:X,bays:bays,evn:evn,xB:xB,xS:xS,L:Lh,hb:hb,D:D,CW:CW,CH:CH,zD:zD,draft:draft,vis:vis,name:(sh?st.ship+" ":"")+(P.voy||"")};
+  return {lk:lk,gear:gear,shipName:sh&&sh.n||"",q0:q0,yard:yard,blocks:blocks,q1:ya+2*(6*2.6+10)+2,cells:cells,X:X,bays:bays,evn:evn,xB:xB,xS:xS,L:Lh,hb:hb,D:D,CW:CW,CH:CH,zD:zD,draft:draft,vis:vis,name:(sh?st.ship+" ":"")+(P.voy||"")};
 }
 function v3Tick(){clearTimeout(V3.tm);if($("v3").hidden)return;
   if(!document.hidden&&!V3.still){V3.t=performance.now()/1000;v3Draw()}
@@ -2251,10 +2267,10 @@ function v3Draw(){
       if(-(nx*sa+ny*ca)<=0)continue;   // 카메라 쪽을 보는 옆면만
       var f=0.55+0.45*Math.abs((nx*ca-ny*sa)/Math.sqrt(nx*nx+ny*ny||1));
       poly([pr(A[0],A[1],z0),pr(B2[0],B2[1],z0),pr(B2[0],B2[1],z1),pr(A[0],A[1],z1)],shade(col,f),null,al)}}
-  var al=V3.hold?0.22:1;
+  var al=V3.hold?0.22:1,LK=M.lk||{},HUL=LK.hull||"#a8262b",UND=LK.under||"#6f1d20",DEK=LK.deck||"#2f7d52";
   if(!V3.hold){var bl=[[M.xB-1.5,1.3],[M.xB+1.5,1.5],[M.xB+3.6,1],[M.xB+4.4,0]],bulb=bl.concat(bl.slice(0,3).reverse().map(mir));   // 구상 선수(물밑)
-    band(M.draft*0.15,M.draft*0.62,"#641a1d",1,bulb);poly(bulb.map(function(q){return pr(q[0],q[1],M.draft*0.62)}),"#6f1d20")}
-  band(0,M.draft,"#6f1d20",al);
+    band(M.draft*0.15,M.draft*0.62,shade(UND,0.9),1,bulb);poly(bulb.map(function(q){return pr(q[0],q[1],M.draft*0.62)}),UND)}
+  band(0,M.draft,UND,al);
   var xs=sa<0?1:0,ys=ca<0?1:0;   // 보이는 옆면: x 쪽은 sa<0 이면 +x 면, y 쪽은 ca<0 이면 +y 면
   // 바다: 수면(흘수선 높이)의 큰 판 + 잔물결. 물밑 선체는 그 아래로 비쳐 보임
   RK=false;var S=900,zw=M.draft,sea=g.createLinearGradient(0,0,0,h);sea.addColorStop(0,"#2c9396");sea.addColorStop(1,"#0e5766");
@@ -2308,7 +2324,7 @@ function v3Draw(){
     g.strokeStyle="#30343b";g.lineWidth=Math.max(0.7,sc*0.15);g.beginPath();[[-2.6,-1],[2.6,-1],[-2.6,1],[2.6,1]].forEach(function(o){seg([cx+o[0]*0.5,ty+o[1],zt-3.4],[cx+o[0],ty+o[1],zt-15])});g.stroke();
     slab(cx-3.05,cx+3.05,ty-1.25,ty+1.25,zt-15.6,zt-15,YEL,YED)})}                                                                                 // 스프레더
   if(V3.quay&&farQ){ground();yard();craneLow()}
-  RK=true;band(M.draft,M.D,"#a8262b",al);
+  RK=true;band(M.draft,M.D,HUL,al);
   band(M.draft,M.draft+0.35,"#f3f3f3",al);                                                                     // 흘수선의 흰 띠
   if(!V3.hold&&M.shipName){var nx0=M.xB-L*0.075,ny0=(ca<0?1:-1)*wAt(nx0),nq=pr(nx0,ny0,(M.draft+M.D)/2+0.2);   // 선수 쪽 선명
     g.font="bold "+Math.max(6,Math.min(11,sc*1.3))+"px Arial";g.textAlign="center";g.textBaseline="middle";g.fillStyle="rgba(255,255,255,.95)";g.fillText(M.shipName,nq[0],nq[1])}
@@ -2316,7 +2332,7 @@ function v3Draw(){
   function fcastle(){   // 선수루: 첫 베이 앞에서 선수까지 한 단 높은 갑판 + 마스트·양묘기
     var x0=1.2,z0=M.D,z1=M.D+2.3;if(M.xB-x0<4)return;
     var half=[[x0,wAt(x0)]].concat(o.filter(function(q){return q[0]>x0+0.3})),fr=half.concat(half.slice(0,half.length-1).reverse().map(mir));
-    band(z0,z1,"#a8262b",al,fr);poly(fr.map(function(q){return pr(q[0],q[1],z1)}),"#2f7d52","#1c4f34",V3.hold?0.28:1);
+    band(z0,z1,HUL,al,fr);poly(fr.map(function(q){return pr(q[0],q[1],z1)}),DEK,shade(DEK,0.6),V3.hold?0.28:1);
     if(!V3.hold)M.gear.slice().sort(function(u,v){return near((u.x0+u.x1)/2,u.y,u.z)-near((v.x0+v.x1)/2,v.y,v.z)}).forEach(function(c){box(c)})}
   // 상자 칸을 먼 것부터
   var CW=M.CW*0.94/2,CH=M.CH*0.95;   // 보이는 옆면: x 쪽은 sa<0 이면 +x 면, y 쪽은 ca<0 이면 +y 면
@@ -2334,7 +2350,7 @@ function v3Draw(){
     if(c.bay!=null)V3.faces.push([f1,c.bay],[f2,c.bay],[f3,c.bay])}
   var cs=M.cells.slice().sort(function(u,v){return near((u.x0+u.x1)/2,u.y,u.z)-near((v.x0+v.x1)/2,v.y,v.z)});
   if(V3.hold)cs.forEach(function(c){if(c.hold)box(c)});
-  poly(ring.map(function(q){return pr(q[0],q[1],M.D)}),"#2f7d52","#1c4f34",V3.hold?0.28:1);   // 갑판(초록)
+  poly(ring.map(function(q){return pr(q[0],q[1],M.D)}),DEK,shade(DEK,0.6),V3.hold?0.28:1);   // 갑판
   if(!xs)fcastle();                                                // 카메라가 선미 쪽이면 선수루를 화물보다 먼저
   // 베이 자리(해치 덮개) — 빈 베이도 누를 수 있게
   M.bays.forEach(function(b){var r=M.X[b],q=[pr(r[0]+0.2,-hb+1.4,M.D+0.05),pr(r[1]-0.2,-hb+1.4,M.D+0.05),pr(r[1]-0.2,hb-1.4,M.D+0.05),pr(r[0]+0.2,hb-1.4,M.D+0.05)];
