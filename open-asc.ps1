@@ -25,7 +25,10 @@ $name = 'viewer'
 $tmpDir = Join-Path $env:TEMP 'asc-viewer'
 if (-not (Test-Path $tmpDir)) { New-Item -ItemType Directory -Path $tmpDir | Out-Null }
 $inbox = Join-Path $tmpDir 'inbox.js'
-$inboxJs = "window.__INBOX__='" + ([Uri]$inbox).AbsoluteUri + "';window.__MAILSRVJS__='" + ([Uri](Join-Path $tmpDir 'mailsrv.js')).AbsoluteUri + "';"
+# Build stamp: lets a later double-click tell an already-open (older) viewer window that a newer version is installed.
+$build = [string](Get-Item (Join-Path $dir 'viewer.src.html')).LastWriteTimeUtc.Ticks
+$newNote = ('(function(){if(window.__PV_BUILD__!==''@B@''&&!document.getElementById(''pvNew'')){var d=document.createElement(''div'');d.id=''pvNew'';d.style.cssText=''position:fixed;left:0;right:0;top:0;z-index:99;padding:9px 14px;background:#b00000;color:#fff;font:700 14px sans-serif;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.4)'';d.textContent=''\uC0C8 \uBC84\uC804\uC774 \uC124\uCE58\uB410\uC5B4\uC694. \uC774 \uCC3D\uC744 \uB2EB\uACE0 \uD50C\uB79C \uD30C\uC77C\uC744 \uB2E4\uC2DC \uC5F4\uBA74 \uC801\uC6A9\uB3FC\uC694. (\uBA54\uC77C\uD568 \u00B7 \uC0C8 \uAE30\uB2A5\uC774 \uADF8\uB54C \uBCF4\uC5EC\uC694)'';document.body.appendChild(d)}})();').Replace('@B@', $build)
+$inboxJs = "window.__PV_BUILD__='" + $build + "';window.__INBOX__='" + ([Uri]$inbox).AbsoluteUri + "';window.__MAILSRVJS__='" + ([Uri](Join-Path $tmpDir 'mailsrv.js')).AbsoluteUri + "';"
 if ($Static) { $inboxJs = '' }
 # Mail tab helper: reads Outlook on this PC for the viewer's mail list (hidden, one instance, stops by itself when unused).
 if (-not $Static -and -not $OutFile -and -not $NoOpen) {
@@ -63,7 +66,7 @@ if ($Path -and (Test-Path -LiteralPath $Path)) {
             $hw = [AscWin]::Find()
             if ($hw -ne [IntPtr]::Zero) {
                 $ms = [int64]([DateTime]::UtcNow - [DateTime]'1970-01-01').TotalMilliseconds
-                $js = "window.__ASC_INBOX__&&window.__ASC_INBOX__({id:'" + [Guid]::NewGuid().ToString('N') + "',t:" + $ms + ",name:'" + $jsName + "',b64:'" + $b64 + "'});"
+                $js = $newNote + "window.__ASC_INBOX__&&window.__ASC_INBOX__({id:'" + [Guid]::NewGuid().ToString('N') + "',t:" + $ms + ",name:'" + $jsName + "',b64:'" + $b64 + "'});"
                 [IO.File]::WriteAllText($inbox, $js, (New-Object Text.UTF8Encoding($false)))
                 [AscWin]::Front($hw)
                 if ($splash) { Start-Sleep -Milliseconds 700; $splash.Close() }
