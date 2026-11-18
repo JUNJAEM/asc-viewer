@@ -270,6 +270,18 @@ body.empty #helpBtn{display:inline-block}
 #pkTip table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
 #pkTip td{padding:2px 4px}#pkTip td:last-child{text-align:right;font-weight:700}
 #pkTip tr.tt td{border-top:1px solid #8fa3c0;font-weight:700}
+/* 3D VIEW */
+#v3{position:fixed;inset:0;z-index:55;display:flex;align-items:center;justify-content:center;background:rgba(20,45,85,.35);padding:12px}
+.v3win{width:min(1500px,100%);height:min(900px,100%);display:flex;flex-direction:column;box-shadow:0 16px 48px rgba(0,20,60,.5)}
+.v3win .tb{display:flex;align-items:center;gap:10px;flex-wrap:nowrap}.v3win .tb .sp{flex:1}.v3win .tb small{font-weight:400;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v3win .tb button{font:inherit;font-size:12px;font-weight:700;padding:1px 9px;border:1px solid var(--edge);border-radius:3px;background:var(--chrome);color:var(--fg);cursor:pointer;white-space:nowrap;text-shadow:none}
+.v3win .tb button[aria-pressed="true"]{background:#0b3f94;color:#fff}
+#v3X{background:#c13229;color:#fff;border-color:#7a1c16;min-width:30px}
+.v3b{position:relative;flex:1;min-height:0;background:linear-gradient(#d3e6f7,#f3f8fd 55%,#dbe9f6);overflow:hidden;border-radius:0 0 7px 7px}
+#v3C{display:block;width:100%;height:100%;cursor:grab;touch-action:none}
+#v3C.pt{cursor:pointer}
+#v3Tip{position:absolute;padding:3px 8px;background:#10254a;color:#fff;font-size:12px;font-weight:700;border-radius:4px;pointer-events:none;white-space:nowrap}
+#sum #v3Btn{margin-left:4px}
 /* 찾기 창 (Alt+F) */
 #fbox{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));z-index:40;display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;
   max-width:calc(100vw - 32px);padding:8px 10px;background:linear-gradient(#f7faff,#e3ebf6);border:1px solid #5d7fae;border-radius:8px;box-shadow:0 8px 24px rgba(0,20,60,.4);font-size:12.5px}
@@ -520,6 +532,11 @@ body.static .cr{display:none}
   <div class="tb">도움말 · 단축키<span class="sp"></span><button type="button" id="hX" aria-label="닫기">×</button></div>
   <div class="body"><table id="helpT">
   </table></div></div></div>
+<div id="v3" hidden><div class="win v3win" role="dialog" aria-label="3D VIEW">
+  <div class="tb"><span id="v3T">3D VIEW</span><small>끌어서 돌리기 · 휠로 확대 · 베이를 누르면 Bay Plan</small><span class="sp"></span>
+    <button type="button" id="v3H" aria-pressed="false" title="선체를 비쳐 보이게 해서 홀드 안 컨테이너를 봐요">홀드 보기</button>
+    <button type="button" id="v3R" title="처음 각도로">처음 각도</button><button type="button" id="v3X" aria-label="닫기">×</button></div>
+  <div class="v3b"><canvas id="v3C"></canvas><div id="v3Tip" hidden></div></div></div></div>
 <div id="ask" hidden><div class="win hwin" role="alertdialog" aria-label="컨테이너 삭제">
   <div class="tb">컨테이너 삭제</div>
   <div class="body"><p id="askT"></p><div class="askb"><button type="button" id="askY">삭제</button><button type="button" id="askN">취소</button></div></div></div></div>
@@ -746,6 +763,7 @@ function render(){
     var ro2=P.rotation;polOrder.sort(function(a,b){var x=ro2.indexOf(a),y=ro2.indexOf(b);return (x<0?99:x)-(y<0?99:y)||(a<b?-1:1)});
     var gr=POLGR.slice();
     polOrder.forEach(function(k){hexL[k]=CUSTOM[k]||POLFIX[k]||gr.shift()||"#8c8c8c";pols[k].css="--c2:"+hexL[k]+";--ck2:"+ink(hexL[k])})}
+  HEX=hex;
   function sty(b){return col[keyOf(b)]+(PP?";"+pols[b.pol].css:"")}
   if(st.filter&&(st.filter[0]==="@"?!(PP&&pols[st.filter.slice(1)]):!groups[st.filter]))st.filter=null;
 
@@ -764,7 +782,7 @@ function render(){
     '<div><span>DG</span><b>'+dg+'</b></div><div><span>RF</span><b>'+rf+'</b></div><div><span>Empty</span><b>'+em+'</b></div>'+
     (nout?'<div><span>구조에 없는 칸</span><b style="color:var(--warn)">'+nout+'</b></div>':'')+'</div>'+
     (rot?'<div class="rot">Port Rotation: '+esc(rot)+'</div>':'')+
-    '<div class="chips"><button type="button" class="x" id="sortCol" title="양하항 '+order.length+'개에 맞춰 가장 잘 구분되는 색으로 다시 칠해요">색정렬</button><em>POD</em>'+order.map(function(k){return chip(k,k,groups[k])}).join("")+
+    '<div class="chips"><button type="button" class="x" id="sortCol" title="양하항 '+order.length+'개에 맞춰 가장 잘 구분되는 색으로 다시 칠해요">색정렬</button><button type="button" class="x" id="v3Btn" title="선박을 3D로 봐요. 베이를 누르면 Bay Plan이 떠요">3D VIEW</button><em>POD</em>'+order.map(function(k){return chip(k,k,groups[k])}).join("")+
       '<em>POL</em>'+polOrder.map(function(k){return chip(k,"@"+k,pols[k])}).join("")+'</div>';
   function chip(k,f,g){return '<span class="chip'+(st.filter===f?' on':'')+'">'+
     '<input type="color" class="swc" id="col-'+esc(f)+'" data-port="'+esc(k)+'" value="'+(f[0]==="@"?hexL[k]:hex[k])+'" aria-label="'+esc(k)+' 색 바꾸기" title="색 바꾸기">'+
@@ -847,7 +865,8 @@ function render(){
   var dn=dirtyN();$("saveBtn").hidden=!dn;$("saveBtn").textContent="ASC 저장 ("+dn+")";
   if(st.saved){nt.hidden=false;nt.className="note";nt.textContent=st.saved}
   $("ship").value=st.ship;
-  edDraw(); pickFlag();
+  BAY2P={};ORD.forEach(function(id){var nm=PANELS[id].p.name.match(/\d+/g)||[];nm.forEach(function(n){if(!(+n in BAY2P))BAY2P[+n]=id})});
+  edDraw(); pickFlag(); if(!$("v3").hidden)v3Build();
 }
 
 function drawWin(){
@@ -1655,6 +1674,115 @@ document.addEventListener("contextmenu",function(e){
   var a=e.target.closest("#bwB")||e.target.closest("#gp");if(!a)return;
   var c=e.target.closest(a.id==="gp"?".m.b":".c.b");if(!c||c.dataset.i==null)return;
   e.preventDefault();askDel([+c.dataset.i])});
+// ---------- 3D VIEW ----------
+// 선박 모양은 도면이 아니라 cCASP 구조에서 만든 것: 전장·폭·깊이, 베이·로우·티어 칸, 거주구가 어느 베이 뒤에 있는지(ships.js 의 g).
+// 그리기는 캔버스 하나로 직접(외부 라이브러리 없음): 모든 것을 같은 크기의 상자 칸으로 쪼개서, 먼 것부터 덧칠.
+var HEX={},BAY2P={},V3={yaw:-0.62,pit:0.5,zoom:1,hold:false,faces:[],hov:null,M:null};
+function v3Model(){
+  var P=st.plan,B=P.boxes,sh=curShip(),g=sh&&sh.g||[0,0,0,-1,-1],odd={},evn={},k,rows={},holdT=0,deckT=0;
+  function seen(bay,row,t){(bay%2?odd:evn)[bay]=1;rows[row]=1;if(t<80)holdT=Math.max(holdT,t/2);else deckT=Math.max(deckT,(t-80)/2)}
+  if(sh)for(k in sh.b)for(var t in sh.b[k]){var rs=sh.b[k][t];for(var i=0;i<rs.length;i+=2)seen(+k,+rs.substr(i,2),+t)}
+  B.forEach(function(b){seen(b.bay,b.row,b.tier)});
+  for(k in evn){if(!odd[+k-1])odd[+k-1]=1;if(!odd[+k+1])odd[+k+1]=1}
+  var bays=Object.keys(odd).map(Number).sort(function(a,b){return a-b}),nR=0;for(k in rows)nR=Math.max(nR,Math.ceil(+k/2));
+  var half=!rows[0],CW=2.5,CL=6.1,CH=2.6;                    // half: 가운데 로우(00)가 없는 배 — 반 칸씩 밀림
+  var W=g[1]>5&&g[1]<70?g[1]:(2*nR+(half?0:1))*CW+3,D=g[2]>3&&g[2]<40?g[2]:Math.max(8,holdT*CH+2.5);
+  W=Math.max(W,(2*nR+(half?0:1))*CW+1.5);
+  var da=g[3],dhL=Math.max(11,Math.min(17,(g[0]>50&&g[0]<450?g[0]:150)*0.1)),x=0,X={},dh=null;
+  function house(){dh=[x-dhL,x-1.2];x-=dhL+1.2}
+  if(da===0)house();
+  bays.forEach(function(b,i){X[b]=[x-CL,x];x-=CL;
+    var nx=bays[i+1];if(b===da||(da>0&&b<da&&(nx===undefined||nx>da)))house();
+    else if(nx!==undefined)x-=(nx-b===2&&evn[b+1])?0.25:1.6});
+  if(!dh){x-=1.2;house()}                                      // 거주구 위치를 모르면 맨 뒤에
+  var cargoBow=0,cargoAft=x,L=g[0]>50&&g[0]<450?g[0]:0,need=(cargoBow-cargoAft),bowL=Math.max(9,need*0.1),stL=Math.max(6,need*0.06);
+  if(L>need+bowL+stL){var ex=L-need-bowL-stL;bowL+=ex*0.6;stL+=ex*0.4}
+  var xB=cargoBow+bowL,xS=cargoAft-stL,Lh=xB-xS,hb=W/2,zH=D-0.4-holdT*CH,zD=D+1.2;
+  function y0(row){var n=Math.ceil(row/2),sg=row===0?0:(row%2?1:-1);return half?sg*(n-0.5)*CW:sg*n*CW}
+  var cells=[];   // [x0,x1,yc,z0,색,베이,상자번호,종류]
+  B.forEach(function(b){var c=HEX[keyOf(b)]||"#999",zz=b.tier<80?zH+(b.tier/2-1)*CH:zD+((b.tier-82)/2)*CH,yc=y0(b.row);
+    (b.bay%2?[b.bay]:[b.bay-1,b.bay+1]).forEach(function(bb,j){var r=X[bb];if(!r)return;
+      cells.push({x0:r[0]+(b.bay%2?0.1:(j?0.1:-0.13)),x1:r[1]-(b.bay%2?0.1:(j?-0.13:0.1)),y:yc,z:zz,c:c,bay:b.bay,i:b.i,hold:b.tier<80,pk:st.pick.indexOf(b.i)>=0})})});
+  // 거주구·연돌: 컨테이너와 같은 크기의 칸으로 (정렬이 꼬이지 않게)
+  var hw=Math.floor((W-2)/CW/2),nx2=Math.max(2,Math.round((dh[1]-dh[0])/CL)),sx=(dh[1]-dh[0])/nx2,lv=Math.max(4,Math.min(7,deckT+1));
+  for(var ix=0;ix<nx2;ix++)for(var iy=-hw;iy<=hw;iy++)for(var iz=0;iz<lv;iz++){
+    if(iz===lv-1&&ix<nx2-1)continue;                           // 맨 위층(브리지)은 앞쪽 한 칸만
+    cells.push({x0:dh[0]+ix*sx,x1:dh[0]+(ix+1)*sx,y:iy*CW,z:D+iz*CH,c:iz===lv-1?"#dfe7f2":"#f4f6f9",house:1,win:ix===nx2-1&&iz>0})}
+  for(var fz=0;fz<2;fz++)cells.push({x0:dh[0]+0.5,x1:dh[0]+sx*0.8,y:0,z:D+(lv-1+fz)*CH,c:"#1b2a8c",house:1});   // 연돌
+  return {cells:cells,X:X,bays:bays,evn:evn,xB:xB,xS:xS,L:Lh,hb:hb,D:D,CW:CW,CH:CH,zD:zD,draft:D*0.68,name:(sh?st.ship+" ":"")+(P.voy||"")};
+}
+function v3Build(){V3.M=v3Model();$("v3T").textContent="3D VIEW  "+V3.M.name;v3Draw()}
+function v3Draw(){
+  var M=V3.M,cv=$("v3C");if(!M||$("v3").hidden)return;
+  var dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr)}
+  var g=cv.getContext("2d"),a=V3.yaw,p=V3.pit,ca=Math.cos(a),sa=Math.sin(a),cp=Math.cos(p),sp=Math.sin(p);
+  var xm=(M.xB+M.xS)/2,sc=Math.min(w*0.92/M.L,h*0.9/(M.L*0.45))*V3.zoom,ox=w/2,oy=h*0.56;
+  function pr(x,y,z){x-=xm;var xr=x*ca-y*sa,yr=x*sa+y*ca;return [ox+xr*sc,oy-(yr*sp+z*cp)*sc+M.D*cp*sc*0.5]}
+  function near(x,y,z){x-=xm;return -(x*sa+y*ca)*cp+z*sp}
+  function poly(pts,fill,stroke,al){g.beginPath();pts.forEach(function(q,i){if(i)g.lineTo(q[0],q[1]);else g.moveTo(q[0],q[1])});g.closePath();
+    if(al!=null)g.globalAlpha=al;if(fill){g.fillStyle=fill;g.fill()}if(stroke){g.strokeStyle=stroke;g.stroke()}g.globalAlpha=1}
+  function shade(c,f){var r=parseInt(c.substr(1,2),16),gg=parseInt(c.substr(3,2),16),b=parseInt(c.substr(5,2),16);
+    return "rgb("+Math.round(r*f)+","+Math.round(gg*f)+","+Math.round(b*f)+")"}
+  g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,w,h);g.lineWidth=0.6;g.lineJoin="round";
+  V3.faces=[];
+  // 선체 윤곽 (위에서 본 모양, 우현 쪽 절반 → 좌우 대칭)
+  var hb=M.hb,L=M.L,o=[[M.xS,hb*0.78],[M.xS+L*0.05,hb],[M.xB-L*0.2,hb],[M.xB-L*0.1,hb*0.74],[M.xB-L*0.035,hb*0.34],[M.xB,0]],ring=o.concat(o.slice(0,5).reverse().map(function(q){return [q[0],-q[1]]}));
+  function band(z0,z1,col,al){for(var i=0;i<ring.length;i++){var A=ring[i],B2=ring[(i+1)%ring.length],nx=-(B2[1]-A[1]),ny=B2[0]-A[0];   // 바깥쪽 법선
+      if(-(nx*sa+ny*ca)<=0)continue;   // 카메라 쪽을 보는 옆면만
+      var f=0.55+0.45*Math.abs((nx*ca-ny*sa)/Math.sqrt(nx*nx+ny*ny||1));
+      poly([pr(A[0],A[1],z0),pr(B2[0],B2[1],z0),pr(B2[0],B2[1],z1),pr(A[0],A[1],z1)],shade(col,f),null,al)}}
+  var al=V3.hold?0.22:1;
+  band(0,M.draft,"#8c2b2b",al);band(M.draft,M.D,"#232a36",al);
+  // 상자 칸을 먼 것부터
+  var xs=sa<0?1:0,ys=ca<0?1:0,CW=M.CW*0.94/2,CH=M.CH*0.95;   // 보이는 옆면: x 쪽은 sa<0 이면 +x 면, y 쪽은 ca<0 이면 +y 면
+  function box(c,alpha){
+    var x0=c.x0,x1=c.x1,y0=c.y-CW,y1=c.y+CW,z0=c.z,z1=c.z+CH,hv=V3.hov!=null&&c.bay===V3.hov,col=c.c,ln=c.house?null:"rgba(0,0,0,.55)";
+    var xf=xs?x1:x0,yf=ys?y1:y0;
+    var f1=[pr(xf,y0,z0),pr(xf,y1,z0),pr(xf,y1,z1),pr(xf,y0,z1)],f2=[pr(x0,yf,z0),pr(x1,yf,z0),pr(x1,yf,z1),pr(x0,yf,z1)],f3=[pr(x0,y0,z1),pr(x1,y0,z1),pr(x1,y1,z1),pr(x0,y1,z1)];
+    poly(f1,shade(col,c.win?0.55:0.72),ln,alpha);poly(f2,shade(col,0.86),ln,alpha);poly(f3,hv?"#fff4a8":col,ln,alpha);
+    if(c.pk){g.lineWidth=2;poly(f3,null,"#ff1a1a");g.lineWidth=0.6}
+    if(c.bay!=null)V3.faces.push([f1,c.bay],[f2,c.bay],[f3,c.bay])}
+  var cs=M.cells.slice().sort(function(u,v){return near((u.x0+u.x1)/2,u.y,u.z)-near((v.x0+v.x1)/2,v.y,v.z)});
+  if(V3.hold)cs.forEach(function(c){if(c.hold)box(c)});
+  poly(ring.map(function(q){return pr(q[0],q[1],M.D)}),"#8d98a8","#39424f",V3.hold?0.28:1);   // 갑판
+  // 베이 자리(해치 덮개) — 빈 베이도 누를 수 있게
+  M.bays.forEach(function(b){var r=M.X[b],q=[pr(r[0]+0.2,-hb+1.4,M.D+0.05),pr(r[1]-0.2,-hb+1.4,M.D+0.05),pr(r[1]-0.2,hb-1.4,M.D+0.05),pr(r[0]+0.2,hb-1.4,M.D+0.05)];
+    poly(q,V3.hov===b?"#fff4a8":"#6f7b8c","#39424f",V3.hold?0.3:1);V3.faces.push([q,b])});
+  cs.forEach(function(c){if(!c.hold)box(c)});
+  // 베이 번호 (가까운 쪽 뱃전에)
+  g.font="bold "+Math.max(9,Math.min(13,sc*2.2))+"px Arial";g.textAlign="center";g.textBaseline="middle";
+  var side=ca<0?hb+2.2:-hb-2.2;
+  function lab(t,q,c){g.lineWidth=3;g.strokeStyle="rgba(255,255,255,.92)";g.strokeText(t,q[0],q[1]);g.fillStyle=c;g.fillText(t,q[0],q[1]);g.lineWidth=0.6}
+  M.bays.forEach(function(b){var r=M.X[b],q=pr((r[0]+r[1])/2,side,M.D);lab((b<10?"0":"")+b,q,V3.hov===b?"#b00000":"#0b1f47")});
+  for(var k in M.evn){var r1=M.X[+k-1],r2=M.X[+k+1];if(!r1||!r2)continue;var q2=pr((r1[0]+r2[1])/2,side*1.22,M.D);lab("("+(+k<10?"0":"")+k+")",q2,V3.hov===+k?"#b00000":"#3d5a94")}
+}
+function v3Pick(x,y){for(var i=V3.faces.length-1;i>=0;i--){var q=V3.faces[i][0],inn=false;
+    for(var a=0,b=q.length-1;a<q.length;b=a++){if((q[a][1]>y)!==(q[b][1]>y)&&x<(q[b][0]-q[a][0])*(y-q[a][1])/(q[b][1]-q[a][1])+q[a][0])inn=!inn}
+    if(inn)return V3.faces[i][1]}return null}
+function v3Open(on){if(on==null)on=$("v3").hidden;$("v3").hidden=!on;if(on){V3.hov=null;$("v3Tip").hidden=true;v3Build()}}
+(function(){
+  var cv=$("v3C"),d=null;
+  function xy(e){var r=cv.getBoundingClientRect();return [e.clientX-r.left,e.clientY-r.top]}
+  cv.addEventListener("pointerdown",function(e){if(e.button!==0)return;d={x:e.clientX,y:e.clientY,yaw:V3.yaw,pit:V3.pit,mv:false};cv.setPointerCapture(e.pointerId)});
+  cv.addEventListener("pointermove",function(e){
+    if(d){var dx=e.clientX-d.x,dy=e.clientY-d.y;if(!d.mv&&Math.abs(dx)<5&&Math.abs(dy)<5)return;d.mv=true;
+      V3.yaw=d.yaw-dx*0.008;V3.pit=Math.max(0.22,Math.min(1.25,d.pit+dy*0.006));V3.hov=null;$("v3Tip").hidden=true;v3Draw();return}
+    var q=xy(e),b=v3Pick(q[0],q[1]),t=$("v3Tip");
+    if(b!==V3.hov){V3.hov=b;v3Draw()}
+    cv.classList.toggle("pt",b!=null);t.hidden=b==null;if(b!=null){t.textContent="BAY "+(b<10?"0":"")+b;t.style.left=(q[0]+14)+"px";t.style.top=(q[1]+12)+"px"}});
+  cv.addEventListener("pointerup",function(e){var D=d;d=null;if(!D||D.mv)return;
+    var q=xy(e),b=v3Pick(q[0],q[1]);if(b==null)return;
+    var id=BAY2P[b]||BAY2P[b+1]||BAY2P[b-1];if(!id)return;
+    v3Open(false);openBay(id)});
+  cv.addEventListener("pointerleave",function(){if(V3.hov!=null){V3.hov=null;$("v3Tip").hidden=true;v3Draw()}});
+  cv.addEventListener("wheel",function(e){e.preventDefault();V3.zoom=Math.max(0.5,Math.min(6,V3.zoom*(e.deltaY<0?1.12:1/1.12)));v3Draw()},{passive:false});
+  $("v3X").onclick=function(){v3Open(false)};
+  $("v3R").onclick=function(){V3.yaw=-0.62;V3.pit=0.5;V3.zoom=1;v3Draw()};
+  $("v3H").onclick=function(){V3.hold=!V3.hold;this.setAttribute("aria-pressed",V3.hold);v3Draw()};
+  $("v3").addEventListener("click",function(e){if(e.target.id==="v3")v3Open(false)});
+  document.addEventListener("click",function(e){if(e.target.id==="v3Btn")v3Open(true)});
+  window.addEventListener("resize",function(){v3Draw()});
+})();
 // ---------- 단축키 표: 여기 한 줄을 넣으면 단축키가 생기고 도움말(F1)에도 자동으로 나옴 ----------
 // keys = 도움말에 보이는 글, d = 설명. 키보드 단축키는 code(자판 위치)·alt/ctrl/shift·fn(할 일)·plan(플랜이 열려 있을 때만)을 같이 적음.
 // code 가 없는 줄은 마우스 동작처럼 다른 곳에서 처리하는 것 — 도움말에만 나옴.
@@ -1690,6 +1818,7 @@ document.addEventListener("keydown",function(e){
   for(var ki=0;ki<KEYS.length;ki++){var K=KEYS[ki];   // 단축키 표에서 찾아 실행 (한글 입력 상태에서도 되게 자판 위치 e.code 로 봄)
     if(K.code&&(K.code===e.code||K.code2===e.code)&&!!K.alt===e.altKey&&!!K.ctrl===(e.ctrlKey||e.metaKey)&&!!K.shift===e.shiftKey){
       e.preventDefault();if(K.plan&&!st.plan)return;K.fn();return}}
+  if(e.key==="Escape"&&!$("v3").hidden){e.stopPropagation();v3Open(false);return}
   if(e.key==="Escape"&&!$("expMenu").hidden){e.stopPropagation();expMenu(false);return}
   if(e.key==="Escape"&&!$("help").hidden){e.stopPropagation();helpBox(false)}
   else if(e.key==="Escape"&&!$("help").hidden){e.stopPropagation();helpBox(false)}

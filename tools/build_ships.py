@@ -33,7 +33,17 @@ def ccasp(path):
                 if v in SLOT and ri < len(rows) and rows[ri] not in (None, ""):
                     slots.append([int(rows[ri]), t, v])
         out[str(int(b["name"]))] = slots
-    return {"slots": out, "name": (s.get("vesselName") or "").strip()}
+    # 3D 보기용 배치: [전장 m, 폭 m, 깊이 m, 거주구 바로 앞(선수 쪽) 베이 번호, 연돌 바로 앞 베이 번호(따로 없으면 -1)]
+    # cCASP 의 hatchArrangement = 선수부터 해치 순서, deckhouseIndex = 거주구 앞에 있는 해치 개수
+    el = [h for h in (s.get("hatchArrangement") or []) if h.get("s")]
+    def before(ix):
+        if ix is None or ix < 0: return -1
+        if ix == 0 or not el: return 0
+        f = el[min(ix, len(el)) - 1]["f"]
+        return int(s["bays"][f - 1]["name"]) if 0 < f <= len(s["bays"]) else -1
+    g = [round(float(s.get("loa") or 0), 1), round(float(s.get("width") or 0), 1), round(float(s.get("depth") or 0), 1),
+         before(s.get("deckhouseIndex")), before(s.get("funnelIndex"))]
+    return {"slots": out, "name": (s.get("vesselName") or "").strip(), "g": g}
 
 
 def pack(r):
@@ -43,7 +53,7 @@ def pack(r):
             b.setdefault(bay, {}).setdefault(str(tier), []).append(row)
             if v in REEFER: rf.setdefault(bay, {}).setdefault(str(tier), []).append(row)
     j = lambda d: {bay: {t: "".join("%02d" % x for x in sorted(set(rs))) for t, rs in ts.items()} for bay, ts in d.items()}
-    return {"n": r["name"], "b": j(b), "r": j(rf)}
+    return {"n": r["name"], "b": j(b), "r": j(rf), "g": r.get("g")}
 
 
 def main():
