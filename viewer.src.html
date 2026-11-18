@@ -299,12 +299,12 @@ body.static #tabs{display:none!important}
 #fbox{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));z-index:40;display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;
   max-width:calc(100vw - 32px);padding:8px 10px;background:linear-gradient(#f7faff,#e3ebf6);border:1px solid #5d7fae;border-radius:8px;box-shadow:0 8px 24px rgba(0,20,60,.4);font-size:12.5px}
 #fbox b{font-size:12.5px}
-.bpl[hidden]{display:none}.bpl .plNm{color:#0b3f94}
+.bpl[hidden]{display:none}.bpl{min-height:30px}.bpl .plNm{color:#0b3f94}
 .bpl{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;padding:5px 12px;border-bottom:1px solid var(--edge);background:var(--chrome);font-size:12px}
 .seg{display:inline-flex}.seg button{font:inherit;font-size:12px;font-weight:700;padding:2px 9px;border:1px solid var(--edge);background:#fff;color:#111;cursor:pointer;margin-left:-1px}
 .seg button:first-child{margin-left:0;border-radius:4px 0 0 4px}.seg button:last-child{border-radius:0 4px 4px 0}
 .pltop{display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap}.pltop .seg button{padding:5px 11px;font-size:12.5px}
-#plStrip{position:sticky;top:0;z-index:12;display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;padding:6px 12px;margin:0 0 8px;border:1px solid #0b3f94;border-radius:6px;background:#eaf2ff;font-size:12.5px;box-shadow:0 3px 10px rgba(0,20,60,.2)}
+#plStrip{position:fixed;top:6px;left:50%;transform:translateX(-50%);width:max-content;max-width:94vw;z-index:45;display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;padding:6px 12px;margin:0;border:1px solid #0b3f94;border-radius:6px;background:#eaf2ff;font-size:12.5px;box-shadow:0 3px 10px rgba(0,20,60,.2)}
 #plStrip[hidden]{display:none}#plStrip b{color:#0b3f94}
 @media (hover:none){#plTop,#plStrip{display:none}}
 .seg button[aria-pressed="true"]{background:#0b3f94;color:#fff;border-color:#0b3f94}
@@ -528,7 +528,7 @@ body.static .cr{display:none}
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
-      <span class="pltop" id="plTop"><span class="seg plModes"><button type="button" data-pm="v" title="보기만 (플래닝 끔)">보기</button><button type="button" data-pm="ll" title="Planning by Load List (Alt + S)">로드리스트</button><button type="button" data-pm="pal" title="Planning by Palette (Alt + Q)">팔레트</button></span>
+      <span class="pltop" id="plTop"><span class="seg plModes"><button type="button" data-pm="v" title="보기만 (플래닝 끔)">보기</button><button type="button" data-pm="ll" title="Planning by Load List (Alt + S)">로드리스트</button><button type="button" data-pm="pal" title="Planning by Palette (Alt + Q)">팔레트</button><button type="button" data-pm="sft" title="Shift Mode (Alt + W) — 컨테이너를 눌러 빼낸 뒤 다른 자리에 다시 싣기">Shift</button></span>
     <span class="seg plMir"><button type="button" data-mir="S" title="Single — 누른 칸에만 (Alt + Z)">S</button><button type="button" data-mir="2FA" title="Mirror for Fore and Aft — 같은 해치의 앞·뒤 20' 베이에 같이 (Alt + C)">2F/A</button></span></span>
       <button class="btn" id="edBtn" type="button" aria-pressed="false" title="컨테이너 목록(Editor)과 집계표(Pivot) 창을 켜고 꺼요 (Alt + E)">EDITOR / PIVOT</button>
       <button class="btn" id="helpBtn" type="button" title="단축키 모음 (F1)">도움말</button>
@@ -614,7 +614,7 @@ body.static .cr{display:none}
   <div class="body"><p id="askT"></p><div class="askb"><button type="button" id="askY">삭제</button><button type="button" id="askN">취소</button></div></div></div></div>
 <div id="pkTip" hidden role="tooltip"></div>
 <div id="llBox" hidden><div class="llh"><b>LOAD LIST</b> <span id="llN"></span><span class="sp"></span>
-    <button type="button" id="llAll" title="전부 고르기 · 다시 누르면 전부 해제">전체</button><button type="button" id="llAdd" title="조건과 수량으로 로드리스트 만들기">＋ 추가</button></div>
+    <button type="button" id="llBack" title="고른 것 중 쉬프팅으로 내린 컨테이너를 원래 자리에 다시 놓아요">원래 자리로</button><button type="button" id="llAll" title="전부 고르기 · 다시 누르면 전부 해제">전체</button><button type="button" id="llAdd" title="조건과 수량으로 로드리스트 만들기">＋ 추가</button></div>
   <div id="llForm" hidden>POL<input data-l="pol" maxlength="5"> POD<input data-l="pod" maxlength="5"> SzTp<input data-l="type" maxlength="4"> kg<input data-l="kg" maxlength="5" class="w">
     <select data-l="fe"><option>F</option><option>E</option></select> OPR<input data-l="line" maxlength="8"> 수량<input data-l="n" maxlength="3" value="1"> <button type="button" id="llGo">만들기</button></div>
   <div class="llw"><table id="llT"></table></div>
@@ -1367,7 +1367,10 @@ var ASK=null;
 function askDel(ids){var B=st.plan.boxes,bx=ids.map(function(i){return B[i]}).filter(Boolean);if(!bx.length)return;
   ASK=ids;$("askT").textContent="컨테이너 "+bx.length+" VAN 을 지울까요?\n\n"+vanSum(bx).join("\n");
   $("ask").hidden=false;$("askY").focus()}
-function askEnd(yes){var ids=ASK;ASK=null;$("ask").hidden=true;if(yes&&ids)delBoxes(ids)}
+function askEnd(yes){var ids=ASK;ASK=null;$("ask").hidden=true;
+  if(typeof ids==="function"){$("askY").textContent="삭제";$("ask").querySelector(".tb").textContent="컨테이너 삭제";if(yes)ids();return}
+  if(yes&&ids)delBoxes(ids)}
+function askDo(title,text,yes,fn){ASK=fn;$("ask").querySelector(".tb").textContent=title;$("askT").textContent=text;$("askY").textContent=yes;$("ask").hidden=false;$("askY").focus()}
 function ascOut(){   // 내보낼 ASC 글: 지운 컨테이너 줄을 빼고, 머리말의 RECORD 수와 안 쓰는 위험물 줄을 맞춤
   var keep=st.lines.filter(function(l,i){return !(l===""&&st.orig[i]!=="")});
   if(keep.length===st.lines.length&&st.orig.indexOf(undefined)<0)return st.lines.join(st.eol);
@@ -1854,7 +1857,7 @@ function plTargets(G,is40){var T=[],seen={};   // G = [{p: 그 베이 화면, ce
   G.forEach(function(g){var p=g.p;g.cells.forEach(function(c){var bay=is40?p.h:(p.kind==="f"?p.f:p.a),k=bay+"_"+c.row+"_"+c.tier;
     if(!seen[k]){seen[k]=1;T.push({H:p,bay:bay,row:c.row,tier:c.tier})}
     if(PL.mir==="2FA"&&!is40){var b2=bay===p.f?p.a:p.f,k2=b2+"_"+c.row+"_"+c.tier;if(!seen[k2]){seen[k2]=1;T.push({H:p,bay:b2,row:c.row,tier:c.tier,mir:1})}}})});return T}
-function plRun(G,is40,next,skip,word){   // 자리마다 검사하고, next() 가 주는 것을 하나씩 놓음
+function plRun(G,is40,next,skip,word){   // 돌려주는 값 = 놓은 개수   // 자리마다 검사하고, next() 가 주는 것을 하나씩 놓음
   var T=plTargets(G,is40),O=occMap(skip),done=0,why={},pushed=false;
   for(var k=0;k<T.length;k++){var t=T[k],w=whyNot(is40,t.H,t.bay,t.row,t.tier,O);
     if(w){if(!t.mir)why[w]=(why[w]||0)+1;continue}
@@ -1880,7 +1883,10 @@ function plPicked(){var B=st.plan.boxes;return st.pick.map(function(i){return B[
 function plMove(G){
   var mv=plPicked();if(!mv.length)return;
   var is40=mv[0].size===40;if(mv.some(function(b){return (b.size===40)!==is40}))return plSay("20' 와 40' 를 같이 옮길 수는 없어요. 한 크기만 골라 주세요.",true);
-  plRun(G,is40,function(n){var b=mv[n];if(!b)return null;return function(t){setPos(b,t)}},mv,"옮긴 컨테이너")}
+  var moved=[];
+  if(!plRun(G,is40,function(n){var b=mv[n];if(!b)return null;return function(t){moved.push(b);setPos(b,t)}},mv,"옮긴 컨테이너"))return;
+  var rest=mv.filter(function(b){return moved.indexOf(b)<0}).map(function(b){return st.lines?b.li:b});
+  if(rest.length){st.pick=st.plan.boxes.filter(function(b){return rest.indexOf(st.lines?b.li:b)>=0}).map(function(b){return b.i});PL.cp=st.pick.length>0;render()}}
 function plSwap(hit){
   var A=plPicked(),Bx=hit.filter(function(b){return A.indexOf(b)<0}).sort(function(a,b){return b.kg-a.kg});
   if(!Bx.length)return;
@@ -1889,20 +1895,46 @@ function plSwap(hit){
   pushUndo();var P1=A.map(function(b){return {bay:b.bay,row:b.row,tier:b.tier}}),P2=Bx.map(function(b){return {bay:b.bay,row:b.row,tier:b.tier}});
   A.forEach(function(b,k){setPos(b,P2[k])});Bx.forEach(function(b,k){setPos(b,P1[k])});
   plDone("자리를 바꾼 컨테이너 "+A.length+" 쌍 (무거운 것끼리 짝). Alt + 3 으로 되돌릴 수 있어요.")}
-function plUnplan(bx){if(!bx.length)return;pushUndo();
+function toLL(bx){   // 실려 있는 컨테이너를 로드리스트 줄로 (원래 자리를 기억)
   var E=bx.map(function(b){var c=Object.assign({},b);delete c.from;return {id:++PL.seq,b:c,raw:st.lines?st.lines[b.li]:null,li:st.lines?b.li:null,from:fromOf(b)||p6(b.bay,b.row,b.tier)}});
-  st.ll=(st.ll||[]).concat(E);PL.lsel=E.map(function(e){return e.id});dropBoxes(bx);
-  plDone("로드리스트로 내린 컨테이너 "+bx.length+" VAN ("+vanSum(bx).join(", ")+"). 고른 상태라 바로 다른 칸에 실을 수 있어요.")}
+  st.ll=(st.ll||[]).concat(E);dropBoxes(bx);return E}
+function plUnplan(bx,word){if(!bx.length)return;pushUndo();var E=toLL(bx);PL.lsel=E.map(function(e){return e.id});
+  plDone((word||"로드리스트로 내린 컨테이너")+" "+bx.length+" VAN ("+vanSum(bx).join(", ")+"). 고른 상태라 바로 다른 칸에 실을 수 있어요.")}
 function isNew(b){return st.lines?st.orig[b.li]===undefined:!!b.nw}   // 이 화면에서 새로 만든 컨테이너인가 (원본 파일에 없던 것)
 function plErase(bx){var mine=bx.filter(isNew);
   if(!mine.length)return plSay(bx.length?"팔레트 모드의 오른쪽 버튼은 여기서 새로 만든 컨테이너만 지워요. 원래 있던 컨테이너는 로드리스트 모드에서 내리거나, 보기 모드에서 지워 주세요.":"",true);
   pushUndo();dropBoxes(mine);plDone("새로 만든 컨테이너 "+mine.length+" VAN 을 지웠어요. Alt + 3 으로 되돌릴 수 있어요.")}
-function plUnshift(bx){var sf=bx.filter(function(b){return fromOf(b)}),O=occMap(sf),n=0,no=0,pushed=false;
+function plUnshift(bx,force){   // 쉬프팅 취소: 원래 자리로. 그 자리에 다른 컨테이너가 있으면 물어보고, 계속하면 그 컨테이너는 로드리스트로 (cCASP 와 같음)
+  var sf=bx.filter(function(b){return fromOf(b)}),O=occMap(sf),blk=[];
   if(!sf.length)return plSay(bx.length?"쉬프팅한 컨테이너가 아니에요.":"",true);
-  sf.forEach(function(b){var fr=fromOf(b),t={bay:+fr.slice(0,2),row:+fr.slice(2,4),tier:+fr.slice(4,6)},k=t.bay+"_"+t.row+"_"+t.tier;
-    if(O[k]){no++;return}if(!pushed){pushUndo();pushed=true}O[k]={};setPos(b,t);n++});
-  if(n)plDone("원래 자리로 되돌린 컨테이너 "+n+" VAN."+(no?" 원래 자리가 차 있어 못 돌린 것 "+no+" VAN.":""));else plSay("원래 자리가 다른 컨테이너로 차 있어요.",true)}
-function plGesture(btn,x1,y1,x2,y2,area,md){
+  function tOf(b){var fr=fromOf(b);return {bay:+fr.slice(0,2),row:+fr.slice(2,4),tier:+fr.slice(4,6)}}
+  sf.forEach(function(b){var t=tOf(b),o=O[t.bay+"_"+t.row+"_"+t.tier];if(o&&blk.indexOf(o)<0)blk.push(o)});
+  if(blk.length&&!force)return askDo("쉬프팅 취소","원래 자리 "+blk.length+"곳에 다른 컨테이너가 실려 있어요.\n계속하면 그 컨테이너는 로드리스트로 내려가요.\n\n쉬프팅을 취소할까요?","쉬프팅 취소",function(){plUnshift(bx,true)});
+  pushUndo();var T=sf.map(tOf),keys=sf.map(function(b){return st.lines?b.li:b});
+  if(blk.length)toLL(blk);
+  sf.forEach(function(b,k){setPos(b,T[k])});
+  plDone("원래 자리로 되돌린 컨테이너 "+sf.length+" VAN."+(blk.length?" 그 자리에 있던 "+blk.length+" VAN 은 로드리스트로 내렸어요.":""))}
+function plBack(){   // 로드리스트에 있는 쉬프팅 컨테이너를 원래 자리에 다시 놓기
+  var E=(st.ll||[]).filter(function(e){return PL.lsel.indexOf(e.id)>=0&&e.from}),O=occMap(),n=0,no=0,pushed=false;
+  if(!E.length)return plSay("고른 것 중에 쉬프팅으로 내린 컨테이너가 없어요.",true);
+  E.forEach(function(e){var fr=e.from,t={bay:+fr.slice(0,2),row:+fr.slice(2,4),tier:+fr.slice(4,6)},k=t.bay+"_"+t.row+"_"+t.tier;
+    if(O[k]){no++;return}if(!pushed){pushUndo();pushed=true}O[k]={};addBox(e.b,t,e);st.ll=st.ll.filter(function(x){return x!==e})});
+  if(pushed)plDone("원래 자리에 다시 놓은 컨테이너 "+(E.length-no)+" VAN."+(no?" 자리가 차 있어 못 놓은 것 "+no+" VAN.":""));else plSay("원래 자리가 다른 컨테이너로 차 있어요.",true)}
+// cCASP 의 Ctrl 동작 (General Plan · Bay Plan 공통):
+//  지정된 것이 없을 때  Ctrl+왼쪽(클릭·끌기) = 그 컨테이너들을 지정
+//  지정된 것이 있을 때  Ctrl+왼쪽 → 같은 개수·같은 크기의 다른 컨테이너를 눌렀으면 자리 교체(물어봄), 아니면 네모 안의 빈 칸으로 이동, 빈 칸도 없으면 아무 일 없음
+//                     Ctrl+Alt+왼쪽 = 지정에 더하기
+//  Ctrl+오른쪽 = 그 컨테이너 지정 해제, Ctrl+Alt+오른쪽 = 전부 해제
+function plCtrl(btn,alt,G,hit){
+  var B=st.plan.boxes,sel=PL.cp?st.pick.map(function(i){return B[i]}).filter(Boolean):[];
+  function show(){st.sel=-1;$("sheet").hidden=true;PL.cp=st.pick.length>0;render()}
+  if(btn===2){st.pick=alt?[]:st.pick.filter(function(i){return hit.indexOf(B[i])<0});return show()}
+  if(!sel.length){if(!hit.length)return;st.pick=hit.map(function(b){return b.i});return show()}
+  if(alt){hit.forEach(function(b){if(st.pick.indexOf(b.i)<0)st.pick.push(b.i)});return show()}
+  if(hit.length&&hit.length===sel.length&&!hit.some(function(b){return sel.indexOf(b)>=0})&&sel.concat(hit).every(function(b){return b.size===sel[0].size}))
+    return askDo("자리 교체","지정한 컨테이너 "+sel.length+" VAN 과 누른 컨테이너 "+hit.length+" VAN 의 자리를 바꿀까요?\n\n"+vanSum(sel).join("\n")+"\n  ⇅\n"+vanSum(hit).join("\n"),"자리 교체",function(){plSwap(hit)});
+  if(G.length)plMove(G)}
+function plGesture(btn,x1,y1,x2,y2,area,md,alt){
   var G=[],boxes=[],B=st.plan.boxes,mode=md||PL.mode;
   function scan(root,sel,p){var cells=[];
     [].forEach.call(root.querySelectorAll(sel),function(c){var r=c.getBoundingClientRect();if(!(r.right>x1&&r.left<x2&&r.bottom>y1&&r.top<y2))return;
@@ -1912,14 +1944,16 @@ function plGesture(btn,x1,y1,x2,y2,area,md){
   if(area&&area.id==="gp")[].forEach.call(area.querySelectorAll(".mini"),function(mi){var Q=PANELS[mi.dataset.go],r=mi.getBoundingClientRect();
     if(Q&&r.right>x1&&r.left<x2&&r.bottom>y1&&r.top<y2)scan(mi,".m",Q.p)});
   else{var Q0=PANELS[st.open];if(!Q0)return;scan($("bwB"),".c",Q0.p)}
+  if(mode==="sel")return plCtrl(btn,alt,G,boxes);
   if(btn===0){if(mode==="pal")plPaint(G);else if(mode==="ll")plLoad(G);
-    else if(G.length)plMove(G);else plSwap(boxes)}
-  else{if(mode==="pal")plErase(boxes);else if(mode==="ll")plUnplan(boxes)}}
+    else if(mode==="sft"){if(boxes.length)plUnplan(boxes,"쉬프팅으로 빼낸 컨테이너");else plLoad(G)}}   // Shift: 컨테이너를 누르면 빼냄(원래 자리 기억) → 빈 칸을 누르면 다시 실림
+  else{if(mode==="pal")plErase(boxes);else if(mode==="ll")plUnplan(boxes);else if(mode==="sft")plUnshift(boxes)}}
 function plMode(m){if(window.__STATIC__||!st.plan||st.example)return;PL.mode=PL.mode===m?"v":m;
   if(PL.mode==="pal"&&!PL.brush.pol){var c={},d={};st.plan.boxes.forEach(function(b){c[b.pol]=(c[b.pol]||0)+1;d[b.pod]=(d[b.pod]||0)+1});
     var top=function(o){return Object.keys(o).sort(function(a,b){return o[b]-o[a]})[0]||""};PL.brush.pol=top(c);PL.brush.pod=top(d)}
   plDraw();
   plSay({v:"",ll:"LOAD LIST 에서 고른 뒤 General Plan(또는 Bay Plan)의 빈 칸을 누르거나 끌면 실려요. 여러 베이에 걸쳐 끌어도 돼요. 오른쪽 버튼 = 로드리스트로 내리기.",pal:"이 조건으로 General Plan(또는 Bay Plan)의 빈 칸을 누르거나 끌면 컨테이너가 생겨요. 오른쪽 버튼 = 새로 만든 컨테이너 지우기.",
+    sft:"Shift: 옮길 컨테이너를 누르거나 끌면 빠져서 LOAD LIST 로 가요(원래 자리 기억). 이어서 빈 칸을 누르거나 끌면 다시 실려요. 오른쪽 버튼 = 쉬프팅 취소(원래 자리로).",
     mv:"Ctrl + 클릭(드래그)으로 고른 뒤, 빈 칸을 누르거나 끌면 이동 · 다른 컨테이너를 누르면 자리 교체 (다른 베이로도 돼요). 오른쪽 버튼 = 쉬프팅 취소."}[PL.mode])}
 function plMir(m){PL.mir=m;plDraw()}
 function plDraw(){
@@ -1929,12 +1963,12 @@ function plDraw(){
   [].forEach.call(document.querySelectorAll(".plMir button"),function(b){b.setAttribute("aria-pressed",b.dataset.mir===PL.mir)});
   [].forEach.call(document.querySelectorAll(".plBrush"),function(x){x.hidden=PL.mode!=="pal"});
   [].forEach.call(document.querySelectorAll(".plBrush [data-b]"),function(i){if(document.activeElement!==i)i.value=PL.brush[i.dataset.b]});
-  var can=PL.cp&&st.pick.length>0&&tOn(),nm={ll:"로드리스트로 싣기",pal:"팔레트로 싣기"}[PL.mode]||"";
+  var can=PL.cp&&st.pick.length>0&&tOn(),nm={ll:"로드리스트로 싣기",pal:"팔레트로 싣기",sft:"Shift"}[PL.mode]||"";
   document.body.classList.toggle("canmv",can);
-  if(can)nm=(nm?nm+" · ":"")+"고른 컨테이너 "+st.pick.length+"개 — 빈 칸을 누르면 이동 · 다른 컨테이너를 누르면 자리 교체";
+  if(can)nm=(nm?nm+" · ":"")+"지정 "+st.pick.length+" VAN — Ctrl+클릭: 빈 칸 = 이동 · 같은 개수의 컨테이너 = 자리 교체 / Ctrl+Alt+클릭 = 더 지정 / Ctrl+오른쪽 = 해제";
   on=on||can;
-  $("plStrip").hidden=!on;$("plName").textContent=nm;$("bwPl").hidden=!on;$("bwPl").querySelector(".plNm").textContent=nm+(PL.mir==="2FA"?" · 2F/A":"");
-  var L=(st.ll||[]).slice().sort(function(a,b){return b.b.kg-a.b.kg}),show=PL.mode==="ll"&&!!st.plan;
+  $("plStrip").hidden=!on;$("plName").textContent=nm;$("bwPl").hidden=false;$("bwPl").querySelector(".plNm").textContent=(nm||"보기")+(PL.mir==="2FA"?" · 2F/A":"");
+  var L=(st.ll||[]).slice().sort(function(a,b){return b.b.kg-a.b.kg}),show=(PL.mode==="ll"||PL.mode==="sft")&&!!st.plan;
   $("llBox").hidden=!show;if(!show)return;
   PL.lsel=PL.lsel.filter(function(i){return L.some(function(e){return e.id===i})});
   $("llN").textContent=L.length+" VAN"+(PL.lsel.length?" · 고른 것 "+PL.lsel.length:"");
@@ -1952,6 +1986,7 @@ function plDraw(){
     var f=plFields(v),n=Math.max(1,Math.min(500,parseInt(v.n,10)||1));if(typeof f==="string")return plSay(f,true);
     pushUndo();var E=[];for(var k=0;k<n;k++)E.push({id:++PL.seq,b:mkObj(f),raw:null,li:null,from:null});
     st.ll=(st.ll||[]).concat(E);PL.lsel=E.map(function(e){return e.id});plDraw();plSay("로드리스트에 "+n+" VAN 을 만들었어요 ("+f.pol+" "+f.pod+" "+f.type+"). 고른 상태예요.")};
+  $("llBack").onclick=function(){plBack()};
   $("llAll").onclick=function(){PL.lsel=PL.lsel.length?[]:(st.ll||[]).map(function(e){return e.id});plDraw()};
   function rowIds(){return [].map.call($("llT").querySelectorAll("tr[data-l]"),function(r){return +r.dataset.l})}
   $("llT").addEventListener("click",function(e){var tr=e.target.closest("tr[data-l]");if(!tr)return;var id=+tr.dataset.l,k=PL.lsel.indexOf(id),ids=rowIds();
@@ -1962,29 +1997,26 @@ function plDraw(){
   $("llT").addEventListener("dblclick",function(e){var tr=e.target.closest("tr[data-l]");if(!tr)return;var ids=rowIds();PL.lsel=ids.slice(ids.indexOf(+tr.dataset.l));plDraw()});
   // 마우스: 플래닝 모드에서 Ctrl 없이 Bay Plan 을 누르거나 끄는 것은 여기서 먼저 받음(Ctrl 을 누르면 평소처럼 고르기)
   var d=null,band=null;
-  // 이동·교체는 모드가 따로 없음: Ctrl 로 고른 컨테이너가 있으면(PL.cp), 그냥 누르는 빈 칸 = 이동 · 다른 컨테이너 = 교체.
-  // Ctrl 없이 한 번 눌러 본 컨테이너(Container Editor 보기)는 옮겨지지 않음 — 실수로 옮기는 일을 막으려고.
   function zone(e){return !window.__STATIC__&&st.plan&&!st.example&&e.pointerType==="mouse"&&e.target.closest&&(e.target.closest("#bwB")||e.target.closest("#gp"))}
   document.addEventListener("pointerdown",function(e){
-    if(e.ctrlKey||e.metaKey){if(e.button===0)PL.cp=true;return}   // Ctrl = 고르기(평소 동작, Editor 목록 포함)
-    var ar=zone(e);if(!ar||(e.button!==0&&e.button!==2))return;
-    var box=e.target.closest(".c.b,.m.b"),slot=e.target.closest(".c[data-s],.m[data-s]"),can=PL.cp&&st.pick.length>0,md="";
-    if(e.button===0){
-      if(can&&slot)md="mv";                                                   // 고른 것을 이 빈 칸으로
-      else if(can&&box&&st.pick.indexOf(+box.dataset.i)<0)md="mv";              // 고른 것과 이 컨테이너를 맞바꿈
+    var ar=zone(e);if(!ar||(e.button!==0&&e.button!==2)||e.target.closest("input,select"))return;
+    var box=e.target.closest(".c.b,.m.b"),md="";
+    if(e.ctrlKey||e.metaKey)md="sel";                                          // Ctrl = 지정 · 이동 · 교체 (plCtrl)
+    else if(e.button===0){
+      if(PL.mode==="sft")md="sft";                                             // Shift 모드: 컨테이너 = 빼내기, 빈 칸 = 다시 싣기
       else if(PL.mode!=="v"&&!box)md=PL.mode;                                  // 싣기 모드: 빈 칸을 누르거나 끌기
-      else{if(box)PL.cp=false;return}}                                         // 그 밖은 평소처럼 (컨테이너를 누르면 Container Editor)
-    else{if(PL.mode==="v")return;md=PL.mode}                                    // 오른쪽 버튼: 싣기 모드에서만 가로챔 (보기에서는 평소처럼 삭제)
-    e.stopPropagation();d={x:e.clientX,y:e.clientY,btn:e.button,on:false,a:ar,md:md}},true);
+      else{if(box){PL.cp=false}return}}                                        // 그 밖은 평소처럼 (컨테이너를 누르면 Container Editor)
+    else{if(PL.mode==="v")return;md=PL.mode}                                    // 오른쪽 버튼: 모드가 켜져 있을 때만 가로챔 (보기에서는 평소처럼 삭제)
+    e.stopPropagation();d={x:e.clientX,y:e.clientY,btn:e.button,on:false,a:ar,md:md,alt:e.altKey}},true);
   document.addEventListener("pointermove",function(e){if(!d)return;e.stopPropagation();
-    if(!d.on){if(Math.abs(e.clientX-d.x)<6&&Math.abs(e.clientY-d.y)<6)return;d.on=true;band=document.createElement("div");band.id="band";band.className=d.btn===0?"add":"del";document.body.appendChild(band);document.body.classList.add("banding")}
+    if(!d.on){if(Math.abs(e.clientX-d.x)<6&&Math.abs(e.clientY-d.y)<6)return;d.on=true;band=document.createElement("div");band.id="band";band.className=d.md==="sel"?(d.btn===0?"add":"off"):(d.btn===0?"add":"del");document.body.appendChild(band);document.body.classList.add("banding")}
     band.style.left=Math.min(d.x,e.clientX)+"px";band.style.top=Math.min(d.y,e.clientY)+"px";band.style.width=Math.abs(e.clientX-d.x)+"px";band.style.height=Math.abs(e.clientY-d.y)+"px";e.preventDefault()},true);
   document.addEventListener("pointerup",function(e){if(!d)return;var D=d;d=null;e.stopPropagation();
     if(band){band.remove();band=null}document.body.classList.remove("banding");DRAGT=Date.now();
     var stop=function(ev){ev.stopPropagation();ev.preventDefault()};
     document.addEventListener("click",stop,true);document.addEventListener("contextmenu",stop,true);
     setTimeout(function(){document.removeEventListener("click",stop,true);document.removeEventListener("contextmenu",stop,true)},350);
-    plGesture(D.btn,Math.min(D.x,e.clientX),Math.min(D.y,e.clientY),Math.max(D.x,e.clientX),Math.max(D.y,e.clientY),D.a,D.md)},true);
+    plGesture(D.btn,Math.min(D.x,e.clientX),Math.min(D.y,e.clientY),Math.max(D.x,e.clientX),Math.max(D.y,e.clientY),D.a,D.md,D.alt)},true);
   document.addEventListener("pointercancel",function(){if(band){band.remove();band=null}d=null});
 })();
 // ---------- 폰(터치)에서 플래닝 ----------
@@ -2354,16 +2386,16 @@ var KEYS=[
   {keys:["Alt","E"],d:"EDITOR / PIVOT 켜기 · 끄기",code:"KeyE",alt:1,plan:1,fn:function(){$("edBtn").click()}},
   {keys:["Ctrl","Tab"],d:"다음 플랜 탭으로 (마지막 탭 다음은 첫 탭)",code:"Tab",ctrl:1,fn:function(){tabStep(1)}},
   {keys:["Alt","F"],d:"컨테이너 찾기 열기 · 닫기",code:"KeyF",alt:1,plan:1,fn:function(){findBox()}},
-  {keys:["Ctrl","클릭"],d:"컨테이너 여러 개 고르기 (Bay Plan 에서는 Container Editor 도 같이 떠요)"},
-  {keys:["Ctrl","오른쪽 버튼 클릭"],d:"고른 컨테이너 선택 해제 (빨간 표식 지우기)"},
-  {keys:["Ctrl","드래그"],d:"네모로 끌어서 그 안의 컨테이너를 한꺼번에 고르기"},
-  {keys:["Ctrl","오른쪽 버튼 드래그"],d:"네모 안의 컨테이너 선택 해제"},
+  {keys:["Ctrl","클릭"],or:["Ctrl","드래그"],d:"컨테이너 지정 (지정된 것이 없을 때). 지정된 것이 있으면 → 빈 칸 = 그 자리로 이동, 같은 개수의 다른 컨테이너 = 자리 교체(확인 창)"},
+  {keys:["Ctrl","Alt","클릭"],or:["Ctrl","Alt","드래그"],d:"지정에 더하기 (여러 개 지정)"},
+  {keys:["Ctrl","오른쪽 버튼 클릭"],or:["Ctrl","오른쪽 버튼 드래그"],d:"그 컨테이너 지정 해제"},
+  {keys:["Ctrl","Alt","오른쪽 버튼 클릭"],d:"지정 전부 해제"},
   {keys:["오른쪽 버튼 클릭"],d:"그 컨테이너 하나 삭제 (확인 창에서 Enter = 삭제, Esc = 취소)"},
   {keys:["오른쪽 버튼 드래그"],d:"네모 안의 컨테이너 여러 개 삭제"},
   {keys:["Alt","3"],d:"되돌리기 (삭제 · 고친 값을 한 단계씩)",code:"Digit3",code2:"Numpad3",alt:1,plan:1,fn:function(){undo()}},
   {keys:["Alt","S"],d:"로드리스트로 싣기 (Planning by Load List) 켜기 · 끄기 — General Plan · Bay Plan",code:"KeyS",alt:1,plan:1,fn:function(){plMode("ll")}},
   {keys:["Alt","Q"],d:"팔레트로 싣기 (Planning by Palette) 켜기 · 끄기 — General Plan · Bay Plan",code:"KeyQ",alt:1,plan:1,fn:function(){plMode("pal")}},
-  {keys:["클릭"],d:"Ctrl 로 고른 컨테이너가 있을 때 — 빈 칸을 누르면(끌면) 그 자리로 이동, 다른 컨테이너를 누르면 자리 교체 (General Plan · Bay Plan, 다른 베이로도)"},
+  {keys:["Alt","W"],d:"Shift 모드 켜기 · 끄기 — 컨테이너를 눌러 빼내고 빈 칸에 다시 싣기, 오른쪽 버튼 = 쉬프팅 취소",code:"KeyW",alt:1,plan:1,fn:function(){plMode("sft")}},
   {keys:["Alt","Z"],d:"미러 끄기 (Single)",code:"KeyZ",alt:1,plan:1,fn:function(){plMir("S")}},
   {keys:["Alt","C"],d:"미러 2F/A — 같은 해치의 앞·뒤 20' 베이에 같이 싣기",code:"KeyC",alt:1,plan:1,fn:function(){plMir("2FA")}},
   {keys:["Shift","클릭"],d:"Editor 목록에서 범위로 고르기 · 열 제목은 여러 열 정렬"},
