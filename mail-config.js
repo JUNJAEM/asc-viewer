@@ -10,3 +10,7 @@ window.ASC_MAIL={
     cc:["부산운항팀 운항담당 <bvot@sinokor.co.kr>","장금상선 부산고객지원팀 <buscst@sinokor.co.kr>","흥아라인 부산고객지원팀 <buscst@heungaline.com>","장금상선 울산사무소 <ulsan@sinokor.co.kr>","장금상선 광양사무소 <kwangyang@sinokor.co.kr>","장금상선 평택사무소 <pyongtaek@sinokor.co.kr>","장금상선 인천사무소 <inchon@sinokor.co.kr>","장금상선 본사고객지원팀수입 <csti@sinokor.co.kr>"]
   }
 };
+
+// 폰·웹의 메일함: 회사 Microsoft 365 에 등록한 앱 ID (비밀 값이 아님 — 로그인 창을 띄울 때 쓰는 이름표).
+// 비어 있으면 폰·웹의 메일함은 "설정이 필요해요" 안내만 보여 줌. 등록: Entra > 앱 등록 > 단일 페이지 앱, 리디렉션 URI = 깃허브 페이지 주소, 위임 권한 Mail.Read
+window.ASC_GRAPH={clientId:"",tenant:"organizations"};
