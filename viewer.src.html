@@ -1726,7 +1726,13 @@ document.addEventListener("contextmenu",function(e){
 // 선박 모양은 도면이 아니라 cCASP 구조에서 만든 것: 전장·폭·깊이, 베이·로우·티어 칸, 거주구가 어느 베이 뒤에 있는지(ships.js 의 g).
 // 그리기는 캔버스 하나로 직접(외부 라이브러리 없음): 모든 것을 같은 크기의 상자 칸으로 쪼개서, 먼 것부터 덧칠.
 // GA 도면(스캔 그림)을 보고 읽어 넣은 선박별 값: nav = 항해 갑판(브리지 바닥) 높이, eye = 조타 위치 눈높이, lv = 상갑판 위 층수 (모두 용골 기준 m)
-var GA={MJEP:{nav:20.2,eye:22.0,lv:5}};
+// d = 도면에 적힌 선체 깊이(전산 값이 틀린 배만). 자매선은 같은 값. 높이가 인쇄된 도면은 그대로, 없는 도면은 그림에서 잰 값(±0.5 m).
+var GA=(function(){var o={MJEP:{nav:20.2,eye:22.0,lv:5}};
+  function a(codes,nav,d){codes.split(" ").forEach(function(c){o[c]={nav:nav};if(d)o[c].d=d})}
+  a("AKTR TYTR",28.55);a("HAHP HAJN",28.35);a("HAYN",30.55);a("HKVY",29.3);a("NGTR",26.9);
+  a("HTVY OSVY VTVY PCNB",27.6);a("PCSG PCTJ",27.6,10.8);a("PCBS",27.8);a("CNVY",37.8);
+  a("ICVY USVY YSVY",37.5);a("NBVY QDVY",40.55);a("MEBG",53.8);a("NBTD",31.0,11.5);
+  a("SWAT SWDN SWIC SWSR",34.3);a("PCBJ PCSZ",31.1);a("YKTD YTTR",30.9);return o})();
 var HEX={},BAY2P={},V3={yaw:-0.62,pit:0.5,zoom:1,hold:false,faces:[],hov:null,M:null};
 function v3Model(){
   var P=st.plan,B=P.boxes,sh=curShip(),g=sh&&sh.g||[0,0,0,-1,-1],odd={},evn={},k,rows={},holdT=0,deckT=0;
@@ -1735,6 +1741,7 @@ function v3Model(){
   B.forEach(function(b){seen(b.bay,b.row,b.tier)});
   for(k in evn){if(!odd[+k-1])odd[+k-1]=1;if(!odd[+k+1])odd[+k+1]=1}
   var bays=Object.keys(odd).map(Number).sort(function(a,b){return a-b}),nR=0;for(k in rows)nR=Math.max(nR,Math.ceil(+k/2));
+  var ga=GA[st.ship]||null;if(ga&&ga.d){g=g.slice();g[2]=ga.d}
   var half=!rows[0],CW=2.5,CL=6.1,CH=2.6;                    // half: 가운데 로우(00)가 없는 배 — 반 칸씩 밀림
   var W=g[1]>5&&g[1]<70?g[1]:(2*nR+(half?0:1))*CW+3,D=g[2]>3&&g[2]<40?g[2]:Math.max(8,holdT*CH+2.5);
   W=Math.max(W,(2*nR+(half?0:1))*CW+1.5);
@@ -1759,13 +1766,13 @@ function v3Model(){
       cells.push({x0:r[0]+(b.bay%2?0.1:(j?0.1:-0.13)),x1:r[1]-(b.bay%2?0.1:(j?-0.13:0.1)),y:yc,z:zz,hh:hh-0.1,c:c,bay:b.bay,i:b.i,hold:hd,pk:st.pick.indexOf(b.i)>=0})})});
   // 거주구·연돌: 컨테이너와 같은 크기의 칸으로 (정렬이 꼬이지 않게)
   var hw=Math.floor((W-2)/CW/2),nx2=Math.max(2,Math.round((dh[1]-dh[0])/CL)),sx=(dh[1]-dh[0])/nx2,lv=Math.max(4,Math.min(7,deckT+1));
-  var ga=GA[st.ship]||null,HH=CH;if(ga){lv=ga.lv;HH=(ga.nav-D)/(lv-1)}   // HH: 거주구 한 층 높이
+  var HH=CH;if(ga){lv=ga.lv||Math.max(3,Math.round((ga.nav-D)/2.85)+1);HH=(ga.nav-D)/(lv-1)}   // HH: 거주구 한 층 높이
   for(var ix=0;ix<nx2;ix++)for(var iy=-hw;iy<=hw;iy++)for(var iz=0;iz<lv;iz++){
     if(iz===lv-1&&ix<nx2-1)continue;                           // 맨 위층(브리지)은 앞쪽 한 칸만
     cells.push({x0:dh[0]+ix*sx,x1:dh[0]+(ix+1)*sx,y:iy*CW,z:D+iz*HH,hh:HH,c:iz===lv-1?"#dfe7f2":"#f4f6f9",house:1,win:ix===nx2-1&&iz>0})}
   for(var fz=0;fz<2;fz++)cells.push({x0:dh[0]+0.5,x1:dh[0]+sx*0.8,y:0,z:D+(lv-1+fz)*HH,hh:HH,c:"#1b2a8c",house:1});   // 연돌
   // 전방 시야(Visibility): 조타 위치의 눈에서 갑판 화물 꼭대기를 스치는 시선이 바다에 닿는 곳. SOLAS V/22 = 선수 앞 사각이 2 x 전장 또는 500 m 중 작은 값 이내.
-  var draft=D*0.68,eye=[dh[1]-1.5,ga?ga.eye:D+(lv-1)*HH+1.8],sl=-1e9,hit=null;
+  var draft=D*0.68,eye=[dh[1]-1.5,ga?(ga.eye||ga.nav+1.8):D+(lv-1)*HH+1.8],sl=-1e9,hit=null;
   function see(px,pz,what){if(px<=eye[0]+0.5)return;var m=(pz-eye[1])/(px-eye[0]);if(m>sl){sl=m;hit=[px,pz,what]}}
   see(xB,D+1.2,null);
   cells.forEach(function(c){if(!c.house&&!c.hold){see(c.x0,c.z+c.hh+0.1,c);see(c.x1,c.z+c.hh+0.1,c)}});
