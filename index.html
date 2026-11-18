@@ -472,7 +472,7 @@ body.static .cr{display:none}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-18 10:57 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-18 11:00 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -1709,9 +1709,13 @@ function v3Model(){
   var xB=cargoBow+bowL,xS=cargoAft-stL,Lh=xB-xS,hb=W/2,zH=D-0.4-holdT*CH,zD=D+1.2;
   function y0(row){var n=Math.ceil(row/2),sg=row===0?0:(row%2?1:-1);return half?sg*(n-0.5)*CW:sg*n*CW}
   var cells=[];   // [x0,x1,yc,z0,색,베이,상자번호,종류]
-  B.forEach(function(b){var c=HEX[keyOf(b)]||"#999",zz=b.tier<80?zH+(b.tier/2-1)*CH:zD+((b.tier-82)/2)*CH,yc=y0(b.row);
-    (b.bay%2?[b.bay]:[b.bay-1,b.bay+1]).forEach(function(bb,j){var r=X[bb];if(!r)return;
-      cells.push({x0:r[0]+(b.bay%2?0.1:(j?0.1:-0.13)),x1:r[1]-(b.bay%2?0.1:(j?-0.13:0.1)),y:yc,z:zz,c:c,bay:b.bay,i:b.i,hold:b.tier<80,pk:st.pick.indexOf(b.i)>=0})})});
+  // 높이: 일반 8'6" = 2.59 m, 하이큐빅 9'6" = 2.90 m. 티어 번호로 높이를 정하지 않고 아래에서부터 실제 높이를 쌓아 올림(40'는 밑의 20' 두 줄 중 높은 쪽 위에).
+  var top={};
+  B.slice().sort(function(u,v){return u.tier-v.tier}).forEach(function(b){var c=HEX[keyOf(b)]||"#999",yc=y0(b.row),hd=b.tier<80,bs=b.bay%2?[b.bay]:[b.bay-1,b.bay+1];
+    var hh=b.hc?2.896:2.591,zz=hd?zH:zD;bs.forEach(function(bb){var t=top[bb+"_"+b.row+"_"+hd];if(t>zz)zz=t});
+    bs.forEach(function(bb){top[bb+"_"+b.row+"_"+hd]=zz+hh});
+    bs.forEach(function(bb,j){var r=X[bb];if(!r)return;
+      cells.push({x0:r[0]+(b.bay%2?0.1:(j?0.1:-0.13)),x1:r[1]-(b.bay%2?0.1:(j?-0.13:0.1)),y:yc,z:zz,hh:hh-0.1,c:c,bay:b.bay,i:b.i,hold:hd,pk:st.pick.indexOf(b.i)>=0})})});
   // 거주구·연돌: 컨테이너와 같은 크기의 칸으로 (정렬이 꼬이지 않게)
   var hw=Math.floor((W-2)/CW/2),nx2=Math.max(2,Math.round((dh[1]-dh[0])/CL)),sx=(dh[1]-dh[0])/nx2,lv=Math.max(4,Math.min(7,deckT+1));
   var ga=GA[st.ship]||null,HH=CH;if(ga){lv=ga.lv;HH=(ga.nav-D)/(lv-1)}   // HH: 거주구 한 층 높이
@@ -1723,7 +1727,7 @@ function v3Model(){
   var draft=D*0.68,eye=[dh[1]-1.5,ga?ga.eye:D+(lv-1)*HH+1.8],sl=-1e9,hit=null;
   function see(px,pz,what){if(px<=eye[0]+0.5)return;var m=(pz-eye[1])/(px-eye[0]);if(m>sl){sl=m;hit=[px,pz,what]}}
   see(xB,D+1.2,null);
-  cells.forEach(function(c){if(!c.house&&!c.hold){see(c.x0,c.z+CH*0.95,c);see(c.x1,c.z+CH*0.95,c)}});
+  cells.forEach(function(c){if(!c.house&&!c.hold){see(c.x0,c.z+c.hh+0.1,c);see(c.x1,c.z+c.hh+0.1,c)}});
   var Lr=g[0]>50&&g[0]<450?g[0]:Lh,lim=Math.min(2*Lr,500),vis={eye:eye,hit:hit,lim:lim,blind:sl<0?eye[0]+(draft-eye[1])/sl-xB:Infinity,ga:!!ga};
   // 부두 뒤 야드: 블록 두 줄, 칸마다 0~4단을 색색으로 (늘 같은 모양이 나오게 정해진 난수)
   var q0=hb+1.6,ya=q0+36,yard=[],blocks=[],sd=11,YC=["#2f5fa8","#8c3b2e","#dcdcdc","#c9682b","#2e8a57","#1b2a8c","#b0413e","#e0b030","#3f86c2"];
