@@ -448,7 +448,7 @@ body.static .cr{display:none}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-18 09:23 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-18 09:27 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -954,7 +954,7 @@ function edDraw(){
       edDraw();return}
     if(tr){var bi=+tr.dataset.i;
       var off2=false;
-      if(e.ctrlKey||e.metaKey){var x=st.pick.indexOf(bi);if(x<0)st.pick.push(bi);else{st.pick.splice(x,1);off2=true}}
+      if(e.ctrlKey||e.metaKey){var x=st.pick.indexOf(bi);if(x<0)st.pick.push(bi)}   // Ctrl+클릭은 더하기만. 빼기는 Ctrl+오른쪽 클릭
       else if(e.shiftKey&&st.sel>=0){var ids=[].map.call($("edTb").querySelectorAll("tr[data-i]"),function(r){return +r.dataset.i}),a=ids.indexOf(st.sel),b2=ids.indexOf(bi);
         if(a>=0&&b2>=0)st.pick=ids.slice(Math.min(a,b2),Math.max(a,b2)+1);else st.pick=[bi]}
       else st.pick=[bi];
@@ -1363,11 +1363,11 @@ document.addEventListener("click",function(e){
   var c=e.target.closest(".c.b"),ch=e.target.closest(".chipb"),mi=e.target.closest(".mini"),mc=e.target.closest(".m.b");
   if(mc&&(e.ctrlKey||e.metaKey)&&mc.dataset.i!=null){   // General Plan: Ctrl+클릭 = 표식 넣기·지우기 (Bay Plan 과 같음)
     var gi=+mc.dataset.i,gk=st.pick.indexOf(gi);
-    if(gk<0){st.pick.push(gi);showBox(gi)}else{st.pick.splice(gk,1);unmark(gi)}
+    if(gk<0)st.pick.push(gi);   // General Plan 에서는 고르기만 — Container Editor 는 Bay Plan 에서 고를 때만 띄움. 빼기는 Ctrl+오른쪽 클릭
     render();return}
   if(c){var ci=+c.dataset.i;
     var off=false;
-    if(e.ctrlKey||e.metaKey||MULTI){var k=st.pick.indexOf(ci);if(k<0)st.pick.push(ci);else{st.pick.splice(k,1);off=true}}
+    if(e.ctrlKey||e.metaKey||MULTI){var k=st.pick.indexOf(ci);if(k<0)st.pick.push(ci);else if(MULTI&&!e.ctrlKey&&!e.metaKey){st.pick.splice(k,1);off=true}}   // 빼기: 마우스는 Ctrl+오른쪽 클릭, 터치(여러 개 고르기)는 다시 누르기
     else st.pick=[ci];
     if(off)unmark(ci);else showBox(ci);
     if(MULTI){st.sel=-1;$("sheet").hidden=true}   // 여러 개 고르는 중에는 상세 창을 띄우지 않음 (고른 목록이 가려져서)   // Ctrl+클릭으로 표식을 지우면 그 컨테이너의 상세·테두리도 같이 걷음
@@ -1612,8 +1612,13 @@ $("findBtn").onclick=function(){findBox()};$("fX").onclick=function(){findBox(fa
 // 오른쪽 버튼 클릭(끌지 않고) = 그 컨테이너 하나 삭제 (확인 창). Ctrl 을 누르고 있으면 건드리지 않음.
 var DRAGT=0;
 document.addEventListener("contextmenu",function(e){
-  if(window.__STATIC__||!st.plan||e.ctrlKey||e.metaKey||Date.now()-DRAGT<400||!$("ask").hidden)return;
-  var a=e.target.closest&&(e.target.closest("#bwB")||e.target.closest("#gp"));if(!a)return;
+  if(window.__STATIC__||!st.plan||Date.now()-DRAGT<400||!$("ask").hidden||!e.target.closest)return;
+  if(e.ctrlKey||e.metaKey){   // Ctrl + 오른쪽 클릭 = 그 컨테이너 선택 해제 (Bay Plan·General Plan·Editor 목록)
+    var t=e.target.closest("#bwB .c.b, #gp .m.b, #edTb tr[data-i]");if(!t||t.dataset.i==null)return;
+    e.preventDefault();var ti=+t.dataset.i,tk=st.pick.indexOf(ti);
+    if(tk>=0){st.pick.splice(tk,1);unmark(ti);render()}
+    return}
+  var a=e.target.closest("#bwB")||e.target.closest("#gp");if(!a)return;
   var c=e.target.closest(a.id==="gp"?".m.b":".c.b");if(!c||c.dataset.i==null)return;
   e.preventDefault();askDel([+c.dataset.i])});
 // ---------- 단축키 표: 여기 한 줄을 넣으면 단축키가 생기고 도움말(F1)에도 자동으로 나옴 ----------
@@ -1623,7 +1628,8 @@ var KEYS=[
   {keys:["F1"],d:"도움말 열기 · 닫기",code:"F1",fn:function(){helpBox()}},
   {keys:["Alt","E"],d:"EDITOR / PIVOT 켜기 · 끄기",code:"KeyE",alt:1,plan:1,fn:function(){$("edBtn").click()}},
   {keys:["Alt","F"],d:"컨테이너 찾기 열기 · 닫기",code:"KeyF",alt:1,plan:1,fn:function(){findBox()}},
-  {keys:["Ctrl","클릭"],d:"컨테이너 여러 개 고르기 (다시 누르면 빨간 표식 지우기)"},
+  {keys:["Ctrl","클릭"],d:"컨테이너 여러 개 고르기 (Bay Plan 에서는 Container Editor 도 같이 떠요)"},
+  {keys:["Ctrl","오른쪽 버튼 클릭"],d:"고른 컨테이너 선택 해제 (빨간 표식 지우기)"},
   {keys:["Ctrl","드래그"],d:"네모로 끌어서 그 안의 컨테이너를 한꺼번에 고르기"},
   {keys:["Ctrl","오른쪽 버튼 드래그"],d:"네모 안의 컨테이너 선택 해제"},
   {keys:["오른쪽 버튼 클릭"],d:"그 컨테이너 하나 삭제 (확인 창에서 Enter = 삭제, Esc = 취소)"},
