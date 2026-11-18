@@ -264,6 +264,14 @@ body.empty #helpBtn{display:inline-block}
 .askb{display:flex;justify-content:flex-end;gap:8px}
 .askb button{font:inherit;font-weight:700;min-width:84px;padding:6px 14px;border:1px solid #707f96;border-radius:4px;background:var(--win);color:var(--fg);cursor:pointer}
 #askY{background:#c13229;color:#fff;border-color:#7a1c16}
+/* 지정중 알림: 컨테이너가 골라져 있으면 General Plan 제목줄에 뜸. 마우스를 올리면 SzTp 별 개수 */
+#pkBtn{font:inherit;font-size:12px;font-weight:700;padding:1px 9px;margin-right:2px;border:1px solid #7a1c16;border-radius:3px;background:#d8382e;color:#fff;white-space:nowrap;cursor:default;text-shadow:none;animation:pkb 1.2s ease-in-out infinite}
+@keyframes pkb{50%{background:#ff7a70}}
+@media (prefers-reduced-motion:reduce){#pkBtn{animation:none}}
+#pkTip{position:fixed;z-index:75;min-width:150px;padding:8px 10px;background:var(--win);color:var(--fg);border:1px solid #7a1c16;border-radius:6px;box-shadow:0 10px 28px rgba(0,20,60,.35);font-size:12.5px;pointer-events:none}
+#pkTip table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+#pkTip td{padding:2px 4px}#pkTip td:last-child{text-align:right;font-weight:700}
+#pkTip tr.tt td{border-top:1px solid #8fa3c0;font-weight:700}
 /* 찾기 창 (Alt+F) */
 #fbox{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));z-index:40;display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;
   max-width:calc(100vw - 32px);padding:8px 10px;background:linear-gradient(#f7faff,#e3ebf6);border:1px solid #5d7fae;border-radius:8px;box-shadow:0 8px 24px rgba(0,20,60,.4);font-size:12.5px}
@@ -449,7 +457,7 @@ body.static .cr{display:none}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-18 09:29 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-18 09:37 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -481,6 +489,7 @@ body.static .cr{display:none}
     <span><i class="lg out"></i>선박 구조에 없는 칸</span>
   </div>
   <section class="win" id="gpWin"><div class="tb">General Plan <small>선수가 오른쪽 · 베이를 더블클릭하면 Bay Plan이 떠요</small><span class="sp"></span>
+    <button type="button" id="pkBtn" hidden aria-describedby="pkTip">CNTR 지정중 !</button>
     <button type="button" id="imgBtn" title="지금 보이는 General Plan을 포트 표·BSA와 함께 그림(PNG)으로 저장해요">이미지로 저장</button>
     <select id="lay" aria-label="베이 배열" title="베이 배열">
       <option value="row">한 줄로</option><option value="wrap">여러 줄로 (CASP)</option></select>
@@ -515,6 +524,7 @@ body.static .cr{display:none}
 <div id="ask" hidden><div class="win hwin" role="alertdialog" aria-label="컨테이너 삭제">
   <div class="tb">컨테이너 삭제</div>
   <div class="body"><p id="askT"></p><div class="askb"><button type="button" id="askY">삭제</button><button type="button" id="askN">취소</button></div></div></div></div>
+<div id="pkTip" hidden role="tooltip"></div>
 <div id="fbox" hidden role="search"><b>컨테이너 찾기</b>
   <input id="q" type="search" placeholder="번호 일부 (예: 8172320)" autocomplete="off" aria-label="컨테이너 번호">
   <span id="qn"></span><button type="button" id="fX" aria-label="닫기" title="닫기 (Alt + F 또는 Esc)">×</button></div>
@@ -835,7 +845,7 @@ function render(){
   var dn=dirtyN();$("saveBtn").hidden=!dn;$("saveBtn").textContent="ASC 저장 ("+dn+")";
   if(st.saved){nt.hidden=false;nt.className="note";nt.textContent=st.saved}
   $("ship").value=st.ship;
-  edDraw();
+  edDraw(); pickFlag();
 }
 
 function drawWin(){
@@ -968,6 +978,13 @@ function edDraw(){
   W.addEventListener("dblclick",function(e){var tr=e.target.closest("tbody tr[data-i]");if(tr&&BOXP[+tr.dataset.i])openBay(BOXP[+tr.dataset.i])});
 })();
 // ---------- 긴급양하 메일 ----------
+function pickTip(){   // 지정중 버튼에 마우스를 올렸을 때: 고른 컨테이너의 SzTp 별 개수
+  var B=st.plan?st.plan.boxes:[],m={},ks,n=0,teu=0;
+  st.pick.forEach(function(i){var b=B[i];if(!b)return;var k=b.type||"(없음)";m[k]=(m[k]||0)+1;n++;teu+=b.size===20?1:2});
+  ks=Object.keys(m).sort();
+  return "<table>"+ks.map(function(k){return "<tr><td>"+esc(k)+"</td><td>"+m[k]+"</td></tr>"}).join("")+'<tr class="tt"><td>합계</td><td>'+n+"개 · "+teu+" TEU</td></tr></table>"}
+function pickFlag(){   // render() 가 끝날 때마다: 골라 둔 컨테이너가 있으면 '지정중' 버튼을 보임
+  $("pkBtn").hidden=!st.pick.length; if(!st.pick.length)$("pkTip").hidden=true; else if(!$("pkTip").hidden)$("pkTip").innerHTML=pickTip()}
 function pickBar(){
   var n=st.pick.length, B=st.plan?st.plan.boxes:[];
   $("bwM").disabled=!n; $("bwM").textContent="긴급양하 메일 생성"+(n?" ("+n+")":"");
@@ -1340,6 +1357,9 @@ function readFile(f){var r=new FileReader();r.onload=function(){loadBytes(new Ui
 
 $("openBtn").onclick=function(){$("file").click()};
 $("saveBtn").onclick=saveAsc;
+$("pkBtn").addEventListener("mouseenter",function(){var t=$("pkTip"),r=this.getBoundingClientRect();t.innerHTML=pickTip();t.hidden=false;
+  t.style.top=(r.bottom+6)+"px";t.style.left=Math.max(8,Math.min(r.left,window.innerWidth-t.offsetWidth-8))+"px"});
+$("pkBtn").addEventListener("mouseleave",function(){$("pkTip").hidden=true});
 $("askY").onclick=function(){askEnd(true)};$("askN").onclick=function(){askEnd(false)};
 $("ask").addEventListener("click",function(e){if(e.target.id==="ask")askEnd(false)});
 function expMenu(on){var m=$("expMenu");if(on==null)on=m.hidden;m.hidden=!on;$("expBtn").setAttribute("aria-expanded",on)}
