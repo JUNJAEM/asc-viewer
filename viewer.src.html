@@ -284,6 +284,15 @@ body.empty #helpBtn{display:inline-block}
 #v3Tip{position:absolute;padding:3px 8px;background:#10254a;color:#fff;font-size:12px;font-weight:700;border-radius:4px;pointer-events:none;white-space:nowrap}
 #sum #v3Btn{margin-left:4px}
 body.empty #v3,body.static #v3{display:none!important}
+/* 열어 둔 플랜 탭: 두 개 이상 열었을 때만 보임. 한 번에 하나만 화면에 뜸 */
+#tabs{display:flex;flex-wrap:wrap;gap:4px;margin:8px 0 0}
+#tabs .tab{display:inline-flex;align-items:center;border:1px solid #5d7fae;border-bottom-width:3px;border-radius:7px 7px 0 0;background:linear-gradient(#f4f8fd,#dfe8f5);overflow:hidden}
+#tabs .tab.on{background:linear-gradient(#5b9bf0,#2468d6);border-color:#0b3f94}
+#tabs .tab button{font:inherit;border:0;background:none;cursor:pointer;color:var(--fg);padding:6px 10px}
+#tabs .tab .tn{font-weight:700}#tabs .tab .tn small{font-weight:400;opacity:.8;margin-left:6px}
+#tabs .tab.on button{color:#fff;text-shadow:0 1px 2px rgba(0,20,60,.6)}
+#tabs .tab .tx{padding:6px 8px 6px 2px;opacity:.75}#tabs .tab .tx:hover{opacity:1}
+body.static #tabs{display:none!important}
 /* 찾기 창 (Alt+F) */
 #fbox{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));z-index:40;display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;
   max-width:calc(100vw - 32px);padding:8px 10px;background:linear-gradient(#f7faff,#e3ebf6);border:1px solid #5d7fae;border-radius:8px;box-shadow:0 8px 24px rgba(0,20,60,.4);font-size:12.5px}
@@ -488,6 +497,7 @@ body.static .cr{display:none}
       <input type="file" id="file" accept="application/octet-stream,text/plain,.asc,.edi" hidden>
     </div>
   </header>
+  <div id="tabs" hidden role="tablist" aria-label="열어 둔 플랜"></div>
   <div class="note" id="note" hidden></div>
   <section class="win" id="sumWin"><div class="tb">Summary</div><div class="body" id="sum"></div>
     <div class="rz rzl" data-sz="l" title="끌어서 너비 조절 (더블클릭: 원래대로)"></div><div class="rz rzr" data-sz="r" title="끌어서 너비 조절 (더블클릭: 원래대로)"></div><div class="rz rzb" data-sz="b" title="끌어서 높이 조절 (더블클릭: 원래대로)"></div><div class="rz rzc" data-sz="c" title="끌어서 크기 조절 (더블클릭: 원래대로)"></div></section>
@@ -1369,14 +1379,42 @@ function loadBytes(u,name){   // 바이트를 1:1 글자로 읽어야 저장할 
   st.raw=t;
   if(st.plan&&!st.example&&st.name===name&&!st.plan.edi){st.eol=/\r\n/.test(t)?"\r\n":"\n";st.lines=t.split(/\r?\n/);st.orig=st.lines.slice();st.plan0=parseAsc(st.lines.join("\n"));st.p0={};st.plan0.boxes.forEach(function(b){st.p0[b.li]=b});render();autoFit()}
 }
+// ---------- 플랜 탭: 플랜을 연 채로 다른 파일을 열면 탭이 하나 더 생김. 탭을 누르면 그 플랜으로 바뀜(한 번에 하나만 보임) ----------
+// 지금 보이는 플랜은 st 에 살아 있고, 나머지 탭은 st 에서 아래 항목만 떠 둔 사본을 TABS 에 넣어 둠.
+var TABS=[],CUR=-1,TKEYS=["plan","name","example","filter","q","sel","open","ship","shipBad","pick","lines","orig","eol","plan0","p0","undo","mod","saved","raw"];
+function tabSave(){if(CUR<0||!st.plan)return;var o={};TKEYS.forEach(function(k){o[k]=st[k]});TABS[CUR]=o}
+function tabDraw(){var t=$("tabs");t.hidden=TABS.length<2;if(t.hidden){t.innerHTML="";return}
+  t.innerHTML=TABS.map(function(T,i){var S=i===CUR?st:T,nm=((S.ship?S.ship+" ":"")+((S.plan&&S.plan.voy)||"")).trim()||S.name||"플랜";
+    return '<span class="tab'+(i===CUR?' on':'')+'"><button type="button" class="tn" role="tab" aria-selected="'+(i===CUR)+'" data-tab="'+i+'" title="'+esc(S.name||"")+'">'+esc(nm)+'<small>'+(S.plan?S.plan.boxes.length+"개":"")+'</small></button>'+
+      '<button type="button" class="tx" data-tabx="'+i+'" aria-label="'+esc(nm)+' 닫기" title="이 플랜 닫기">×</button></span>'}).join("")}
+function tabShow(){   // st 가 바뀐 뒤 화면 맞추기
+  $("q").value=st.q||"";$("sheet").hidden=true;sumReset();document.title=(st.name||"").replace(/\.(asc|edi)$/i,"")+" · PLAN VIEWER";
+  $("note").hidden=true;render();autoFit();tabDraw()}
+function tabGo(i){if(i===CUR||!TABS[i])return;tabSave();CUR=i;var T=TABS[i];TKEYS.forEach(function(k){st[k]=T[k]});st.sel=-1;tabShow()}
+var TABX=-1;
+function tabClose(i){
+  var S=i===CUR?st:TABS[i],dirty=0;if(S.lines)for(var k=0;k<S.lines.length;k++)if(S.lines[k]!==S.orig[k])dirty++;
+  if((dirty||S.mod)&&!S.saved&&TABX!==i){TABX=i;return say("이 플랜에는 저장하지 않은 변경이 있어요. 닫으려면 × 를 한 번 더 눌러 주세요.")}
+  TABX=-1;if(i!==CUR)tabSave();
+  TABS.splice(i,1);
+  if(!TABS.length){CUR=-1;TKEYS.forEach(function(k){st[k]=null});st.pick=[];st.undo=[];st.sel=-1;st.name="";st.ship="";document.body.classList.add("empty");
+    document.title="PLAN VIEWER MADE BY JUNJAE";$("note").hidden=true;$("sheet").hidden=true;$("v3").hidden=true;tabDraw();return}
+  var n=i===CUR?Math.min(i,TABS.length-1):(i<CUR?CUR-1:CUR);CUR=-1;
+  var T=TABS[n];CUR=n;TKEYS.forEach(function(k){st[k]=T[k]});st.sel=-1;tabShow()}
+document.addEventListener("click",function(e){var a=e.target.closest&&e.target.closest("[data-tab]"),x=e.target.closest&&e.target.closest("[data-tabx]");
+  if(x)tabClose(+x.dataset.tabx);else if(a){TABX=-1;tabGo(+a.dataset.tab)}});
 function load(text,name){
   var P;try{P=isEdi(text)?parseEdi(text):parseAsc(text)}catch(e){P=null}
   if(!P||!P.boxes.length){var nt=$("note");nt.hidden=false;nt.className="note err";
     nt.textContent="“"+name+"”에서 컨테이너를 찾지 못했어요. CASP ASC($609/$604)나 EDI(BAPLIE) 파일이 맞는지 확인해 주세요.";return}
   document.body.classList.remove("empty");
+  tabSave();var same=-1;TABS.forEach(function(T,i){if((i===CUR?st.name:T.name)===name)same=i});   // 같은 이름의 파일을 다시 열면 그 탭을 새로 읽음
+  if(same>=0)CUR=same;else{TABS.push({name:name});CUR=TABS.length-1}
+  st.raw=null;
   st.plan=P;st.name=name;st.example=false;pickShip(detectShip(name));st.filter=null;st.sel=-1;st.pick=[];st.lines=st.orig=st.plan0=st.p0=null;st.undo=[];st.mod=false;st.saved="";sumReset();st.open=null;st.q="";$("q").value="";$("sheet").hidden=true;
   document.title=name.replace(/\.(asc|edi)$/i,"")+" · PLAN VIEWER";
   render(); if(typeof autoFit==="function")autoFit(); else toBow();
+  tabDraw();
 }
 function toBow(){var w=$("gpw");w.scrollLeft=w.scrollWidth;w.scrollTop=0}
 function readFile(f){var r=new FileReader();r.onload=function(){loadBytes(new Uint8Array(r.result),f.name)};r.readAsArrayBuffer(f)}
@@ -1427,7 +1465,7 @@ document.addEventListener("click",function(e){
 });
 if(SHIPS){$("ship").innerHTML='<option value="">자동 (실린 칸 기준)</option>'+Object.keys(SHIPS).sort().map(function(c){
     return '<option value="'+esc(c)+'">'+esc(c+(SHIPS[c].n?" · "+SHIPS[c].n:""))+'</option>'}).join("");
-  $("ship").onchange=function(e){pickShip(e.target.value);render()}}
+  $("ship").onchange=function(e){pickShip(e.target.value);render();tabDraw()}}
 else{$("ship").hidden=true;$("shipL").hidden=true}
 document.addEventListener("change",function(e){var t=e.target;
   if(t.classList&&t.classList.contains("swc")){CUSTOM[t.dataset.port]=t.value;saveColors();render()}});
