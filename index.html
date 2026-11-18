@@ -448,7 +448,7 @@ body.static .cr{display:none}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-18 09:20 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-18 09:23 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -1590,6 +1590,7 @@ $("findBtn").onclick=function(){findBox()};$("fX").onclick=function(){findBox(fa
   document.addEventListener("pointerup",function(e){
     if(!d)return;var D=d;d=null;
     if(!D.on)return;
+    DRAGT=Date.now();
     var x1=Math.min(D.x,e.clientX),x2=Math.max(D.x,e.clientX),y1=Math.min(D.y,e.clientY),y2=Math.max(D.y,e.clientY),ids=[];
     clear();
     [].forEach.call(D.a.querySelectorAll(D.a.id==="gp"?".m.b":".c.b"),function(c){var r=c.getBoundingClientRect(),i=+c.dataset.i;
@@ -1608,6 +1609,13 @@ $("findBtn").onclick=function(){findBox()};$("fX").onclick=function(){findBox(fa
     st.sel=-1;$("sheet").hidden=true;render()});
   document.addEventListener("pointercancel",function(){clear();d=null});
 })();
+// 오른쪽 버튼 클릭(끌지 않고) = 그 컨테이너 하나 삭제 (확인 창). Ctrl 을 누르고 있으면 건드리지 않음.
+var DRAGT=0;
+document.addEventListener("contextmenu",function(e){
+  if(window.__STATIC__||!st.plan||e.ctrlKey||e.metaKey||Date.now()-DRAGT<400||!$("ask").hidden)return;
+  var a=e.target.closest&&(e.target.closest("#bwB")||e.target.closest("#gp"));if(!a)return;
+  var c=e.target.closest(a.id==="gp"?".m.b":".c.b");if(!c||c.dataset.i==null)return;
+  e.preventDefault();askDel([+c.dataset.i])});
 // ---------- 단축키 표: 여기 한 줄을 넣으면 단축키가 생기고 도움말(F1)에도 자동으로 나옴 ----------
 // keys = 도움말에 보이는 글, d = 설명. 키보드 단축키는 code(자판 위치)·alt/ctrl/shift·fn(할 일)·plan(플랜이 열려 있을 때만)을 같이 적음.
 // code 가 없는 줄은 마우스 동작처럼 다른 곳에서 처리하는 것 — 도움말에만 나옴.
@@ -1618,7 +1626,8 @@ var KEYS=[
   {keys:["Ctrl","클릭"],d:"컨테이너 여러 개 고르기 (다시 누르면 빨간 표식 지우기)"},
   {keys:["Ctrl","드래그"],d:"네모로 끌어서 그 안의 컨테이너를 한꺼번에 고르기"},
   {keys:["Ctrl","오른쪽 버튼 드래그"],d:"네모 안의 컨테이너 선택 해제"},
-  {keys:["오른쪽 버튼 드래그"],d:"네모 안의 컨테이너 삭제 (확인 창에서 Enter = 삭제, Esc = 취소)"},
+  {keys:["오른쪽 버튼 클릭"],d:"그 컨테이너 하나 삭제 (확인 창에서 Enter = 삭제, Esc = 취소)"},
+  {keys:["오른쪽 버튼 드래그"],d:"네모 안의 컨테이너 여러 개 삭제"},
   {keys:["Alt","3"],d:"되돌리기 (삭제 · 고친 값을 한 단계씩)",code:"Digit3",code2:"Numpad3",alt:1,plan:1,fn:function(){undo()}},
   {keys:["Shift","클릭"],d:"Editor 목록에서 범위로 고르기 · 열 제목은 여러 열 정렬"},
   {keys:["Alt","휠"],d:"General Plan 확대 · 축소"},
@@ -1628,7 +1637,7 @@ var KEYS=[
   {keys:["Esc"],d:"열려 있는 창 닫기"}
 ];
 function helpDraw(){
-  function kb(a){return a.map(function(x){return /^(클릭|휠|더블클릭|드래그|오른쪽 버튼 드래그)$/.test(x)?x:"<kbd>"+esc(x)+"</kbd>"}).join(" + ")}
+  function kb(a){return a.map(function(x){return /^(클릭|휠|더블클릭|드래그|오른쪽 버튼 드래그|오른쪽 버튼 클릭)$/.test(x)?x:"<kbd>"+esc(x)+"</kbd>"}).join(" + ")}
   $("helpT").innerHTML=KEYS.map(function(K){return "<tr><td>"+kb(K.keys)+(K.or?" "+kb(K.or):"")+"</td><td>"+esc(K.d)+"</td></tr>"}).join("")}
 helpDraw();
 document.addEventListener("keydown",function(e){
