@@ -255,6 +255,8 @@ body.empty .expw{display:none}
 .hwin .tb{display:flex;align-items:center}.hwin .tb .sp{flex:1}
 .hwin .tb button{font:inherit;font-weight:700;width:26px;height:22px;border:1px solid #7a1c16;border-radius:3px;background:#c13229;color:#fff;cursor:pointer;padding:0}
 .hwin table{border-collapse:collapse;width:100%}
+.hwin .hh{margin:10px 2px 6px;font-size:12.5px;color:var(--fg2)}.hwin .hh:first-child{margin-top:2px}
+.hlg{display:flex;flex-wrap:wrap;gap:6px 16px;padding:2px 2px 8px;font-size:12.5px;border-bottom:1px solid var(--line,#dfe6f1)}.hlg span{display:inline-flex;gap:6px;align-items:center}
 .hwin td{padding:6px 6px;border-bottom:1px solid #dfe6f1;vertical-align:top}
 .hwin td:first-child{white-space:nowrap;width:1%;padding-right:14px}
 .hwin kbd{display:inline-block;font:inherit;font-weight:700;font-size:12px;padding:1px 6px;border:1px solid #8090a8;border-bottom-width:2px;border-radius:4px;background:#f6f8fc}
@@ -654,7 +656,7 @@ header.win .body{background:#fff}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-19 10:44 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-19 10:46 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -686,11 +688,6 @@ header.win .body{background:#fff}
     <label for="ship" id="shipL">선박</label>
     <select id="ship"></select>
     <button type="button" class="x" id="findBtn" title="컨테이너 번호 찾기 (Alt + F)">컨테이너 찾기</button>
-  </div>
-  <div class="legend">
-    <span><b>H</b> 하이큐빅</span><span><b>R</b> 냉동</span><span><b>E</b> 공컨</span><span><b>T</b> 탱크</span>
-    <span><b style="color:var(--warn)">3</b> 위험물 등급</span>
-    <span><i class="lg out"></i>선박 구조에 없는 칸</span>
   </div>
   <section class="win" id="v3" hidden aria-label="3D VIEW">
     <div class="tb"><span id="v3T">3D VIEW</span><small>끌거나 양옆 화살표로 돌리기 · 휠로 확대 · 베이를 누르면 Bay Plan</small><span class="sp"></span>
@@ -738,8 +735,12 @@ header.win .body{background:#fff}
     <button type="button" id="bwX2">창 닫기</button></div>
 </div></div>
 <div id="help" hidden><div class="win hwin" role="dialog" aria-label="도움말">
-  <div class="tb">도움말 · 단축키<span class="sp"></span><button type="button" id="hX" aria-label="닫기">×</button></div>
-  <div class="body"><table id="helpT">
+  <div class="tb">도움말<span class="sp"></span><button type="button" id="hX" aria-label="닫기">×</button></div>
+  <div class="body"><h4 class="hh">플랜 칸의 표시</h4>
+  <div class="hlg"><span><b>H</b> 하이큐빅</span><span><b>R</b> 냉동</span><span><b>E</b> 공컨</span><span><b>T</b> 탱크</span>
+    <span><b style="color:var(--warn)">3</b> 위험물 등급</span><span><b style="color:#7a00c8">S</b> 쉬프팅한 컨테이너</span><span><i class="lg out"></i>선박 구조에 없는 칸</span></div>
+  <h4 class="hh">단축키 · 마우스</h4>
+  <table id="helpT">
   </table></div></div></div>
 <div id="mailV" hidden><div class="win mwin" role="dialog" aria-label="메일함">
   <div class="tb">메일함 <small id="mlS"></small><span class="sp"></span>
