@@ -42,6 +42,20 @@ function CatOf($o) {
 # ---- Outlook scan (read-only), kept in memory and refreshed incrementally
 $cache = @{}; $lastScan = [DateTime]::MinValue; $scanDays = 0
 function Outlook { try { return [Runtime.InteropServices.Marshal]::GetActiveObject('Outlook.Application') } catch { return (New-Object -ComObject Outlook.Application) } }
+# OUTBOUND mail writing (looks up the schedule, copies the style of an earlier mail, opens a new-mail window; never sends)
+$outOk = $false; try { . (Join-Path $dir 'mail-out.ps1'); $outOk = $true } catch { Log ('mail-out: ' + $_.Exception.Message) }
+function OutPrep($q) {
+    $r = Out-Rotation ([string]$q.vsl) ([string]$q.voy) ([string]$q.port)
+    $svc = if ($r.svc) { $r.svc } else { [string]$q.svc }
+    $cand = @(Out-Find ([string]$q.vsl) $r.name $svc ([string]$q.port) $r.ports)
+    $id = [string]$q.id; if (-not $id -and $cand.Count) { $id = $cand[0].id }
+    $mail = $null; if ($id) { $mail = Out-Build $id ([string]$q.voy) ([string]$q.rot) $r.calls }
+    return (@{ rot = $r; cand = $cand; mail = $mail; svc = $svc } | ConvertTo-Json -Depth 7 -Compress)
+}
+function OutOpen($q) {
+    $bytes = [Convert]::FromBase64String([string]$q.b64)
+    return ((Out-Open ([string]$q.id) ([string]$q.voy) ([string]$q.subject) ([string]$q.rot) ([string]$q.name) $bytes (-not $q.draft)) | ConvertTo-Json -Compress)
+}
 function Walk($f, $path, $since, $sentId) {
     $p = if ($path) { $path + '/' + $f.Name } else { $f.Name }
     try {
@@ -99,7 +113,7 @@ function FileBytes($id, $i) {
 
 # ---- tiny HTTP loop
 function Send($st, $code, $type, [byte[]]$body) {
-    $h = "HTTP/1.1 $code`r`nContent-Type: $type`r`nContent-Length: " + $body.Length + "`r`nAccess-Control-Allow-Origin: *`r`nAccess-Control-Allow-Private-Network: true`r`nCache-Control: no-store`r`nConnection: close`r`n`r`n"
+    $h = "HTTP/1.1 $code`r`nContent-Type: $type`r`nContent-Length: " + $body.Length + "`r`nAccess-Control-Allow-Origin: *`r`nAccess-Control-Allow-Methods: GET, POST, OPTIONS`r`nAccess-Control-Allow-Headers: Content-Type`r`nAccess-Control-Allow-Private-Network: true`r`nCache-Control: no-store`r`nConnection: close`r`n`r`n"
     $hb = [Text.Encoding]::ASCII.GetBytes($h); $st.Write($hb, 0, $hb.Length); if ($body.Length) { $st.Write($body, 0, $body.Length) }
 }
 $utf8 = New-Object Text.UTF8Encoding($false); $lastReq = Get-Date
@@ -107,17 +121,31 @@ while ($true) {
     if (-not $listener.Pending()) { if (((Get-Date) - $lastReq).TotalMinutes -gt 15) { break }; Start-Sleep -Milliseconds 200; continue }
     $c = $listener.AcceptTcpClient()
     try {
-        $c.ReceiveTimeout = 3000; $st = $c.GetStream(); $buf = New-Object byte[] 8192; $n = $st.Read($buf, 0, $buf.Length)
-        $line = ([Text.Encoding]::ASCII.GetString($buf, 0, $n) -split "`r`n")[0]
+        # read the whole request: the first line and headers, then (for POST) as many bytes as Content-Length says
+        $c.ReceiveTimeout = 5000; $st = $c.GetStream(); $buf = New-Object byte[] 65536; $ms = New-Object IO.MemoryStream; $hEnd = -1; $need = 0
+        while ($true) {
+            $n = $st.Read($buf, 0, $buf.Length); if ($n -le 0) { break }; $ms.Write($buf, 0, $n)
+            if ($hEnd -lt 0) { $txt = [Text.Encoding]::ASCII.GetString($ms.GetBuffer(), 0, [int][Math]::Min($ms.Length, 16384)); $i = $txt.IndexOf("`r`n`r`n")
+                if ($i -ge 0) { $hEnd = $i + 4; if ($txt.Substring(0, $i) -match '(?im)^Content-Length:\s*(\d+)') { $need = [int]$Matches[1] } } }
+            if ($hEnd -ge 0 -and ($ms.Length - $hEnd) -ge $need) { break }
+            if ($ms.Length -gt 12MB) { break }
+        }
+        $all = $ms.ToArray(); if ($hEnd -lt 0) { $hEnd = $all.Length }
+        $line = ([Text.Encoding]::ASCII.GetString($all, 0, [Math]::Min($hEnd, 4096)) -split "`r`n")[0]
         if ($line -match '^OPTIONS ') { Send $st '204 No Content' 'text/plain' ([byte[]]@()); continue }
-        if ($line -notmatch '^GET (/[a-z]*)\??(\S*) ') { Send $st '400 Bad Request' 'text/plain' ([byte[]]@()); continue }
-        $path = $Matches[1]; $q = @{}
-        foreach ($kv in ($Matches[2] -split '&')) { $x = $kv -split '=', 2; if ($x.Count -eq 2) { $q[$x[0]] = [Uri]::UnescapeDataString($x[1]) } }
+        if ($line -notmatch '^(GET|POST) (/[a-z]*)\??(\S*) ') { Send $st '400 Bad Request' 'text/plain' ([byte[]]@()); continue }
+        $verb = $Matches[1]; $path = $Matches[2]; $qs = $Matches[3]; $q = @{}
+        foreach ($kv in ($qs -split '&')) { $x = $kv -split '=', 2; if ($x.Count -eq 2) { $q[$x[0]] = [Uri]::UnescapeDataString($x[1]) } }
         if ($q['t'] -ne $token) { Send $st '403 Forbidden' 'text/plain' ([byte[]]@()); continue }
         $lastReq = Get-Date
         if ($path -eq '/ping') { Send $st '200 OK' 'text/plain' ($utf8.GetBytes('ok')) }
         elseif ($path -eq '/list') { $d = 7; if ($q['days'] -match '^\d+$') { $d = [Math]::Min(30, [Math]::Max(1, [int]$q['days'])) }; Send $st '200 OK' 'application/json; charset=utf-8' ($utf8.GetBytes((ListJson $d))) }
         elseif ($path -eq '/file') { Send $st '200 OK' 'application/octet-stream' (FileBytes $q['id'] $q['i']) }
+        elseif ($verb -eq 'POST' -and $outOk -and ($path -eq '/outprep' -or $path -eq '/outopen')) {
+            $j = [Text.Encoding]::UTF8.GetString($all, $hEnd, $all.Length - $hEnd) | ConvertFrom-Json
+            $res = if ($path -eq '/outprep') { OutPrep $j } else { OutOpen $j }
+            Send $st '200 OK' 'application/json; charset=utf-8' ($utf8.GetBytes($res))
+        }
         else { Send $st '404 Not Found' 'text/plain' ([byte[]]@()) }
     } catch { Log ('request: ' + $_.Exception.Message); try { Send $st '500 Error' 'text/plain' ($utf8.GetBytes($_.Exception.Message)) } catch { } }
     finally { $c.Close() }

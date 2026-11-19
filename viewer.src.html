@@ -612,6 +612,16 @@ header.win .body{background:#fff}
 /* 폰 도구 막대 */
 @media (hover:none){.tpl button{border-radius:2px;border-color:#c6c6c6}.tpl button[aria-pressed="true"],.tpl button.on{background:var(--acc);border-color:var(--acc)}.tpc .go{background:#107c10;border-color:#107c10}}
 /* ===== 설정: 화면 모드 — 어둡게 (설정 ▸ 화면 모드). 밝게는 위의 기본값 그대로 ===== */
+#outV{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.32);padding:16px}#outV[hidden]{display:none}
+.owin{width:min(900px,100%);display:flex;flex-direction:column}.owin .body{overflow:auto;padding:12px 14px}
+.owr{display:grid;grid-template-columns:86px 1fr;gap:6px 10px;align-items:start;margin-bottom:8px}.owr>b{padding-top:6px;font-size:12.5px;color:var(--fg2)}
+.owr input,.owr select{font:inherit;width:100%;padding:5px 7px;border:1px solid #8a94a6;border-radius:3px;background:var(--win);color:var(--fg);min-width:0}
+.owr .ro{padding:5px 0;line-height:1.6;font-size:12.5px;word-break:break-all}.owr .ro span{display:inline-block;margin:0 6px 2px 0;padding:0 6px;border:1px solid var(--line,#cfd8e3);border-radius:10px;white-space:nowrap}
+.owr small{display:block;color:var(--fg2);font-size:12px;margin-top:3px;line-height:1.5}
+.own{margin:2px 0 10px;padding:8px 10px;border:1px solid #e0c36a;background:#fff8e1;color:#5b4500;border-radius:4px;font-size:12.5px;line-height:1.6}.own ul{margin:0;padding-left:18px}
+.owp{width:100%;height:300px;border:1px solid #8a94a6;border-radius:3px;background:#fff}
+.owf{display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-top:10px;flex-wrap:wrap}.owf span{flex:1;min-width:200px;color:var(--fg2);font-size:12.5px}
+.owf button{font:inherit;font-weight:700;padding:7px 16px;border:1px solid #707f96;border-radius:4px;background:var(--win);color:var(--fg);cursor:pointer}.owf button.go{background:var(--acc,#0078d4);border-color:var(--acc,#0078d4);color:#fff}.owf button:disabled{opacity:.55;cursor:default}
 #setV{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.32);padding:16px}#setV[hidden]{display:none}
 .setr{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:6px 2px}.setr b{min-width:76px}.seth{margin:10px 2px 2px;color:var(--fg2);font-size:12px;line-height:1.5}
 #thSeg button{padding:6px 18px;font-size:13px}
@@ -677,6 +687,7 @@ header.win .body{background:#fff}
           <button type="button" role="menuitem" data-x="edi22">EDI <small>BAPLIE 2.2</small></button>
           <button type="button" role="menuitem" data-x="edi15">EDI <small>BAPLIE 1.5</small></button>
         </div></span>
+      <button class="btn" id="outBtn" type="button" hidden title="지금 플랜(고친 내용 포함)을 붙인 OUTBOUND 메일을 아웃룩에 만들어요 — 보내기는 직접 눌러야 해요">OUTBOUND 메일</button>
       <input type="file" id="file" accept="application/octet-stream,text/plain,.asc,.edi" hidden>
     </div>
   </header>
@@ -767,6 +778,9 @@ header.win .body{background:#fff}
   <div class="tb">설정<span class="sp"></span><button type="button" id="setX" aria-label="닫기">×</button></div>
   <div class="body"><div class="setr"><b>화면 모드</b><span class="seg" id="thSeg"><button type="button" data-th="light">밝게</button><button type="button" data-th="dark">어둡게</button></span></div>
     <p class="seth">고른 모드는 이 기기에 기억돼요. 플랜 칸의 포트 색은 두 모드에서 같아요. ‘이미지로 저장’은 항상 밝은 바탕으로 저장돼요.</p></div></div></div>
+<div id="outV" hidden><div class="win hwin owin" role="dialog" aria-label="OUTBOUND 메일 작성">
+  <div class="tb">OUTBOUND 메일 작성<span class="sp"></span><button type="button" id="outX" aria-label="닫기">×</button></div>
+  <div class="body" id="outB"></div></div></div>
 <div id="ask" hidden><div class="win hwin" role="alertdialog" aria-label="컨테이너 삭제">
   <div class="tb">컨테이너 삭제</div>
   <div class="body"><p id="askT"></p><div class="askb"><button type="button" id="askY">삭제</button><button type="button" id="askN">취소</button></div></div></div></div>
@@ -2424,6 +2438,63 @@ function mlPick(id,i,btn){
     mlOpen(false);loadBytes(new Uint8Array(buf),(nm||"plan")+(same?" - "+f.n.replace(/\.[a-z0-9]+$/i,""):"")+ext);
     if(!st.ship){var c=detectShip(f.n);if(c){pickShip(c);render();tabDraw()}}                                 // 제목에서 선박을 못 찾으면 원래 파일 이름으로
   }).catch(function(e){say("메일에서 파일을 가져오지 못했어요 ("+String(e&&e.message||e)+"). 메일함에서 새로고침한 뒤 다시 해 주세요.",true)}).then(function(){btn.textContent=old;btn.disabled=false})}
+// ---------- OUTBOUND 메일 작성 (PC 설치판) ----------
+// 버튼을 누르면 메일 도우미(mail-server.ps1 + mail-out.ps1)가  ① 전산 포트 스케줄에서 이 선박·항차의 로테이션을 찾고
+// ② 아웃룩에서 같은 서비스·선박의 예전 OUTBOUND 메일을 찾아  ③ 그 메일의 받는 사람·문구·표를 본떠 새 메일을 만듦(항차·로테이션만 새로).
+// '아웃룩에서 열기'를 누르면 지금 플랜(고친 내용 포함)을 붙인 새 메일 창이 아웃룩에 뜸. 보내기는 사람이 직접 — 여기서는 절대 보내지 않음.
+var OUT={busy:false,d:null,err:"",id:"",done:""};
+function mlPost(path,obj){return mlSrv().then(function(S){if(!S)throw new Error("off");
+  return fetch("http://127.0.0.1:"+S.port+path+"?t="+S.token,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(obj)}).then(function(r){
+    if(!r.ok)return r.text().then(function(t){throw new Error(t||("HTTP "+r.status))});return r.json()})})}
+function outInfo(){   // 지금 플랜에서 읽는 것: 선박 코드 · 항차 · 이 플랜의 포트(파일 이름) · 서비스(파일 이름에 있으면)
+  var nm=st.name||"",m=/ASC\d+_([A-Z0-9]+)_(\d{3,4}[A-Z])_([A-Z]{5})_([A-Z0-9]{3,5})/i.exec(nm),p5=m?m[3].toUpperCase():fnPort(),voy=String(st.plan&&st.plan.voy||"").trim().toUpperCase();
+  if(!/^\d{3,4}[A-Z]$/.test(voy)){var v=/(^|[^0-9A-Z])(\d{4}[EWSN])([^0-9A-Z]|$)/i.exec(nm);voy=m?m[2].toUpperCase():v?v[2].toUpperCase():voy}
+  return {vsl:st.ship||(m?m[4].toUpperCase():""),voy:voy,port:p5?p5.slice(2):"",svc:m?m[1].toUpperCase():""}}
+function outFile(){var txt=st.lines?ascOut():genAsc(),u=new Uint8Array(txt.length);for(var i=0;i<txt.length;i++)u[i]=txt.charCodeAt(i)&255;return u}
+function outB64(u){var s="",i=0;for(;i<u.length;i+=8192)s+=String.fromCharCode.apply(null,u.subarray(i,i+8192));return btoa(s)}
+function outPrep(id,rot){
+  var I=outInfo();OUT.busy=true;OUT.err="";OUT.done="";outDraw();
+  mlPost("/outprep",{vsl:I.vsl,voy:I.voy,port:I.port,svc:I.svc,id:id||"",rot:rot||""}).then(function(d){OUT.d=d;OUT.id=d.mail?d.mail.id:""})
+    .catch(function(e){OUT.err=String(e&&e.message||e)}).then(function(){OUT.busy=false;outDraw()})}
+var OUTNOTE={subjvoy:"본뜬 메일 제목에 항차가 두 개 있어서, 같은 방향(E·W) 항차만 바꿨어요. 제목을 확인해 주세요.",subjnovoy:"본뜬 메일 제목에 항차가 없어서 제목은 그대로 뒀어요.",
+  norotline:"본뜬 메일에 ROTATION 줄이 없어서 본문에는 로테이션을 넣지 않았어요.",rotfail:"본문의 ROTATION 줄을 바꾸지 못했어요. 아웃룩 창에서 직접 고쳐 주세요."};
+function outDraw(){
+  var B=$("outB"),I=outInfo(),d=OUT.d,h="";
+  if(OUT.busy&&!d){B.innerHTML='<div class="msgbox">전산 포트 스케줄과 예전 OUTBOUND 메일을 찾는 중이에요…<br>(10초쯤 걸릴 수 있어요)</div>';return}
+  if(OUT.err&&!d){B.innerHTML='<div class="msgbox"><b>메일 도우미에 연결하지 못했어요.</b><br>아웃룩이 켜져 있는지 확인하고, 플랜 파일을 하나 더블클릭해서 뷰어를 다시 열어 주세요.<br><small>'+esc(OUT.err)+'</small></div>';return}
+  if(!d)return;
+  var R=d.rot||{},M=d.mail,C=d.cand||[],notes=[];
+  if(!R.ok)notes.push(R.why==="nokey"?"이 PC에 전산 조회 키가 없어서 포트 스케줄을 보지 못했어요. 로테이션은 예전 메일 그대로예요.":R.why==="novoyage"?"전산 포트 스케줄에서 "+esc(I.vsl+" "+I.voy)+" 항차를 찾지 못했어요. 로테이션은 예전 메일 그대로예요.":"전산 포트 스케줄을 읽지 못했어요 ("+esc(R.why||"")+"). 로테이션은 예전 메일 그대로예요.");
+  if(!M){B.innerHTML='<div class="msgbox"><b>본뜰 예전 OUTBOUND 메일을 찾지 못했어요.</b><br>최근 석 달 안에 '+esc((I.vsl||"이 선박")+(d.svc?" · "+d.svc:""))+' 로 나간 OUTBOUND · SI 메일이 보낸 편지함과 운항팀 폴더에 없어요.'+(notes.length?'<br><br>'+notes.join("<br>"):'')+'</div>';return}
+  var cur=C.filter(function(c){return c.id===M.id})[0];
+  (M.notes||[]).forEach(function(n){if(n==="notmine")notes.push("다른 담당자("+esc(M.tfrom)+")가 보낸 메일을 본떴어요. 발신 줄과 서명을 내 것으로 바꿔 주세요.");else if(OUTNOTE[n])notes.push(OUTNOTE[n])});
+  if(cur&&!cur.vslHit)notes.push("같은 서비스의 다른 선박 메일을 본떴어요. 제목의 선박 이름과 본선 메일 주소를 확인해 주세요.");
+  if(cur&&!cur.svcHit&&d.svc)notes.push("이 선박의 지금 서비스("+esc(d.svc)+")로 나간 예전 메일이 없어서, 다른 서비스 때의 메일을 본떴어요. 받는 사람을 꼭 확인해 주세요.");
+  function ppl(a){return (a||[]).map(function(x){return '<span title="'+esc(x.a)+'">'+esc(x.n&&x.n.replace(/^'|'$/g,"")||x.a)+'</span>'}).join("")||"(없음)"}
+  var sch=R.ok?(R.calls||[]).map(function(c){return esc(c.p)+" "+esc(c.eta.slice(0,5))}).join(" → "):"";
+  h+='<div class="owr"><b>플랜</b><div class="ro">'+esc(I.vsl||"?")+(R.name?" · "+esc(R.name):"")+" · "+esc(I.voy||"?")+(d.svc?" · 서비스 "+esc(d.svc):"")+(I.port?" · "+esc(I.port):"")+'</div></div>';
+  h+='<div class="owr"><b>본뜬 메일</b><div><select id="outT">'+C.map(function(c){return '<option value="'+esc(c.id)+'"'+(c.id===M.id?" selected":"")+'>'+esc(c.when.slice(5,10)+" · "+c.from+" · "+c.sub.trim())+'</option>'}).join("")+'</select><small>받는 사람 · 문구 · 표를 이 메일에서 가져와요. 다른 메일을 고르면 그 메일로 다시 만들어요.</small></div></div>';
+  h+='<div class="owr"><b>제목</b><div><input id="outS" value="'+esc(OUT.keepS!=null?OUT.keepS:M.subject)+'"></div></div>';
+  h+='<div class="owr"><b>로테이션</b><div><input id="outR" value="'+esc(M.rot||M.oldRot||"")+'">'+(sch?'<small>전산 포트 스케줄: '+sch+'</small>':'')+(M.oldRot?'<small>본뜬 메일에는: '+esc(M.oldRot)+'</small>':'')+'</div></div>';
+  h+='<div class="owr"><b>받는 사람</b><div class="ro">'+ppl(M.to)+'</div></div><div class="owr"><b>참조</b><div class="ro">'+ppl(M.cc)+'</div></div>';
+  h+='<div class="owr"><b>첨부</b><div><input id="outN" value="'+esc((st.name||"plan").replace(/\.(asc|edi)$/i,"")+".asc")+'"><small>지금 화면의 플랜을 ASC 로 붙여요 (컨테이너 '+st.plan.boxes.length+'개'+(dirtyN()?", 고친 내용 포함":"")+').</small></div></div>';
+  if(notes.length)h+='<div class="own"><ul>'+notes.map(function(n){return "<li>"+n+"</li>"}).join("")+'</ul></div>';
+  h+='<iframe class="owp" id="outP" sandbox="" title="본문 미리보기"></iframe>';
+  h+='<div class="owf"><span>'+(OUT.done?'<b>'+esc(OUT.done)+'</b>':OUT.busy?"만드는 중이에요…":OUT.err?'<b style="color:#c50f1f">'+esc(OUT.err)+'</b>':"아웃룩에 새 메일 창을 띄워요. 받는 사람과 내용을 확인한 뒤 보내기는 직접 눌러 주세요.")+'</span><button type="button" id="outN2">닫기</button><button type="button" class="go" id="outGo"'+(OUT.busy?" disabled":"")+'>아웃룩에서 열기</button></div>';
+  B.innerHTML=h;$("outP").srcdoc=M.html||""}
+function outOpen(on){if(on==null)on=$("outV").hidden;if(on&&!st.plan)return say("플랜을 먼저 열어 주세요.");$("outV").hidden=!on;if(on){OUT.d=null;OUT.err="";OUT.done="";OUT.keepS=null;outPrep()}}
+function outGo(){
+  var M=OUT.d&&OUT.d.mail;if(!M||OUT.busy)return;var I=outInfo(),nm=$("outN").value.trim(),sub=$("outS").value,rot=$("outR").value.trim();
+  if(!/^[^\\\/:*?"<>|]+\.(asc|edi)$/i.test(nm)){$("outN").focus();return}
+  OUT.busy=true;OUT.err="";OUT.done="";$("outGo").disabled=true;
+  mlPost("/outopen",{id:M.id,voy:I.voy,subject:sub,rot:rot,name:nm,b64:outB64(outFile())}).then(function(){OUT.done="아웃룩에 새 메일 창을 띄웠어요. 작업 표시줄의 아웃룩을 확인해 주세요."})
+    .catch(function(e){OUT.err="아웃룩에 메일을 만들지 못했어요 ("+String(e&&e.message||e)+")"}).then(function(){OUT.busy=false;var s=$("outS").value,r=$("outR").value,n=$("outN").value;outDraw();if($("outS")){$("outS").value=s;$("outR").value=r;$("outN").value=n}})}
+(function(){
+  if(window.__STATIC__||!window.__MAILSRVJS__)return;
+  $("outBtn").hidden=false;$("outBtn").onclick=function(){outOpen()};$("outX").onclick=function(){outOpen(false)};
+  $("outV").addEventListener("keydown",function(e){e.stopPropagation();if(e.key==="Escape")outOpen(false)});
+  $("outB").addEventListener("click",function(e){if(e.target.id==="outGo")outGo();else if(e.target.id==="outN2")outOpen(false)});
+  $("outB").addEventListener("change",function(e){if(e.target.id==="outT"){OUT.keepS=null;outPrep(e.target.value,"")}else if(e.target.id==="outS")OUT.keepS=e.target.value;else if(e.target.id==="outR"&&OUT.d&&OUT.d.mail){OUT.keepS=$("outS").value;outPrep(OUT.d.mail.id,e.target.value.trim())}})})();
 (function(){
   if(window.__STATIC__)return;
   $("mailBtn").hidden=false;

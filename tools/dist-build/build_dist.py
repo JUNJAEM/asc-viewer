@@ -6,7 +6,7 @@ CH = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
 DIST = os.path.join(V, "dist"); PK = os.path.join(DIST, "asc-viewer")
 if os.path.exists(DIST): shutil.rmtree(DIST)
 os.makedirs(PK)
-for f in ["viewer.src.html", "ships.js", "open-asc.ps1", "install.bat", "uninstall.bat", "mail-config.js", "splash.jpg", "mail-server.ps1", "mail-rules.json"]:
+for f in ["viewer.src.html", "ships.js", "open-asc.ps1", "install.bat", "uninstall.bat", "mail-config.js", "splash.jpg", "mail-server.ps1", "mail-rules.json", "mail-out.ps1"]:
     if not os.path.exists(os.path.join(V, f)): continue   # mail-config.js 는 이 PC 에만 있음(깃허브 제외)
     shutil.copy2(os.path.join(V, f), os.path.join(PK, f))
 
