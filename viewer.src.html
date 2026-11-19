@@ -253,6 +253,7 @@ body.empty .expw{display:none}
 .hwin .tb{display:flex;align-items:center}.hwin .tb .sp{flex:1}
 .hwin .tb button{font:inherit;font-weight:700;width:26px;height:22px;border:1px solid #7a1c16;border-radius:3px;background:#c13229;color:#fff;cursor:pointer;padding:0}
 .hwin table{border-collapse:collapse;width:100%}
+.hsc{font-size:12.5px;line-height:1.55;padding:0 2px 8px;border-bottom:1px solid var(--line,#dfe6f1)}.hsc ol{margin:6px 0 6px 18px;padding:0}.hsc code{font-family:Consolas,monospace;font-size:12px;background:rgba(127,127,127,.16);padding:1px 5px;border-radius:2px;word-break:break-all;user-select:all;-webkit-user-select:all}
 .hwin .hh{margin:10px 2px 6px;font-size:12.5px;color:var(--fg2)}.hwin .hh:first-child{margin-top:2px}
 .hlg{display:flex;flex-wrap:wrap;gap:6px 16px;padding:2px 2px 8px;font-size:12.5px;border-bottom:1px solid var(--line,#dfe6f1)}.hlg span{display:inline-flex;gap:6px;align-items:center}
 .hwin td{padding:6px 6px;border-bottom:1px solid #dfe6f1;vertical-align:top}
@@ -739,6 +740,11 @@ header.win .body{background:#fff}
   <div class="body"><h4 class="hh">플랜 칸의 표시</h4>
   <div class="hlg"><span><b>H</b> 하이큐빅</span><span><b>R</b> 냉동</span><span><b>E</b> 공컨</span><span><b>T</b> 탱크</span>
     <span><b style="color:var(--warn)">3</b> 위험물 등급</span><span><b style="color:#7a00c8">S</b> 쉬프팅한 컨테이너</span><span><i class="lg out"></i>선박 구조에 없는 칸</span></div>
+  <h4 class="hh">아이폰: 메일 첨부를 바로 열기 (한 번만 설정)</h4>
+  <div class="hsc">단축어 앱 ▸ ＋ ▸ 아래 동작을 차례로 넣고, ⓘ 에서 <b>공유 시트에서 보기</b>를 켜요 (받는 종류: 파일).
+    <ol><li><b>아카이브 만들기</b> — 입력: 단축어 입력, 형식 zip</li><li><b>Base64 인코딩</b> — 줄 바꿈: <b>없음</b></li>
+    <li><b>텍스트</b> — <code id="hscU"></code> 뒤에 ‘Base64 인코딩 결과’ 변수를 붙임</li><li><b>URL 열기</b> — 위 텍스트</li></ol>
+    그다음부터는 아웃룩에서 첨부를 길게 눌러 <b>공유 ▸ 그 단축어</b>를 고르면 사파리에서 플랜이 열려요. 파일은 폰 밖으로 나가지 않아요.</div>
   <h4 class="hh">단축키 · 마우스</h4>
   <table id="helpT">
   </table></div></div></div>
@@ -1633,7 +1639,7 @@ function load(text,name){
   tabSave();var same=-1;TABS.forEach(function(T,i){if((i===CUR?st.name:T.name)===name)same=i});   // 같은 이름의 파일을 다시 열면 그 탭을 새로 읽음
   if(same>=0)CUR=same;else{TABS.push({name:name});CUR=TABS.length-1}
   st.raw=null;
-  st.plan=P;st.name=name;st.example=false;pickShip(detectShip(name));st.filter=null;st.sel=-1;st.pick=[];st.lines=st.orig=st.plan0=st.p0=null;st.undo=[];st.mod=false;st.saved="";st.ll=[];st.sft={};sumReset();st.open=null;st.q="";$("q").value="";$("sheet").hidden=true;
+  st.plan=P;st.name=name;st.example=false;pickShip(detectShip(name)||shipByName(P.vsl));st.filter=null;st.sel=-1;st.pick=[];st.lines=st.orig=st.plan0=st.p0=null;st.undo=[];st.mod=false;st.saved="";st.ll=[];st.sft={};sumReset();st.open=null;st.q="";$("q").value="";$("sheet").hidden=true;
   document.title=name.replace(/\.(asc|edi)$/i,"")+" · PLAN VIEWER"+ZW;
   render(); if(typeof autoFit==="function")autoFit(); else toBow();
   tabDraw();
@@ -2787,6 +2793,7 @@ function helpDraw(){
   function kb(a){return a.map(function(x){return /^(클릭|휠|더블클릭|드래그|오른쪽 버튼 드래그|오른쪽 버튼 클릭)$/.test(x)?x:"<kbd>"+esc(x)+"</kbd>"}).join(" + ")}
   $("helpT").innerHTML=KEYS.map(function(K){return "<tr><td>"+kb(K.keys)+(K.or?" "+kb(K.or):"")+"</td><td>"+esc(K.d)+"</td></tr>"}).join("")}
 helpDraw();
+(function(){var c=$("hscU");if(c)c.textContent=(/^https?:/.test(location.protocol)?location.origin+location.pathname:"https://junjaem.github.io/asc-viewer/")+"#d="})();
 document.addEventListener("keydown",function(e){
   if(window.__STATIC__)return;
   if(!$("ask").hidden){   // 삭제 확인 창이 떠 있는 동안은 Enter·Esc 만 받음
@@ -2819,10 +2826,46 @@ if(window.__INBOX__&&!window.__STATIC__){
     try{var bn=atob(m.b64),uu=new Uint8Array(bn.length);for(var i2=0;i2<bn.length;i2++)uu[i2]=bn.charCodeAt(i2);loadBytes(uu,m.name||"plan.asc");window.focus()}catch(_){}};
   setInterval(function(){var sc=document.createElement("script");sc.src=window.__INBOX__+"?"+Date.now();sc.onload=sc.onerror=function(){sc.remove()};document.head.appendChild(sc)},800);
 }
+// ---------- 주소 뒤(#)에 실려 온 플랜 ----------
+// 폰에서 메일 첨부를 '공유 → 단축어'로 넘길 때 쓰는 길: 단축어가 파일을 글자(Base64)로 바꿔 이 페이지 주소의 # 뒤에 붙여서 엶.
+// 주소의 # 뒤는 서버로 전송되지 않으므로 플랜은 그 기기 밖으로 나가지 않음. 받자마자 주소에서 지움(방문 기록에 안 남게).
+// 형식:  #d=<Base64>   또는   #n=<파일 이름>&d=<Base64>      (Base64 = .asc/.edi 그대로, 또는 그 파일을 담은 zip — zip 이면 안의 파일 이름을 씀)
+function unzip1(u){   // zip 안의 플랜 파일 하나 꺼내기 (.asc 먼저, 없으면 .edi, 그것도 없으면 첫 파일)
+  return new Promise(function(ok,no){
+    var dv=new DataView(u.buffer,u.byteOffset,u.byteLength),e=u.length-22,pick=null,pr=-1;
+    while(e>=0&&dv.getUint32(e,true)!==0x06054b50)e--;if(e<0)return no(new Error("압축 파일이 아니에요"));
+    var n=dv.getUint16(e+10,true),q=dv.getUint32(e+16,true);
+    for(var k=0;k<n&&q+46<=u.length&&dv.getUint32(q,true)===0x02014b50;k++){
+      var nl=dv.getUint16(q+28,true),xl=dv.getUint16(q+30,true),cl=dv.getUint16(q+32,true),nm=new TextDecoder().decode(u.subarray(q+46,q+46+nl)),r=/\.asc$/i.test(nm)?2:/\.edi$/i.test(nm)?1:0;
+      if(r>pr&&!/\/$/.test(nm)){pr=r;pick={meth:dv.getUint16(q+10,true),cs:dv.getUint32(q+20,true),lo:dv.getUint32(q+42,true),name:nm}}
+      q+=46+nl+xl+cl}
+    if(!pick)return no(new Error("압축 파일이 비어 있어요"));
+    var ds=pick.lo+30+dv.getUint16(pick.lo+26,true)+dv.getUint16(pick.lo+28,true),raw=u.subarray(ds,ds+pick.cs);
+    if(pick.meth===0)return ok({name:pick.name,data:raw});
+    if(pick.meth!==8||typeof DecompressionStream==="undefined")return no(new Error("이 기기에서는 압축을 풀 수 없어요 — 단축어에서 ‘아카이브 만들기’ 단계를 빼 주세요"));
+    new Response(new Blob([raw]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).arrayBuffer().then(function(b){ok({name:pick.name,data:new Uint8Array(b)})},no)})}
+function hashPlan(){
+  var h=location.hash||"",m=/[#&]d=([^&]*)/.exec(h),nmm=/[#&]n=([^&]*)/.exec(h);if(!m||window.__STATIC__)return;
+  try{history.replaceState(null,"",location.pathname+location.search)}catch(_){}
+  var b=m[1],name="";try{b=decodeURIComponent(b)}catch(_){}
+  b=b.replace(/\s+/g,"").replace(/-/g,"+").replace(/_/g,"/");
+  if(nmm){try{name=decodeURIComponent(nmm[1])}catch(_){name=nmm[1]}}
+  var bin;try{bin=atob(b)}catch(e){return say("넘겨받은 플랜을 읽지 못했어요. 단축어의 ‘Base64 인코딩’에서 줄 바꿈이 ‘없음’인지 확인해 주세요.",true)}
+  var u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
+  function go(bytes,n2){var f=String(n2||name||"").replace(/^.*[\\\/]/,"");
+    if(!/\.(asc|edi)$/i.test(f))f=(f||"plan")+(isEdi(latin1(bytes.subarray(0,400)))?".edi":".asc");
+    loadBytes(bytes,f)}
+  if(u[0]===0x50&&u[1]===0x4B)unzip1(u).then(function(z){go(z.data,name||z.name)}).catch(function(e){say("넘겨받은 압축 파일을 풀지 못했어요 ("+(e&&e.message||e)+").",true)});
+  else go(u,name)}
+window.addEventListener("hashchange",hashPlan);
+// 파일 이름에서 선박을 못 찾으면 ASC 머리말의 선박 이름으로 (공유로 넘어온 파일은 이름이 엉뚱할 수 있음)
+function shipByName(v){v=String(v||"").toUpperCase().replace(/[^A-Z0-9]+/g," ").trim();if(!SHIPS||v.length<5)return "";
+  for(var k in SHIPS){var n=String(SHIPS[k].n||"").toUpperCase().replace(/[^A-Z0-9]+/g," ").trim();if(n&&(n===v||(v.length>=8&&n.indexOf(v)===0)||(n.length>=8&&v.indexOf(n)===0)))return k}return ""}
 var E=window.__ASC__;
 if(E&&E.b64){var bin=atob(E.b64),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
   loadBytes(u,E.name||"plan.asc")}
-if(!st.plan)document.body.classList.add("empty");   // 처음 화면은 비워 둠 (예시 플랜을 보여 주지 않음)
+if(!st.plan)document.body.classList.add("empty");
+hashPlan();   // 처음 화면은 비워 둠 (예시 플랜을 보여 주지 않음)
 // ---------- 앱(설치판): 깃허브 페이지에서만 켜짐 (manifest 가 연결돼 있을 때) ----------
 // 안드로이드 크롬: '앱 설치' 버튼 → 홈 화면 아이콘. 설치하면 아웃룩 등에서 .asc 를 '공유 → PLAN VIEWER'로 바로 열 수 있음.
 if(!window.__STATIC__&&document.querySelector('link[rel="manifest"]')&&"serviceWorker" in navigator){
