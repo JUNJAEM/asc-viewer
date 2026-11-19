@@ -45,17 +45,25 @@ function Outlook { try { return [Runtime.InteropServices.Marshal]::GetActiveObje
 # OUTBOUND mail writing (looks up the schedule, copies the style of an earlier mail, opens a new-mail window; never sends)
 $outOk = $false; try { . (Join-Path $dir 'mail-out.ps1'); $outOk = $true } catch { Log ('mail-out: ' + $_.Exception.Message) }
 function OutPrep($q) {
-    $r = Out-Rotation ([string]$q.vsl) ([string]$q.voy) ([string]$q.port)
+    $pp = @($q.ports | Where-Object { $_ } | ForEach-Object { [string]$_ } | Select-Object -Unique)
+    $r = Out-Rotation ([string]$q.vsl) ([string]$q.voy) $pp
     $svc = if ($r.svc) { $r.svc } else { [string]$q.svc }
-    $cand = @(Out-Find ([string]$q.vsl) $r.name $svc ([string]$q.port) $r.ports)
+    # the plans' ports in the order she calls them; and Korean calls at the start of this voyage that no plan was given for
+    $order = @(); $missing = @()
+    if ($r.ok) {
+        foreach ($c in $r.calls) { if (-not $c.skip -and -not $c.next -and ($pp -contains $c.p) -and ($order -notcontains $c.p)) { $order += $c.p } }
+        foreach ($c in $r.calls) { if (-not $c.kr) { break }; if (-not $c.skip -and -not $c.next -and ($pp -notcontains $c.p) -and ($c.p -eq 'PUS' -or $c.p -eq 'PNC')) { $missing += $c.p } }
+    }
+    foreach ($x in $pp) { if ($order -notcontains $x) { $order += $x } }
+    $cand = @(Out-Find ([string]$q.vsl) $r.name $svc $order $r.ports)
     $id = [string]$q.id; if (-not $id -and $cand.Count) { $id = $cand[0].id }
-    $mail = $null; if ($id) { $mail = Out-Build $id ([string]$q.voy) ([string]$q.rot) $r.calls }
-    return (@{ rot = $r; cand = $cand; mail = $mail; svc = $svc } | ConvertTo-Json -Depth 7 -Compress)
+    $mail = $null; if ($id) { $mail = Out-Build $id ([string]$q.voy) ([string]$q.rot) $r.calls $order }
+    return (@{ rot = $r; cand = $cand; mail = $mail; svc = $svc; ports = $order; missing = $missing } | ConvertTo-Json -Depth 7 -Compress)
 }
 function OutOpen($q) {
-    $bytes = [Convert]::FromBase64String([string]$q.b64)
-    return ((Out-Open ([string]$q.id) ([string]$q.voy) ([string]$q.subject) ([string]$q.rot) ([string]$q.name) $bytes (-not $q.draft)) | ConvertTo-Json -Compress)
+    return ((Out-Open ([string]$q.id) ([string]$q.voy) ([string]$q.subject) ([string]$q.rot) @($q.files) (-not $q.draft) @($q.ports)) | ConvertTo-Json -Compress)
 }
+
 function Walk($f, $path, $since, $sentId) {
     $p = if ($path) { $path + '/' + $f.Name } else { $f.Name }
     try {
