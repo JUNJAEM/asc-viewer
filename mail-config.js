@@ -13,4 +13,4 @@ window.ASC_MAIL={
 
 // 폰·웹의 메일함: 회사 Microsoft 365 에 등록한 앱 ID (비밀 값이 아님 — 로그인 창을 띄울 때 쓰는 이름표).
 // 비어 있으면 폰·웹의 메일함은 "설정이 필요해요" 안내만 보여 줌. 등록: Entra > 앱 등록 > 단일 페이지 앱, 리디렉션 URI = 깃허브 페이지 주소, 위임 권한 Mail.Read
-window.ASC_GRAPH={clientId:"",tenant:"organizations"};
+window.ASC_GRAPH={clientId:"1b0b18b1-c765-4a27-9ed1-42b236bfd5bd",tenant:"67add7f6-50fb-4061-a754-f0a84ae776c0"};
