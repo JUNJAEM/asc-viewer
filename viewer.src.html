@@ -302,7 +302,7 @@ body.static #tabs{display:none!important}
 #mailV{position:fixed;inset:0;z-index:14;background:rgba(20,45,85,.28);display:flex;align-items:stretch;justify-content:center;padding:14px}#mailV[hidden]{display:none}
 .mwin{width:min(1180px,100%);display:flex;flex-direction:column;min-height:0}
 .mwin .tb{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.mwin .tb .sp{flex:1}.mwin .tb small{font-weight:400;opacity:.9}
-.mwin .tb select,.mwin .tb input,.mwin .tb button{font:inherit;font-size:12.5px;padding:2px 8px;border:1px solid var(--edge);border-radius:3px;background:#fff;color:#111}.mwin .tb input{width:210px}
+.mwin .tb select,.mwin .tb input,.mwin .tb button{font:inherit;font-size:12.5px;padding:2px 8px;border:1px solid var(--edge);border-radius:3px;background:#fff;color:#111}.mwin .tb input{width:300px}.mwin .tb .mlq{display:flex;align-items:center;gap:6px;font-weight:700}#mlT mark{background:#ffe27a;color:inherit;padding:0 1px;border-radius:2px}
 .mlc{display:flex;flex-wrap:wrap;gap:6px;padding:8px 12px;border-bottom:1px solid var(--edge);background:var(--chrome)}
 .mlc button{font:inherit;font-size:12.5px;font-weight:700;padding:3px 11px;border:1px solid var(--edge);border-radius:14px;background:#fff;color:#111;cursor:pointer}
 .mlc button[aria-pressed="true"]{background:#0b3f94;color:#fff;border-color:#0b3f94}.mlc button span{font-weight:400;opacity:.8;margin-left:5px}
@@ -313,7 +313,7 @@ body.static #tabs{display:none!important}
 #mlT .fb{font:inherit;font-size:12px;font-weight:700;margin:0 4px 3px 0;padding:2px 8px;border:1px solid #0b3f94;border-radius:4px;background:#fff;color:#0b3f94;cursor:pointer;max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #mlT .fb:hover{background:#0b3f94;color:#fff}#mlT .fb.edi{border-color:#7a5a00;color:#7a5a00}#mlT .fb.edi:hover{background:#7a5a00;color:#fff}
 .mlb .emp{padding:26px 16px;color:#445;line-height:1.7}
-@media (max-width:700px){#mailV{padding:0}.mwin{border-radius:0;border:0}.mwin .tb input{width:120px;flex:1 1 90px}.mwin .tb select,.mwin .tb input,.mwin .tb button{min-height:34px}
+@media (max-width:700px){#mailV{padding:0}.mwin{border-radius:0;border:0}.mwin .tb .mlq{flex:1 1 100%;order:9}.mwin .tb input{width:auto;flex:1 1 90px}.mwin .tb select,.mwin .tb input,.mwin .tb button{min-height:34px}
   #mlT thead{display:none}#mlT tr{display:block;padding:7px 8px;border-bottom:1px solid #dfe5ee}#mlT td{display:block;border:0;padding:1px 4px}#mlT td.mw,#mlT td.mc{display:inline-block}
   #mlT .fb{min-height:38px;max-width:100%;font-size:13px;margin-top:4px}.mlc button{min-height:34px}}
 .bpl[hidden]{display:none}.bpl{min-height:30px}.bpl .plNm{color:#0b3f94}
@@ -630,8 +630,8 @@ body.static .cr{display:none}
   </table></div></div></div>
 <div id="mailV" hidden><div class="win mwin" role="dialog" aria-label="메일함">
   <div class="tb">메일함 <small id="mlS"></small><span class="sp"></span>
-    <select id="mlD" aria-label="기간"><option value="1">오늘 · 어제</option><option value="3" selected>최근 3일</option><option value="7">최근 7일</option><option value="14">최근 14일</option></select>
-    <input id="mlQ" type="search" placeholder="제목 · 선박 · 보낸 곳" autocomplete="off" aria-label="메일 찾기">
+    <select id="mlD" aria-label="기간"><option value="1">오늘 · 어제</option><option value="3" selected>최근 3일</option><option value="7">최근 7일</option><option value="14">최근 14일</option><option value="30">최근 30일</option></select>
+    <label class="mlq"><span>검색</span><input id="mlQ" type="search" placeholder="선박 · 항차 · 포트 · 보낸 곳 (띄어 쓰면 모두 포함)" autocomplete="off" aria-label="메일 검색"></label>
     <button type="button" id="mlR" title="아웃룩에서 다시 읽기">새로고침</button><button type="button" id="mlX" aria-label="닫기" title="닫기 (Esc)">×</button></div>
   <div class="mlc" id="mlC"></div>
   <div class="mlb" id="mlB"></div></div></div>
@@ -2224,18 +2224,26 @@ function mlDraw(){
   if(ML.cat&&!(ML.cat in cnt))ML.cat="";
   $("mlC").innerHTML='<button type="button" data-mc="" aria-pressed="'+(!ML.cat)+'">전체<span>'+L.length+'</span></button>'+
     cats.map(function(c){return '<button type="button" data-mc="'+esc(c)+'" aria-pressed="'+(ML.cat===c)+'">'+esc(c)+'<span>'+cnt[c]+'</span></button>'}).join("");
-  $("mlS").textContent=ML.busy?(grOn()?"회사 메일에서 읽는 중…":"아웃룩에서 읽는 중… (처음에는 20초쯤 걸려요)"):ML.err?"":(ML.at?ML.at+" 기준 · ":"")+"파일을 누르면 플랜으로 열려요";
+  $("mlS").textContent=ML.busy?(grOn()?"회사 메일에서 읽는 중…":(ML.days>=14?"아웃룩에서 읽는 중… (기간이 길어서 몇 분 걸릴 수 있어요)":"아웃룩에서 읽는 중… (처음에는 20초쯤 걸려요)")):ML.err?"":(ML.at?ML.at+" 기준 · ":"")+"파일을 누르면 플랜으로 열려요";
   var B=$("mlB");
   if(ML.err&&grOn()){B.innerHTML=ML.err==="setup"?'<div class="emp"><b>폰·웹에서 메일함을 쓰려면 회사 계정 연결 설정이 한 번 필요해요.</b><br>회사 Microsoft 365(Entra)에 이 앱을 등록하고 받은 <b>앱 ID</b>를 넣으면, 여기서 회사 계정으로 로그인해 팀 메일의 플랜을 바로 열 수 있어요.<br>등록 방법은 만든 사람(준재)에게 물어봐 주세요. PC 에 설치한 뷰어에서는 지금도 메일함이 돼요.</div>'
       :ML.err==="login"?'<div class="emp"><b>회사 계정으로 로그인해 주세요.</b><br>로그인하면 내 메일함에서 ASC · EDI 가 붙은 메일만 골라 보여 줘요. 메일은 Microsoft 에서 이 기기로만 오가요.<br><br><button type="button" class="fb" id="grIn" style="font-size:15px;padding:9px 18px">Microsoft 365 로그인</button></div>'
       :'<div class="emp"><b>메일을 읽지 못했어요.</b><br>'+esc(ML.err)+'<br><br><button type="button" class="fb" id="grIn">다시 로그인</button></div>';return}
   if(ML.err){B.innerHTML='<div class="emp"><b>메일 도우미에 연결하지 못했어요.</b><br>아웃룩이 켜져 있는지 확인하고, 플랜 파일을 하나 더블클릭해서 뷰어를 다시 열어 주세요 (그때 도우미가 같이 켜져요).<br>메일함은 PC 에 설치한 뷰어에서만 돼요.</div>';return}
-  var R=L.filter(function(m){return (!ML.cat||m.c===ML.cat)&&(!q||(m.sub+" "+m.from+" "+m.fd+" "+m.files.map(function(f){return f.n}).join(" ")).toUpperCase().indexOf(q)>=0)});
-  if(!R.length){B.innerHTML='<div class="emp">'+(ML.busy?"읽는 중이에요…":"이 조건에 맞는 메일이 없어요.")+'</div>';return}
+  // 검색: 띄어 쓴 낱말이 모두 들어 있는 메일. 선박 코드(MJEP)를 치면 선박 이름(MOJI EXPRESS)으로 적힌 메일도, 이름을 치면 코드로 적힌 메일도 찾음
+  var words=q.split(/\s+/).filter(Boolean).map(function(w){var alt=[w],k;
+    if(SHIPS){if(SHIPS[w]&&SHIPS[w].n)alt.push(SHIPS[w].n.toUpperCase());for(k in SHIPS)if(w.length>=4&&SHIPS[k].n&&SHIPS[k].n.toUpperCase().indexOf(w)>=0)alt.push(k)}return alt});
+  function hay(m){return (m.sub+" "+m.from+" "+m.fd+" "+m.c+" "+m.when+" "+m.files.map(function(f){return f.n}).join(" ")).toUpperCase()}
+  var R=L.filter(function(m){if(ML.cat&&m.c!==ML.cat)return false;if(!words.length)return true;var h=hay(m);return words.every(function(alt){return alt.some(function(w){return h.indexOf(w)>=0})})});
+  function hl(t){t=esc(t);if(!words.length)return t;var ws=[];words.forEach(function(a){a.forEach(function(w){ws.push(esc(w).replace(/[.*+?^${}()|[\]\\]/g,"\\$&"))})});
+    return t.replace(new RegExp("("+ws.join("|")+")","gi"),"<mark>$1</mark>")}
+  if(!ML.busy&&!ML.err&&q)$("mlS").textContent="검색 결과 "+R.length+"건"+(ML.cat?" · "+ML.cat:"")+" (최근 "+ML.days+"일)";
+  var wider=q&&ML.days<30?'<div class="emp">찾는 메일이 더 예전 것이면 <button type="button" class="fb" id="mlWide">최근 30일까지 넓혀서 찾기</button></div>':"";
+  if(!R.length){B.innerHTML='<div class="emp">'+(ML.busy?"읽는 중이에요…":"이 조건에 맞는 메일이 없어요.")+'</div>'+(ML.busy?"":wider);return}
   B.innerHTML='<table id="mlT"><thead><tr><th>받은 시각</th><th>분류</th><th>제목</th><th>보낸 곳</th><th>플랜 파일</th></tr></thead><tbody>'+R.slice(0,400).map(function(m){
-    return '<tr><td class="mw">'+esc(m.when.slice(5))+'</td><td class="mc">'+esc(m.c)+'</td><td class="ms">'+esc(m.sub||"(제목 없음)")+'</td><td class="mf">'+esc(m.from)+'<small>'+esc(m.fd)+'</small></td><td>'+
-      m.files.map(function(f){var edi=/\.edi$/i.test(f.n);return '<button type="button" class="fb'+(edi?' edi':'')+'" data-mid="'+esc(m.id)+'" data-mi="'+f.i+'" title="'+esc(f.n)+'">'+esc(f.n)+'</button>'}).join("")+'</td></tr>'}).join("")+
-    '</tbody></table>'+(R.length>400?'<div class="emp">앞의 400건만 보여요. 기간을 줄이거나 찾기로 좁혀 주세요.</div>':'')}
+    return '<tr><td class="mw">'+esc(m.when.slice(5))+'</td><td class="mc">'+esc(m.c)+'</td><td class="ms">'+hl(m.sub||"(제목 없음)")+'</td><td class="mf">'+hl(m.from)+'<small>'+hl(m.fd)+'</small></td><td>'+
+      m.files.map(function(f){var edi=/\.edi$/i.test(f.n);return '<button type="button" class="fb'+(edi?' edi':'')+'" data-mid="'+esc(m.id)+'" data-mi="'+f.i+'" title="'+esc(f.n)+'">'+hl(f.n)+'</button>'}).join("")+'</td></tr>'}).join("")+
+    '</tbody></table>'+(R.length>400?'<div class="emp">앞의 400건만 보여요. 기간을 줄이거나 검색으로 좁혀 주세요.</div>':'')+wider}
 function mlOpen(on){if(on==null)on=$("mailV").hidden;$("mailV").hidden=!on;if(on){if(!ML.items.length||ML.err)mlLoad();else mlDraw();setTimeout(function(){$("mlQ").focus()},50)}}
 function mlPick(id,i,btn){
   var m=ML.items.filter(function(x){return x.id===id})[0];if(!m)return;var f=m.files.filter(function(x){return String(x.i)===String(i)})[0];if(!f)return;
@@ -2261,7 +2269,9 @@ function mlPick(id,i,btn){
   $("mlQ").addEventListener("input",function(){ML.q=this.value;mlDraw()});
   $("mlQ").addEventListener("keydown",function(e){e.stopPropagation();if(e.key==="Escape")mlOpen(false)});
   $("mlC").addEventListener("click",function(e){var b=e.target.closest("[data-mc]");if(b){ML.cat=b.dataset.mc;mlDraw()}});
-  $("mlB").addEventListener("click",function(e){var b=e.target.closest(".fb");if(b)mlPick(b.dataset.mid,b.dataset.mi,b)});
+  $("mlB").addEventListener("click",function(e){var b=e.target.closest(".fb");
+    if(b&&b.id==="mlWide"){ML.days=30;$("mlD").value="30";mlLoad();return}
+    if(b&&b.dataset.mid)mlPick(b.dataset.mid,b.dataset.mi,b)});
   $("mailV").addEventListener("click",function(e){if(e.target.id==="mailV")mlOpen(false)});
   document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!$("mailV").hidden&&$("ask").hidden){e.stopPropagation();mlOpen(false)}},true);
   if(!grOn())setInterval(function(){mlGet("/ping").catch(function(){})},5*60000);   // 뷰어가 떠 있는 동안 도우미가 꺼지지 않게
