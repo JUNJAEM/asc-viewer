@@ -658,7 +658,7 @@ header.win .body{background:#fff}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-19 11:04 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-19 11:07 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -2287,7 +2287,7 @@ function grLogin(){var r=new Uint8Array(48);crypto.getRandomValues(r);var v=grB6
   try{sessionStorage.setItem("ascGrV",v);localStorage.setItem("ascGrV",v)}catch(_){}
   crypto.subtle.digest("SHA-256",new TextEncoder().encode(v)).then(function(h){
     location.href=grAuth()+"authorize?client_id="+encodeURIComponent(GR.cfg.clientId)+"&response_type=code&redirect_uri="+encodeURIComponent(grHere())+"&response_mode=query&scope="+encodeURIComponent("openid offline_access Mail.Read")+
-      "&state=ascmail&code_challenge_method=S256&code_challenge="+grB64(new Uint8Array(h))})}
+      "&state=ascmail&prompt=select_account&code_challenge_method=S256&code_challenge="+grB64(new Uint8Array(h))})}
 function grTok(q){q.client_id=GR.cfg.clientId;q.redirect_uri=grHere();q.scope="openid offline_access Mail.Read";
   return fetch(grAuth()+"token",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:Object.keys(q).map(function(k){return k+"="+encodeURIComponent(q[k])}).join("&")})
     .then(function(r){return r.json()}).then(function(j){if(!j.access_token)throw new Error(j.error_description||j.error||"login");
@@ -2371,7 +2371,7 @@ function mlDraw(){
   $("mlS").textContent=ML.busy?(grOn()?"회사 메일에서 읽는 중…":(ML.days>=14?"아웃룩에서 읽는 중… (기간이 길어서 몇 분 걸릴 수 있어요)":"아웃룩에서 읽는 중… (처음에는 20초쯤 걸려요)")):ML.err?"":(ML.at?ML.at+" 기준 · ":"")+"파일을 누르면 플랜으로 열려요";
   var B=$("mlB");
   if(ML.err&&grOn()){B.innerHTML=ML.err==="setup"?'<div class="msgbox"><b>폰·웹에서 메일함을 쓰려면 회사 계정 연결 설정이 한 번 필요해요.</b><br>회사 Microsoft 365(Entra)에 이 앱을 등록하고 받은 <b>앱 ID</b>를 넣으면, 여기서 회사 계정으로 로그인해 팀 메일의 플랜을 바로 열 수 있어요.<br>등록 방법은 만든 사람(준재)에게 물어봐 주세요. PC 에 설치한 뷰어에서는 지금도 메일함이 돼요.</div>'
-      :ML.err==="login"?'<div class="msgbox"><b>회사 계정으로 로그인해 주세요.</b><br>로그인하면 내 메일함에서 ASC · EDI 가 붙은 메일만 골라 보여 줘요. 메일은 Microsoft 에서 이 기기로만 오가요.<br><br><button type="button" class="fb" id="grIn" style="font-size:15px;padding:9px 18px">Microsoft 365 로그인</button></div>'
+      :ML.err==="login"?'<div class="msgbox"><b>회사 계정으로 로그인해 주세요.</b><br>계정을 고르는 화면이 나오면 <b>회사 메일 주소</b>(…@heungaline.com 등)를 고르거나 ‘다른 계정 사용’으로 넣어 주세요. 개인 Microsoft 계정은 안 돼요.<br>로그인하면 내 메일함에서 ASC · EDI 가 붙은 메일만 골라 보여 줘요. 메일은 Microsoft 에서 이 기기로만 오가요.<br><br><button type="button" class="fb" id="grIn" style="font-size:15px;padding:9px 18px">Microsoft 365 로그인</button></div>'
       :'<div class="msgbox"><b>메일을 읽지 못했어요.</b><br>'+esc(ML.err)+'<br><br><button type="button" class="fb" id="grIn">다시 로그인</button></div>';return}
   if(ML.err){B.innerHTML='<div class="msgbox"><b>메일 도우미에 연결하지 못했어요.</b><br>아웃룩이 켜져 있는지 확인하고, 플랜 파일을 하나 더블클릭해서 뷰어를 다시 열어 주세요 (그때 도우미가 같이 켜져요).</div>';return}
   // 검색: 띄어 쓴 낱말이 모두 들어 있는 메일. 선박 코드(MJEP)를 치면 선박 이름(MOJI EXPRESS)으로 적힌 메일도, 이름을 치면 코드로 적힌 메일도 찾음
