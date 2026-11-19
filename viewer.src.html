@@ -548,6 +548,63 @@ body.empty #sumWin,body.empty .tools,body.empty .legend,body.empty #gpWin,body.e
 body.empty #openBtn{color:#fff;border-color:#0b3f94;background:linear-gradient(#5b9bf0,#2468d6 50%,#1757c4 52%,#3f83e6);text-shadow:0 1px 2px rgba(0,20,60,.6)}
 .cr{margin-top:26px;text-align:center;font-size:11px;letter-spacing:.18em;text-transform:lowercase;color:rgba(20,45,90,.5);user-select:none;-webkit-user-select:none}
 body.static .cr{display:none}
+/* ===== 겉모습: 윈도우 10 느낌 — 평평한 면, 각진 모서리, 옅은 그림자, 파란 강조색 하나 =====
+   위의 비스타(Aero) 묶음을 덮어씀. 플랜 칸(색·테두리·글자)은 그대로. 이 묶음을 지우면 비스타 모습으로 돌아감 */
+:root{
+  --desk:#f3f3f3; --chrome:#f9f9f9; --edge:#d0d0d0; --shade:#c4c4c4; --fg:#1a1a1a; --fg2:#5c5c5c;
+  --num:#0067c0; --title:#0078d4; --title-fg:#ffffff; --acc:#0078d4; --acc2:#106ebe; --line:#e5e5e5;
+  --glass:#ffffff; --btn:#fdfdfd; --btn-h:#e5f1fb;
+}
+body{background:var(--desk);font-size:13px}
+.win{border:1px solid #d9d9d9;border-radius:3px;box-shadow:0 2px 10px rgba(0,0,0,.10)}
+.win>.tb{background:#fff;color:var(--fg);border-radius:2px 2px 0 0;padding:8px 12px;text-shadow:none;border-bottom:1px solid var(--line);box-shadow:inset 3px 0 0 var(--acc);font-weight:600;letter-spacing:0}
+.win>.tb small{color:var(--fg2);opacity:1}
+.win>.body:last-child,.win>.gpw,#edBody,#edBody .edw:last-child,.bwf{border-radius:0 0 2px 2px}
+header.win .body{background:#fff}
+#logo{border-radius:2px;border-color:var(--edge);box-shadow:none}
+.note{border-radius:2px;border-color:#f1d27a;background:#fff4ce;box-shadow:none}
+/* 버튼: 평평하게 */
+.btn,.x,.tb button,.bwin .tb button,.etab button,.bwf button,#eMsg button,#imgBtn,#v3 .tb button,.mwin .tb button,.askb button{
+  background:var(--btn);border:1px solid #c6c6c6;border-radius:2px;box-shadow:none;color:var(--fg);text-shadow:none;transition:background .1s,border-color .1s}
+.btn:hover,.x:hover,.tb button:hover,.bwin .tb button:hover,.etab button:hover,.bwf button:hover,#eMsg button:hover,#imgBtn:hover,#v3 .tb button:hover,.mwin .tb button:hover,.askb button:hover{background:var(--btn-h);border-color:var(--acc)}
+.btn:active,.x:active,.tb button:active{background:#cce4f7;box-shadow:none}
+.btn{padding:7px 16px;font-weight:600}
+.tb button{height:26px}
+#openBtn{background:var(--acc);border-color:var(--acc);color:#fff}#openBtn:hover{background:var(--acc2);border-color:var(--acc2)}
+#edBtn[aria-pressed="true"],#v3 .tb button[aria-pressed="true"],#v3Btn[aria-pressed="true"]{background:#cce4f7;color:#003e73;border-color:var(--acc);box-shadow:none}
+#saveBtn,#bwM{background:#fde7e9;color:#a4262c;border-color:#e8a3a8}#bwM:hover,#saveBtn:hover{background:#fbd0d4;border-color:#a4262c}
+#bwC{background:#eff6fc;color:#005a9e;border-color:#9cc7ee}
+#bwX,#v3X{background:#e81123;color:#fff;border-color:#e81123;font-weight:700;min-width:38px;text-shadow:none}#bwX:hover,#v3X:hover{background:#c50f1f;border-color:#c50f1f}
+.chips #sortCol{background:linear-gradient(90deg,#ff4136 0 25%,#19c2b0 25% 50%,#ff85e0 50% 75%,#ff9f1a 75%) bottom/100% 3px no-repeat,var(--btn);border-radius:2px}
+.seg button{border-color:#c6c6c6;background:#fff}.seg button:first-child{border-radius:2px 0 0 2px}.seg button:last-child{border-radius:0 2px 2px 0}
+.seg button:hover{background:var(--btn-h)}.seg button[aria-pressed="true"]{background:var(--acc);color:#fff;border-color:var(--acc);box-shadow:none}
+/* 입력칸 */
+#ship,#q,.tb select,.pvc select,.ef,.ei,.mwin .tb select,.mwin .tb input,.plBrush input,#llForm input{border:1px solid #8a8a8a;border-radius:2px;box-shadow:none;background:#fff}
+#ship:hover,#q:hover,.tb select:hover,.pvc select:hover{border-color:#5c5c5c}
+#ship:focus,#q:focus,.tb select:focus,.ei:focus,.mwin .tb input:focus{outline:0;border-color:var(--acc);box-shadow:inset 0 0 0 1px var(--acc)}
+.tb select{height:26px;color:var(--fg);font-weight:400}
+/* 포트 칩 */
+.chip{border-radius:2px;border-color:#c6c6c6;box-shadow:none}.chip.on{box-shadow:0 0 0 2px var(--acc)}.swc{border-right-color:#c6c6c6}
+.gh{border-left-color:#ececec}.mini.cur span{background:var(--acc);color:#fff;border-radius:2px}
+/* 창들 */
+#bw,#mailV{background:rgba(0,0,0,.32)}
+.bwin{border-radius:3px;box-shadow:0 12px 40px rgba(0,0,0,.28)}
+.bwf,.pvc,.bpl,.mlc,#llForm{background:#f7f7f7;border-color:var(--line)}
+#sheet{background:#fafafa;border-color:#d9d9d9}
+#sheet .edt{background:#fff;color:var(--fg);text-shadow:none;padding:9px 12px;border-bottom:1px solid var(--line);box-shadow:inset 3px 0 0 var(--acc)}
+@media (min-width:900px){#sheet{box-shadow:-4px 0 16px rgba(0,0,0,.12);border-left:1px solid #d9d9d9}#sheet dd{border-color:#c6c6c6;border-radius:2px}#sheet .emp dd{background:#f3f3f3}}
+.etab button{border-radius:0;opacity:1;height:28px;border-color:transparent;background:transparent}.etab button.on{background:transparent;box-shadow:inset 0 -2px 0 var(--acc);color:var(--acc);font-weight:700}
+.et thead th,.et.pv th.rh{background:#f3f3f3}.et thead tr.efr th{background:#fafafa}.et th,.et td{border-color:#e1e1e1}.et.pv .tot{background:#f3f3f3}
+#expMenu,#pkTip,#llBox,#plStrip{border-radius:2px;border-color:#c6c6c6;box-shadow:0 6px 20px rgba(0,0,0,.18)}
+#plStrip{background:#eff6fc;border-color:var(--acc)}#plStrip b,.bpl .plNm,.plMsg{color:#005a9e}
+#llBox .llh{background:var(--acc);border-radius:1px 1px 0 0}
+#tabs .tab{border-radius:2px 2px 0 0}
+/* 메일함 */
+.mlc button[aria-pressed="true"]{background:#cce4f7}.mlc button:hover{background:#e9e9e9}.mlc button .mlct{color:var(--acc)}
+.mld{background:#f3f3f3;border-color:var(--line)}.mli .mlsb{color:#005a9e}
+.mli .fb,.mlb .fb{border-color:var(--acc);color:#005a9e;border-radius:2px}.mli .fb:hover{background:var(--acc);color:#fff}
+/* 폰 도구 막대 */
+@media (hover:none){.tpl button{border-radius:2px;border-color:#c6c6c6}.tpl button[aria-pressed="true"],.tpl button.on{background:var(--acc);border-color:var(--acc)}.tpc .go{background:#107c10;border-color:#107c10}}
 </style>
 
 <div class="wrap">
