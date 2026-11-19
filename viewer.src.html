@@ -63,6 +63,7 @@ header.win .body{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;bac
 
 /* General Plan */
 .gpw{overflow:auto;max-height:max(300px,calc(100vh - 130px));overscroll-behavior:contain}
+.zoom.lim select,.zoom.lim #zF{outline:2px solid var(--acc,#0078d4);outline-offset:1px}
 @media (hover:none) and (orientation:landscape) and (max-height:519px){.gpw{max-height:max(200px,calc(100vh - 58px));max-height:max(200px,calc(100dvh - 58px))}}   /* 가로로 눕힌 폰: 화면 높이를 거의 다 씀 */
 .gp{display:flex;flex-wrap:nowrap;width:max-content;margin-left:auto;gap:10px 4px;padding:8px 6px;align-items:flex-start}
 .gp.wrap{flex-direction:row-reverse;flex-wrap:wrap;width:auto;margin-left:0;justify-content:flex-start;gap:18px 4px}
@@ -705,8 +706,8 @@ header.win .body{background:#fff}
       <option value="row">한 줄로</option><option value="wrap">여러 줄로</option></select>
     <span class="zoom"><button type="button" id="zO" aria-label="축소" title="축소 (Alt + 휠)">−</button>
       <select id="zS" aria-label="확대 비율"></select>
-      <button type="button" id="zI" aria-label="확대" title="확대 (Alt + 휠)">+</button>
-      <button type="button" id="zF" title="이 화면에 맞는 배열과 비율로 다시 맞춰요">맞춤</button></span></div>
+      <button type="button" id="zI" aria-label="확대" title="확대 (Alt + 휠) — 모든 베이가 한 화면에 보이는 크기까지만 커져요">+</button>
+      <button type="button" id="zF" title="모든 베이가 보이는 가장 큰 비율로 다시 맞춰요">맞춤</button></span></div>
     <div class="gpx"><aside class="gi" id="gpInfo"></aside><div class="gpw" id="gpw"><div class="gp" id="gp"></div></div></div>
     <div class="rz rzr" data-rz="r" title="끌어서 너비 조절 (더블클릭: 원래대로)"></div><div class="rz rzb" data-rz="b" title="끌어서 높이 조절 (더블클릭: 원래대로)"></div><div class="rz rzc" data-rz="c" title="끌어서 크기 조절 (더블클릭: 원래대로)"></div></section>
   <section class="win" id="edWin" hidden><div class="tb"><span class="etab"><button type="button" id="tabE">Editor</button><button type="button" id="tabP">Pivot</button></span>
@@ -1729,21 +1730,28 @@ var AUTOZ=true, LAYSET=false;
 function isPhone(){return window.innerWidth<700||(TOUCH&&window.innerHeight<520)}
 // General Plan 창을 그림에 맞춤: 그림이 차지한 폭만큼만 창을 잡아서 옆에 빈 자리가 남지 않게 (세로는 원래 그림 높이만큼).
 // 폰은 화면 폭 그대로. 그림이 화면보다 넓으면 화면 폭까지만(그 안에서 스크롤).
-var FITTING=false;
+var FITTING=false, GPUW=0;   // GPUW = 손으로 끌어 정한 General Plan 창 너비(px). 0 이면 그림 폭에 자동으로 맞춤
+// 쓸 수 있는 높이: PC는 창 아래까지, 폰은 General Plan 을 화면 위로 올렸을 때의 높이(위쪽 요약은 밀어 올려 봄). 창 높이를 손으로 정했으면 그 높이
+function gpAvH(){var w=$("gpw"),phone=isPhone(),land=phone&&window.innerWidth>window.innerHeight;
+  return w.style.height?w.clientHeight:land?Math.max(200,window.innerHeight-58):phone?Math.max(300,window.innerHeight-130):Math.max(140,window.innerHeight-(w.getBoundingClientRect().top+window.scrollY)-18)}
+function gpOver(){var w=$("gpw"),g=$("gp");return g.scrollWidth>w.clientWidth+1||g.scrollHeight>gpAvH()+1}   // 지금 안 보이는(스크롤해야 보이는) 베이가 있는지
+// 창 크기·브라우저 배율이 바뀐 뒤: PC 에서는 모든 베이가 계속 한 화면에 보이게 (2026-11 사용자 요청).
+// 비율을 손대지 않았으면 가장 크게 다시 맞추고, 손으로 줄여 둔 비율은 그대로 두되 넘치면 다시 맞춤. 폰은 손댄 비율을 그대로 둠.
+function gpKeep(){if(!st.plan||window.__STATIC__)return;if(AUTOZ||(!isPhone()&&gpOver()))autoFit();else gpFit()}
 function gpFit(){
   var win=$("gpWin"),w=$("gpw"),g=$("gp");if(!win||!w||!g)return;
   if(!st.plan||window.__STATIC__||isPhone()||FITTING){if(!FITTING)win.style.width="";return}
+  if(GPUW){win.style.width=GPUW+"px";return}
   win.style.width="";var used=g.scrollWidth;
   if(LAYOUT==="wrap"){var l=1e9,r=-1e9;[].forEach.call(g.querySelectorAll(".gh"),function(e){var q=e.getBoundingClientRect();if(q.width){l=Math.min(l,q.left);r=Math.max(r,q.right)}});if(r>l)used=r-l+16}
   var full=win.offsetWidth,extra=full-w.clientWidth,W=Math.min(full,Math.max(660,Math.ceil(used)+extra+4));
   if(W<full-2)win.style.width=W+"px"}
 function autoFit(){
   if(!st.plan||window.__STATIC__)return;
-  FITTING=true;$("gpWin").style.width="";
+  FITTING=true;$("gpWin").style.width=GPUW&&!isPhone()?GPUW+"px":"";
   var w=$("gpw"),g=$("gp"),W=window.innerWidth,phone=isPhone(),land=phone&&W>window.innerHeight,want=LAYSET?LAYOUT:"wrap";
   function lay(v){if(LAYOUT!==v){LAYOUT=v;$("lay").value=v;render()}}
-  // 쓸 수 있는 높이: PC는 창 아래까지, 폰은 General Plan 을 화면 위로 올렸을 때의 높이(위쪽 요약은 밀어 올려 봄)
-  function avH(){return w.style.height?w.clientHeight:land?Math.max(200,window.innerHeight-58):phone?Math.max(300,window.innerHeight-130):Math.max(240,window.innerHeight-(w.getBoundingClientRect().top+window.scrollY)-18)}
+  var avH=gpAvH;
   lay(want);setZoom(100);
   var z=100,aw=w.clientWidth-2;
   if(LAYOUT==="row"){
@@ -1758,14 +1766,17 @@ function autoFit(){
     z=Math.min(phone?170:130,best);
   }
   z=Math.max(ZS[0],Math.min(300,Math.floor(z/5)*5));setZoom(z);
-  var n2=0;while((g.scrollWidth>w.clientWidth+1||(!w.style.height&&g.scrollHeight>avH()+1))&&z>ZS[0]&&n2++<20){z-=5;setZoom(z)}
+  var n2=0;while((g.scrollWidth>w.clientWidth+1||g.scrollHeight>avH()+1)&&z>ZS[0]&&n2++<20){z-=5;setZoom(z)}
   FITTING=false;gpFit();
   AUTOZ=true;toBow();
   if(phone&&!st.example)$("gpWin").scrollIntoView({block:"start"});   // 폰: 파일을 열면 General Plan 이 바로 보이게
 }
-$("lay").onchange=function(e){LAYOUT=e.target.value;LAYSET=true;render();if(AUTOZ)autoFit();else{gpFit();toBow()}};
-$("zO").onclick=function(){AUTOZ=false;stepZoom(-1)}; $("zI").onclick=function(){AUTOZ=false;stepZoom(1)};
-$("zS").onchange=function(e){AUTOZ=false;setZoom(+e.target.value)};
+$("lay").onchange=function(e){LAYOUT=e.target.value;LAYSET=true;render();if(AUTOZ||(!isPhone()&&gpOver()))autoFit();else{gpFit();toBow()}};
+// 손으로 비율 바꾸기: PC 에서는 키울 때 '모든 베이가 보이는 가장 큰 비율'에서 멈춤(넘기면 그 비율로 되돌리고 비율 칸을 잠깐 표시). 줄이는 것은 자유.
+function userZoom(d,abs){var z0=zoom;AUTOZ=false;if(abs)setZoom(abs);else stepZoom(d);
+  if(zoom>z0&&st.plan&&!window.__STATIC__&&!isPhone()&&gpOver()){autoFit();var zb=document.querySelector(".zoom");if(zb){zb.classList.add("lim");setTimeout(function(){zb.classList.remove("lim")},800)}}}
+$("zO").onclick=function(){userZoom(-1)}; $("zI").onclick=function(){userZoom(1)};
+$("zS").onchange=function(e){userZoom(0,+e.target.value)};
 // ---------- 이미지로 저장: General Plan + 옆 표를 그대로 PNG 로 ----------
 function saveImg(){
   if(!st.plan)return;
@@ -1792,25 +1803,25 @@ function saveImg(){
 }
 $("imgBtn").onclick=saveImg;
 $("zF").onclick=function(){LAYSET=false;autoFit()};
-$("gpw").addEventListener("wheel",function(e){if(e.altKey){e.preventDefault();AUTOZ=false;stepZoom(e.deltaY<0?1:-1)}},{passive:false});
+$("gpw").addEventListener("wheel",function(e){if(e.altKey){e.preventDefault();userZoom(e.deltaY<0?1:-1)}},{passive:false});
 (function(){var t=0,lw=window.innerWidth,ll=window.innerWidth>window.innerHeight;window.addEventListener("resize",function(){clearTimeout(t);t=setTimeout(function(){
   var l2=window.innerWidth>window.innerHeight,turn=TOUCH&&l2!==ll;ll=l2;   // 폰을 돌리면(세로↔가로) 손으로 바꾼 비율이 있어도 다시 맞춤
-  if(st.plan&&(turn||(AUTOZ&&(Math.abs(window.innerWidth-lw)>8||!TOUCH)))){lw=window.innerWidth;autoFit();if(st.open)drawWin()}},180)})})();
+  if(st.plan&&(turn||((AUTOZ||!isPhone())&&(Math.abs(window.innerWidth-lw)>8||!TOUCH)))){lw=window.innerWidth;if(turn||AUTOZ)autoFit();else gpKeep();if(st.open)drawWin()}},180)})})();
 // General Plan 창 크기: 오른쪽·아래 가장자리, 오른쪽 아래 모서리를 끌어서 조절
 (function(){
   var win=$("gpWin"),gw=$("gpw"),d=null;
-  function apply(z){if(z&&z.w)win.style.width=z.w+"px";else win.style.width="";
+  function apply(z){GPUW=z&&z.w||0;if(GPUW)win.style.width=GPUW+"px";else win.style.width="";
     if(z&&z.h){gw.style.height=z.h+"px";gw.style.maxHeight="none"}else{gw.style.height="";gw.style.maxHeight=""}}
-  function save(){try{localStorage.setItem("ascGpSize",JSON.stringify({w:win.style.width?parseInt(win.style.width,10):0,h:gw.style.height?parseInt(gw.style.height,10):0}))}catch(_){}}
-  try{apply(JSON.parse(localStorage.getItem("ascGpSize")||"null"))}catch(_){}
+  function save(){try{localStorage.setItem("ascGpSize2",JSON.stringify({w:GPUW,h:gw.style.height?parseInt(gw.style.height,10):0}))}catch(_){}}
+  try{apply(JSON.parse(localStorage.getItem("ascGpSize2")||"null"))}catch(_){}
   win.addEventListener("pointerdown",function(e){var k=e.target.dataset&&e.target.dataset.rz;if(!k)return;
     d={k:k,x:e.clientX,y:e.clientY,w:win.offsetWidth,h:gw.offsetHeight};e.target.setPointerCapture(e.pointerId);document.body.classList.add("rzing");e.preventDefault()});
   win.addEventListener("pointermove",function(e){if(!d)return;
     if(d.k!=="b")win.style.width=Math.max(300,d.w+e.clientX-d.x)+"px";
     if(d.k!=="r"){gw.style.height=Math.max(140,d.h+e.clientY-d.y)+"px";gw.style.maxHeight="none"}});
-  function end(){if(d){d=null;document.body.classList.remove("rzing");save()}}
+  function end(){if(d){if(d.k!=="b")GPUW=parseInt(win.style.width,10)||0;d=null;document.body.classList.remove("rzing");save();gpKeep()}}
   win.addEventListener("pointerup",end);win.addEventListener("pointercancel",end);
-  win.addEventListener("dblclick",function(e){if(e.target.dataset&&e.target.dataset.rz){apply(null);save()}});
+  win.addEventListener("dblclick",function(e){if(e.target.dataset&&e.target.dataset.rz){apply(null);save();gpKeep()}});
 })();
 // Summary 창 크기: 좌·우·아래 가장자리와 모서리를 끌어서 조절. 플랜보다 충분히 좁아지면 General Plan 오른쪽에 나란히 붙음.
 // 기억하지 않음 — 파일을 새로 열면 원래 모습(가로로 넓게)으로 시작.
@@ -1823,7 +1834,7 @@ var sumReset=function(){};
     else{win.style.width=Math.max(120,w)+"px";wrap.classList.toggle("side",w<=full-380)}
   }
   sumReset=function(){win.style.width=win.style.height="";wrap.classList.remove("side")};
-  function refit(){if(typeof autoFit==="function"&&AUTOZ)autoFit()}
+  function refit(){if(typeof gpKeep==="function")gpKeep()}
   win.addEventListener("pointerdown",function(e){var k=e.target.dataset&&e.target.dataset.sz;if(!k)return;
     d={k:k,x:e.clientX,y:e.clientY,w:win.offsetWidth,h:win.offsetHeight};e.target.setPointerCapture(e.pointerId);document.body.classList.add("rzing");e.preventDefault()});
   win.addEventListener("pointermove",function(e){if(!d)return;var dx=e.clientX-d.x,dy=e.clientY-d.y;
