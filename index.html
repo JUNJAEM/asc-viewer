@@ -656,7 +656,7 @@ header.win .body{background:#fff}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-19 10:46 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-19 10:51 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -701,7 +701,7 @@ header.win .body{background:#fff}
     <button type="button" id="pkBtn" hidden aria-describedby="pkTip">CNTR 지정중 !</button>
     <button type="button" id="imgBtn" title="지금 보이는 General Plan을 포트 표·BSA와 함께 그림(PNG)으로 저장해요">이미지로 저장</button>
     <select id="lay" aria-label="베이 배열" title="베이 배열">
-      <option value="row">한 줄로</option><option value="wrap">여러 줄로 (CASP)</option></select>
+      <option value="row">한 줄로</option><option value="wrap">여러 줄로</option></select>
     <span class="zoom"><button type="button" id="zO" aria-label="축소" title="축소 (Alt + 휠)">−</button>
       <select id="zS" aria-label="확대 비율"></select>
       <button type="button" id="zI" aria-label="확대" title="확대 (Alt + 휠)">+</button>
@@ -781,7 +781,7 @@ header.win .body{background:#fff}
 var $=function(id){return document.getElementById(id)};
 var st={plan:null,name:"",example:false,color:"podpol",filter:null,q:"",sel:-1,open:null,ship:"",shipBad:false,pick:[],lines:null,orig:null,eol:"\r\n",plan0:null,saved:""};   // lines·orig: 편집용 원본 줄(바이트 그대로), plan0: 고치기 전 값
 var SHIPS=window.ASC_SHIPS||null;
-var LAYOUT="row";try{if(localStorage.getItem("ascGpLayout")==="wrap")LAYOUT="wrap"}catch(_){}
+var LAYOUT="wrap";   // 플랜을 열면 항상 여러 줄 배열 (2026-11 사용자 요청). 한 줄로 바꾼 것은 그 플랜을 보는 동안만
 var BP={},ORD=[],FIRSTHIT="",PANELS={},BOXP={};   // PANELS·BOXP: 긴급양하 메일 그림용 (베이 그림 재료, 컨테이너가 있는 베이)   // Bay Plan 창에 넣을 그림(베이별), 베이 순서, 검색에 걸린 첫 베이
 // 양하항 색 (색정렬): 양하항이 N개면 이 목록의 앞 N색을 기항 순서대로. 앞 N색이 곧 'N개일 때 가장 잘 구분되는 묶음'
 // (tools/pick_colors.py: CIEDE2000 + 적록 색약 시뮬레이션 + 선적항 흑백 띠와의 거리로 계산, 2·3개는 가장 익숙한 노랑·파랑·빨강)
@@ -1610,7 +1610,7 @@ function tabDraw(){var t=$("tabs");t.hidden=TABS.length<2;if(t.hidden){t.innerHT
       '<button type="button" class="tx" data-tabx="'+i+'" aria-label="'+esc(nm)+' 닫기" title="이 플랜 닫기">×</button></span>'}).join("")}
 function tabShow(){   // st 가 바뀐 뒤 화면 맞추기
   $("q").value=st.q||"";$("sheet").hidden=true;sumReset();document.title=(st.name||"").replace(/\.(asc|edi)$/i,"")+" · PLAN VIEWER"+ZW;
-  $("note").hidden=true;render();autoFit();tabDraw()}
+  $("note").hidden=true;LAYSET=false;LAYOUT="wrap";$("lay").value="wrap";render();autoFit();tabDraw()}
 function tabGo(i){if(i===CUR||!TABS[i])return;tabSave();CUR=i;var T=TABS[i];TKEYS.forEach(function(k){st[k]=T[k]});st.sel=-1;tabShow()}
 function tabStep(d){if(TABS.length<2)return;tabGo((CUR+d+TABS.length)%TABS.length)}
 var TABX=-1;
@@ -1711,7 +1711,7 @@ $("lay").value=LAYOUT;
 // PC  : 한 줄 배열로 전 베이가 창 안에 다 보이는 가장 큰 비율. 너무 작아지면(65% 미만) 여러 줄 배열로.
 // 폰  : 여러 줄 배열, 한 줄에 해치 두 개가 들어가는 비율(너무 작으면 한 개).
 // 직접 비율을 바꾸면 그때부터는 손댄 대로 두고, '맞춤'을 누르거나 새 파일을 열면 다시 맞춤. 배열을 직접 고른 적이 있으면 그 배열을 따름.
-var AUTOZ=true, LAYSET=false; try{LAYSET=localStorage.getItem("ascGpLayout")!==null}catch(_){}
+var AUTOZ=true, LAYSET=false;
 // 폰인지: 세로로 든 폰(폭이 좁음) 또는 가로로 눕힌 폰(터치 화면인데 높이가 낮음)
 function isPhone(){return window.innerWidth<700||(TOUCH&&window.innerHeight<520)}
 // General Plan 창을 그림에 맞춤: 그림이 차지한 폭만큼만 창을 잡아서 옆에 빈 자리가 남지 않게 (세로는 원래 그림 높이만큼).
@@ -1727,7 +1727,7 @@ function gpFit(){
 function autoFit(){
   if(!st.plan||window.__STATIC__)return;
   FITTING=true;$("gpWin").style.width="";
-  var w=$("gpw"),g=$("gp"),W=window.innerWidth,phone=isPhone(),land=phone&&W>window.innerHeight,want=LAYSET?LAYOUT:(phone?"wrap":"row");
+  var w=$("gpw"),g=$("gp"),W=window.innerWidth,phone=isPhone(),land=phone&&W>window.innerHeight,want=LAYSET?LAYOUT:"wrap";
   function lay(v){if(LAYOUT!==v){LAYOUT=v;$("lay").value=v;render()}}
   // 쓸 수 있는 높이: PC는 창 아래까지, 폰은 General Plan 을 화면 위로 올렸을 때의 높이(위쪽 요약은 밀어 올려 봄)
   function avH(){return w.style.height?w.clientHeight:land?Math.max(200,window.innerHeight-58):phone?Math.max(300,window.innerHeight-130):Math.max(240,window.innerHeight-(w.getBoundingClientRect().top+window.scrollY)-18)}
@@ -1735,7 +1735,7 @@ function autoFit(){
   var z=100,aw=w.clientWidth-2;
   if(LAYOUT==="row"){
     z=Math.min(aw/g.scrollWidth,avH()/g.scrollHeight)*100;
-    if(z<65&&!LAYSET){lay("wrap");setZoom(100)}
+    if(z<65&&!LAYSET){lay("wrap");setZoom(100)}   // (한 줄을 직접 고르지 않았다면 여기 올 일은 없음)
   }
   if(LAYOUT==="wrap"){   // 여러 줄: 모든 베이가 창 안에 한 번에 보이게 — 한 줄에 몇 해치를 놓을 때 가장 크게 보이는지 골라서
     var ghs=g.querySelectorAll(".gh"),N=ghs.length||1,c=0,h=0,i,pad2=14;
@@ -1750,7 +1750,7 @@ function autoFit(){
   AUTOZ=true;toBow();
   if(phone&&!st.example)$("gpWin").scrollIntoView({block:"start"});   // 폰: 파일을 열면 General Plan 이 바로 보이게
 }
-$("lay").onchange=function(e){LAYOUT=e.target.value;LAYSET=true;try{localStorage.setItem("ascGpLayout",LAYOUT)}catch(_){}render();if(AUTOZ)autoFit();else{gpFit();toBow()}};
+$("lay").onchange=function(e){LAYOUT=e.target.value;LAYSET=true;render();if(AUTOZ)autoFit();else{gpFit();toBow()}};
 $("zO").onclick=function(){AUTOZ=false;stepZoom(-1)}; $("zI").onclick=function(){AUTOZ=false;stepZoom(1)};
 $("zS").onchange=function(e){AUTOZ=false;setZoom(+e.target.value)};
 // ---------- 이미지로 저장: General Plan + 옆 표를 그대로 PNG 로 ----------
@@ -1778,7 +1778,7 @@ function saveImg(){
   im.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
 }
 $("imgBtn").onclick=saveImg;
-$("zF").onclick=function(){LAYSET=false;try{localStorage.removeItem("ascGpLayout")}catch(_){}autoFit()};
+$("zF").onclick=function(){LAYSET=false;autoFit()};
 $("gpw").addEventListener("wheel",function(e){if(e.altKey){e.preventDefault();AUTOZ=false;stepZoom(e.deltaY<0?1:-1)}},{passive:false});
 (function(){var t=0,lw=window.innerWidth,ll=window.innerWidth>window.innerHeight;window.addEventListener("resize",function(){clearTimeout(t);t=setTimeout(function(){
   var l2=window.innerWidth>window.innerHeight,turn=TOUCH&&l2!==ll;ll=l2;   // 폰을 돌리면(세로↔가로) 손으로 바꾼 비율이 있어도 다시 맞춤
@@ -2294,8 +2294,10 @@ function grAccess(){var t=null;try{t=JSON.parse(localStorage.getItem(GR.K)||"nul
   if(t&&t.x>Date.now()+60000)return Promise.resolve(t.a);
   if(t&&t.r)return grTok({grant_type:"refresh_token",refresh_token:t.r}).catch(function(){try{localStorage.removeItem(GR.K)}catch(_){}throw new Error("login")});
   return Promise.reject(new Error("login"))}
-function grGet(u,bin){return grAccess().then(function(a){return fetch(u,{headers:{Authorization:"Bearer "+a}})}).then(function(r){
-  if(r.status===401){try{localStorage.removeItem(GR.K)}catch(_){}throw new Error("login")}if(!r.ok)throw new Error("HTTP "+r.status);return bin?r.arrayBuffer():r.json()})}
+function grGet(u,bin,opt){return grAccess().then(function(a){var o=opt||{};o.headers=Object.assign({Authorization:"Bearer "+a},o.headers||{});return fetch(u,o)}).then(function(r){
+  if(r.status===401){try{localStorage.removeItem(GR.K)}catch(_){}throw new Error("login")}
+  if(!r.ok)return r.text().then(function(t){var m="";try{m=JSON.parse(t).error.message}catch(_){}throw new Error("HTTP "+r.status+(m?" — "+m:""))});
+  return bin?r.arrayBuffer():r.json()})}
 function grRule(o){   // 폰·웹의 분류: PC 의 mail-rules.json 과 같은 뜻 (보낸 곳 주소로)
   var d=o.fd,t=(o.sub+" "+o.files.map(function(f){return f.n}).join(" ")).toUpperCase(),end=function(x){return d===x||d.slice(-x.length-1)==="."+x};
   if(end("heungaline.com"))return "부산운항팀 발신";
@@ -2311,17 +2313,25 @@ function grRule(o){   // 폰·웹의 분류: PC 의 mail-rules.json 과 같은 �
   if(/\.kr$/.test(d)||/^(naver\.com|daum\.net|hanmail\.net|gmail\.com)$/.test(d))return "국내기타";
   return "기타"}
 function grList(days){
-  var since=new Date(Date.now()-days*864e5).toISOString().slice(0,19)+"Z",out=[],seen={},n=0;
-  var u="https://graph.microsoft.com/v1.0/me/messages?$filter="+encodeURIComponent("receivedDateTime ge "+since+" and hasAttachments eq true")+"&$orderby="+encodeURIComponent("receivedDateTime desc")+
-    "&$select=id,subject,from,receivedDateTime&$expand="+encodeURIComponent("attachments($select=id,name,size)")+"&$top=40";
+  // 1) 기간 안의 '첨부 있는 메일'을 모두 훑고  2) 첨부 이름을 읽어 .asc / .edi 가 붙은 것만 남김.
+  //    첨부 이름은 목록과 한 번에 받아 보고($expand), 그렇게 안 오면 메일 20개씩 묶어서 따로 물어봄($batch).
+  var since=new Date(Date.now()-days*864e5).toISOString().slice(0,19)+"Z",msgs=[],n=0,G="https://graph.microsoft.com/v1.0/";
+  var base=G+"me/messages?$filter="+encodeURIComponent("receivedDateTime ge "+since+" and hasAttachments eq true")+"&$orderby="+encodeURIComponent("receivedDateTime desc")+"&$select=id,subject,from,receivedDateTime&$top=50";
   function z(x){return (x<10?"0":"")+x}
-  function page(url){return grGet(url).then(function(j){
-    (j.value||[]).forEach(function(m){var fs=(m.attachments||[]).filter(function(a){return /\.(asc|edi)$/i.test(a.name||"")}).map(function(a){return {i:a.id,n:a.name}});if(!fs.length)return;
-      var e=m.from&&m.from.emailAddress||{},d=new Date(m.receivedDateTime),o={id:m.id,sub:m.subject||"",from:e.name||"",fd:String(e.address||"").split("@").pop().toLowerCase(),
-        when:d.getFullYear()+"-"+z(d.getMonth()+1)+"-"+z(d.getDate())+" "+z(d.getHours())+":"+z(d.getMinutes()),files:fs};
-      var k=o.sub+"|"+o.when+"|"+o.fd+"|"+fs.map(function(f){return f.n}).join(",");if(seen[k])return;seen[k]=1;o.cat=grRule(o);out.push(o)});
-    if(j["@odata.nextLink"]&&++n<30)return page(j["@odata.nextLink"])})}
-  return page(u).then(function(){var t=new Date();return {items:out,at:z(t.getHours())+":"+z(t.getMinutes())}})}
+  function page(url){return grGet(url).then(function(j){(j.value||[]).forEach(function(m){msgs.push(m)});if(j["@odata.nextLink"]&&++n<40)return page(j["@odata.nextLink"])})}
+  function names(){   // 첨부 이름이 안 딸려 온 메일만 20개씩 묶어서 물어봄
+    var need=msgs.filter(function(m){return !m.attachments}),p=Promise.resolve();
+    for(var k=0;k<need.length;k+=20)(function(part){p=p.then(function(){
+      return grGet(G+"$batch",false,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({requests:part.map(function(m,i){return {id:String(i),method:"GET",url:"/me/messages/"+m.id+"/attachments?$select=id,name,size"}})})})
+        .then(function(j){(j.responses||[]).forEach(function(r){var m=part[+r.id];if(m)m.attachments=r.status===200&&r.body&&r.body.value||[]})})})})(need.slice(k,k+20));
+    return p}
+  return page(base+"&$expand="+encodeURIComponent("attachments($select=id,name,size)")).catch(function(e){if(String(e.message)==="login")throw e;msgs=[];n=0;return page(base)})
+    .then(names).then(function(){var out=[],seen={};
+      msgs.forEach(function(m){var fs=(m.attachments||[]).filter(function(a){return /\.(asc|edi)$/i.test(a.name||"")}).map(function(a){return {i:a.id,n:a.name}});if(!fs.length)return;
+        var e=m.from&&m.from.emailAddress||{},d=new Date(m.receivedDateTime),o={id:m.id,sub:m.subject||"",from:e.name||"",fd:String(e.address||"").split("@").pop().toLowerCase(),
+          when:d.getFullYear()+"-"+z(d.getMonth()+1)+"-"+z(d.getDate())+" "+z(d.getHours())+":"+z(d.getMinutes()),files:fs};
+        var k=o.sub+"|"+o.when+"|"+o.fd+"|"+fs.map(function(f){return f.n}).join(",");if(seen[k])return;seen[k]=1;o.cat=grRule(o);out.push(o)});
+      var t=new Date();return {items:out,at:z(t.getHours())+":"+z(t.getMinutes()),seen:msgs.length}})}
 function grFile(id,aid){return grGet("https://graph.microsoft.com/v1.0/me/messages/"+encodeURIComponent(id)+"/attachments/"+encodeURIComponent(aid)+"/$value",true)}
 
 function mlSrv(){return new Promise(function(ok){
@@ -2332,7 +2342,7 @@ function mlGet(path,bin){return mlSrv().then(function(S){if(!S)throw new Error("
   return fetch("http://127.0.0.1:"+S.port+path+(path.indexOf("?")<0?"?":"&")+"t="+S.token).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return bin?r.arrayBuffer():r.json()})})}
 function mlLoad(){
   if(ML.busy)return;ML.busy=true;ML.err="";mlDraw();
-  (grOn()?(grReady()?grList(ML.days):Promise.reject(new Error("setup"))):mlGet("/list?days="+ML.days)).then(function(d){ML.items=d.items||[];ML.at=d.at||""}).catch(function(e){ML.err=String(e&&e.message||e)}).then(function(){ML.busy=false;mlDraw()})}
+  (grOn()?(grReady()?grList(ML.days):Promise.reject(new Error("setup"))):mlGet("/list?days="+ML.days)).then(function(d){ML.items=d.items||[];ML.at=d.at||"";ML.seen=d.seen}).catch(function(e){ML.err=String(e&&e.message||e)}).then(function(){ML.busy=false;mlDraw()})}
 function mlCat(c){return {JP:"일본",CN:"중국",ETC:"기타"}[c]||c}
 // 아웃룩처럼: 왼쪽은 폴더(분류가 폴더, '부산검수' 아래에 국보·신양), 그 아래 선박별. 오른쪽은 날짜별로 묶은 메일 목록. 검색은 고른 폴더 안에서 찾음.
 var MLTREE=[["부산운항팀 발신"],["부산검수",["부산검수 · 국보","부산검수 · 신양"]],["울산"],["광양"],["국내기타"],["일본"],["중국"],["본선"],["본사 · 사내"],["기타"]];
@@ -2373,7 +2383,7 @@ function mlDraw(){
   if(!ML.busy&&q)$("mlS").textContent="검색 결과 "+R.length+"건 · "+where+" (최근 "+ML.days+"일)";
   else if(!ML.busy)$("mlS").textContent=where+" "+R.length+"건"+(ML.at?" · "+ML.at+" 기준":"")+" · 파일을 누르면 플랜으로 열려요";
   var wider=q&&ML.days<30?'<div class="emp">찾는 메일이 더 예전 것이면 <button type="button" class="fb" id="mlWide">최근 30일까지 넓혀서 찾기</button></div>':"";
-  if(!R.length){B.innerHTML='<div class="emp">'+(ML.busy?"읽는 중이에요…":"이 폴더·조건에 맞는 메일이 없어요.")+'</div>'+(ML.busy?"":wider);return}
+  if(!R.length){B.innerHTML='<div class="emp">'+(ML.busy?"읽는 중이에요…":!L.length&&grOn()?"<b>최근 "+ML.days+"일 동안 ASC · EDI 가 붙은 메일을 찾지 못했어요.</b><br>첨부가 있는 메일 "+(ML.seen==null?"?":ML.seen)+"건을 살펴봤어요. 기간을 늘려 보거나 ‘새로고침’을 눌러 주세요.<br>계속 0건이면 이 화면을 캡처해서 만든 사람에게 보여 주세요.":"이 폴더·조건에 맞는 메일이 없어요.")+'</div>'+(ML.busy?"":wider);return}
   var day="",o="";
   R.slice(0,400).forEach(function(m){var d=mlDay(m.when);if(d!==day){day=d;o+='<div class="mld">'+d+'</div>'}
     o+='<div class="mli"><div class="mlfr">'+hl(m.from||"(보낸 사람 없음)")+'<small>'+hl(m.fd)+'</small></div><div class="mltm">'+esc(m.when.slice(11))+'</div><div class="mlsb">'+hl(m.sub||"(제목 없음)")+'</div>'+
