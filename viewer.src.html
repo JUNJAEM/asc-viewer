@@ -620,7 +620,11 @@ header.win .body{background:#fff}
 .owa{display:flex;gap:8px;align-items:center;margin-bottom:5px}.owa input[type=checkbox]{width:auto;flex:none}.owa input[type=text]{flex:1}.owa span{flex:none;font-size:12px;color:var(--fg2);white-space:nowrap}
 .owr small{display:block;color:var(--fg2);font-size:12px;margin-top:3px;line-height:1.5}
 .own{margin:2px 0 10px;padding:8px 10px;border:1px solid #e0c36a;background:#fff8e1;color:#5b4500;border-radius:4px;font-size:12.5px;line-height:1.6}.own ul{margin:0;padding-left:18px}
-.owp{width:100%;height:300px;border:1px solid #8a94a6;border-radius:3px;background:#fff}
+.owp{display:block;width:100%;height:100%;border:0;background:#fff}.owpw{height:340px;min-height:150px;resize:vertical;overflow:hidden;border:1px solid #8a94a6;border-radius:3px;background:#fff}
+.owt{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:12px 0 5px}.owt>b{font-size:12.5px;color:var(--fg2);margin-right:6px}.owt>span{flex:1;min-width:140px;font-size:12px;color:var(--fg2)}
+.owt button{font:inherit;font-size:12.5px;padding:3px 10px;border:1px solid #8a94a6;border-radius:3px;background:var(--win);color:var(--fg);cursor:pointer}
+.owr .ro span button{font:inherit;font-weight:700;border:0;background:none;color:var(--fg2);cursor:pointer;padding:0 0 0 5px;line-height:1}.owr .ro span button:hover{color:#c50f1f}
+.owr .ro input{display:inline-block;width:210px;padding:1px 8px;border-radius:10px;font-size:12.5px;vertical-align:top}.owr .ro input.bad{border-color:#c50f1f;background:#fff5f5}
 .owf{display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-top:10px;flex-wrap:wrap}.owf span{flex:1;min-width:200px;color:var(--fg2);font-size:12.5px}
 .owf button{font:inherit;font-weight:700;padding:7px 16px;border:1px solid #707f96;border-radius:4px;background:var(--win);color:var(--fg);cursor:pointer}.owf button.go{background:var(--acc,#0078d4);border-color:var(--acc,#0078d4);color:#fff}.owf button:disabled{opacity:.55;cursor:default}.owf button.danger{background:#c50f1f;border-color:#c50f1f;color:#fff}
 .owc{margin-top:10px;padding:10px 12px;border:2px solid #c50f1f;border-radius:4px;background:#fff5f5;color:#3b0a0a;font-size:13px;line-height:1.7}.owc>b{display:block;margin-bottom:4px}.owc .owf span{color:#6b3a3a}
@@ -689,7 +693,7 @@ header.win .body{background:#fff}
           <button type="button" role="menuitem" data-x="edi22">EDI <small>BAPLIE 2.2</small></button>
           <button type="button" role="menuitem" data-x="edi15">EDI <small>BAPLIE 1.5</small></button>
         </div></span>
-      <button class="btn" id="outBtn" type="button" hidden title="지금 플랜(고친 내용 포함)을 붙인 OUTBOUND 메일을 아웃룩에 만들어요 — 보내기는 직접 눌러야 해요">OUTBOUND 메일</button>
+      <button class="btn" id="outBtn" type="button" hidden title="지금 플랜(고친 내용 포함)을 붙인 OUTBOUND 메일을 만들어요 — 받는 사람 · 본문을 그 자리에서 고치고, 아웃룩에서 열거나 확인 후 바로 보낼 수 있어요">OUTBOUND 메일</button>
       <input type="file" id="file" accept="application/octet-stream,text/plain,.asc,.edi" hidden>
     </div>
   </header>
@@ -2443,8 +2447,40 @@ function mlPick(id,i,btn){
 // ---------- OUTBOUND 메일 작성 (PC 설치판) ----------
 // 버튼을 누르면 메일 도우미(mail-server.ps1 + mail-out.ps1)가  ① 전산 포트 스케줄에서 이 선박·항차의 로테이션을 찾고
 // ② 아웃룩에서 같은 서비스·선박의 예전 OUTBOUND 메일을 찾아  ③ 그 메일의 받는 사람·문구·표를 본떠 새 메일을 만듦(항차·로테이션만 새로).
-// '아웃룩에서 열기'를 누르면 지금 플랜(고친 내용 포함)을 붙인 새 메일 창이 아웃룩에 뜸. 보내기는 사람이 직접 — 여기서는 절대 보내지 않음.
-var OUT={busy:false,d:null,err:"",id:"",done:"",g:[],off:{},nm:{},ask:false,sent:false};
+// 이 창에서 제목·로테이션·받는 사람·참조·본문을 바로 고칠 수 있음. '아웃룩에서 열기' = 지금 플랜(고친 내용 포함)을 붙인 새 메일 창을 아웃룩에 띄움(보내기는 사람이 직접),
+// '바로 보내기' = 확인 단계를 한 번 거친 뒤 보냄(사람이 먼저 봐야 하는 메일에서는 꺼짐).
+var OUT={busy:false,d:null,err:"",id:"",done:"",g:[],off:{},nm:{},ask:false,sent:false,html:"",dirty:false,base:null,bid:"",to:null,cc:null,rid:"",lost:false};
+// 본문 고치기: 본문 칸이 곧 편집 칸. 칸 안의 스크립트는 못 돌게 막아 두고(sandbox), 바깥에서 designMode 로 글만 고칠 수 있게 함.
+// OUT.base = 칸에 띄운 직후의 모습. 지금 모습이 이것과 다르면 '고쳤다'(OUT.dirty)로 보고, 그때만 고친 본문(OUT.html)을 도우미에 넘김.
+function outDoc(){var f=$("outP");try{return f&&f.contentDocument}catch(_){return null}}
+function outPrev(M){   // 본문 속 그림(cid:)을 이 화면에서도 보이게 바꿔 둠. 메일에 넣을 때는 outHtml 이 되돌림
+  var im=M.imgs||{};return String(M.html||"").replace(/(<img\b[^>]*?\ssrc\s*=\s*)(["'])cid:([^"']+)\2/gi,function(a,p,q,c){return im[c]?p+q+im[c]+q+' data-cid="'+esc(c)+'"':a})}
+function outHtml(){    // 지금 편집 칸의 본문을 메일에 넣을 모양으로 (그림은 다시 cid:, 워드식 조건문은 원래 꼴로)
+  var d=outDoc();if(!d||!d.documentElement)return "";var c=d.documentElement.cloneNode(true);
+  [].forEach.call(c.querySelectorAll("img[data-cid]"),function(g){g.setAttribute("src","cid:"+g.getAttribute("data-cid"));g.removeAttribute("data-cid")});
+  [].forEach.call(c.querySelectorAll("script"),function(s){s.parentNode.removeChild(s)});
+  return c.outerHTML.replace(/<!--\[if ([^\]]*)\]-->/g,"<![if $1]>").replace(/<!--\[endif\]-->/g,"<![endif]>")}
+function outKeep(){var d=outDoc();if(!d||!d.documentElement||OUT.base==null)return;var cur=d.documentElement.outerHTML;if(cur!==OUT.base)OUT.dirty=true;if(OUT.dirty)OUT.html=cur}
+function outSetRot(doc,rot){   // 본문의 "ROTATION :" 줄에서 콜론 뒤만 새 로테이션으로 (도우미의 Out-SetRot 과 같은 일). ~PNC~ 는 중간선
+  var ps=doc.querySelectorAll("p"),p=null,i;for(i=0;i<ps.length&&!p;i++)if(/ROTATION/i.test(ps[i].textContent))p=ps[i];
+  if(!p)return false;
+  var w=doc.createTreeWalker(p,NodeFilter.SHOW_TEXT,null),n,seen=false,at=null,k=-1,rest=[];
+  while((n=w.nextNode())){var t=n.nodeValue;if(at){rest.push(n);continue}
+    if(!seen&&/ROTATION/i.test(t))seen=true;
+    if(seen){var from=Math.max(0,t.search(/ROTATION/i));k=t.slice(from).search(/[:\uFF1A]/);if(k>=0){k+=from;at=n}}}
+  if(!at)return false;
+  rest.forEach(function(x){x.nodeValue=""});[].forEach.call(p.querySelectorAll("s,strike"),function(e){if(!e.textContent)e.parentNode.removeChild(e)});
+  at.nodeValue=at.nodeValue.slice(0,k+1)+" ";
+  var fr=doc.createDocumentFragment(),re=/~\s*([A-Za-z0-9][A-Za-z0-9 ]*?)\s*~/g,m,last=0;
+  while((m=re.exec(rot))){if(m.index>last)fr.appendChild(doc.createTextNode(rot.slice(last,m.index)));var s=doc.createElement("s");s.textContent=m[1];fr.appendChild(s);last=re.lastIndex}
+  if(last<rot.length)fr.appendChild(doc.createTextNode(rot.slice(last)));
+  at.parentNode.insertBefore(fr,at.nextSibling);return true}
+function outRc(k){var M=OUT.d&&OUT.d.mail;return OUT[k]||(M&&M[k])||[]}     // 받는 사람(to) · 참조(cc): 고쳤으면 고친 목록, 아니면 본뜬 메일 그대로
+function outAdd(k,el){var v=String(el.value||"").trim();if(!v)return;
+  var parts=v.match(/[^\s;,<>"'()]+@[^\s;,<>"'()]+\.[^\s;,<>"'().]+/g);
+  if(!parts){el.className="bad";el.title="메일 주소 모양이 아니에요. 예: name@company.co.kr";return}
+  var L=outRc(k).slice();parts.forEach(function(a){if(!L.some(function(x){return String(x.a).toLowerCase()===a.toLowerCase()}))L.push({n:"",a:a})});
+  OUT[k]=L;if($("outS"))OUT.keepS=$("outS").value;outDraw();var ni=document.querySelector('[data-ra="'+k+'"]');if(ni)ni.focus()}
 function mlPost(path,obj){return mlSrv().then(function(S){if(!S)throw new Error("off");
   return fetch("http://127.0.0.1:"+S.port+path+"?t="+S.token,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(obj)}).then(function(r){
     if(!r.ok)return r.text().then(function(t){throw new Error(t||("HTTP "+r.status))});return r.json()})})}
@@ -2469,12 +2505,15 @@ function outSel(){return (OUT.g||[]).filter(function(f){return !OUT.off[f.i]})}
 function outPorts(){var a=[];outSel().forEach(function(f){if(f.port&&a.indexOf(f.port)<0)a.push(f.port)});return a}
 function outPrep(id,rot){
   var I=outInfo();OUT.busy=true;OUT.err="";OUT.done="";OUT.ask=false;outDraw();
-  mlPost("/outprep",{vsl:I.vsl,voy:I.voy,ports:outPorts(),svc:I.svc,id:id||"",rot:rot||""}).then(function(d){OUT.d=d;OUT.id=d.mail?d.mail.id:""})
+  mlPost("/outprep",{vsl:I.vsl,voy:I.voy,ports:outPorts(),svc:I.svc,id:id||"",rot:rot||""}).then(function(d){outKeep();var nid=d.mail?d.mail.id:"";
+      if(nid!==OUT.bid){OUT.lost=OUT.dirty;OUT.html="";OUT.dirty=false;OUT.bid=nid}     // 본뜰 메일이 바뀌면 본문은 새로 만듦 (고친 본문은 같은 메일일 때만 이어 감)
+      if(nid!==OUT.rid){OUT.to=null;OUT.cc=null;OUT.rid=nid}
+      OUT.base=null;if(d.mail)d.mail.rot0=d.mail.rot||d.mail.oldRot||"";OUT.d=d;OUT.id=nid})
     .catch(function(e){OUT.err=String(e&&e.message||e)}).then(function(){OUT.busy=false;outDraw()})}
 var OUTNOTE={subjvoy:"본뜬 메일 제목에 항차가 두 개 있어서, 같은 방향(E·W) 항차만 바꿨어요. 제목을 확인해 주세요.",subjnovoy:"본뜬 메일 제목에 항차가 없어서 제목은 그대로 뒀어요.",
   norotline:"본뜬 메일에 ROTATION 줄이 없어서 본문에는 로테이션을 넣지 않았어요.",rotfail:"본문의 ROTATION 줄을 바꾸지 못했어요. 아웃룩 창에서 직접 고쳐 주세요."};
 function outDraw(){
-  var B=$("outB"),I=outInfo(),d=OUT.d,h="";
+  outKeep();var B=$("outB"),I=outInfo(),d=OUT.d,h="";
   if(OUT.busy&&!d){B.innerHTML='<div class="msgbox">전산 포트 스케줄과 예전 OUTBOUND 메일을 찾는 중이에요…<br>(10초쯤 걸릴 수 있어요)</div>';return}
   if(OUT.err&&!d){B.innerHTML='<div class="msgbox"><b>메일 도우미에 연결하지 못했어요.</b><br>아웃룩이 켜져 있는지 확인하고, 플랜 파일을 하나 더블클릭해서 뷰어를 다시 열어 주세요.<br><small>'+esc(OUT.err)+'</small></div>';return}
   if(!d)return;
@@ -2486,37 +2525,51 @@ function outDraw(){
   if(cur&&!cur.vslHit)notes.push("같은 서비스의 다른 선박 메일을 본떴어요. 제목의 선박 이름과 본선 메일 주소를 확인해 주세요.");
   var PN={PUS:"북항",PNC:"신항"};(d.missing||[]).forEach(function(x){notes.push("전산에는 "+(PN[x]||"")+"("+esc(x)+")도 기항하는데, 그 플랜이 탭에 안 열려 있어요. 같이 보내려면 그 플랜도 열어 두고 다시 눌러 주세요.")});
   if(!outSel().length)notes.push("붙일 플랜을 하나 이상 골라 주세요.");
+  if(!outRc("to").length)notes.push("받는 사람이 없어요. 주소를 하나 이상 넣어 주세요.");
+  if(OUT.lost)notes.push("본뜬 메일이 바뀌어서 본문을 새로 만들었어요. 앞에서 본문에 고친 내용은 빠졌으니 다시 넣어 주세요.");
   if(cur&&!cur.svcHit&&d.svc)notes.push("이 선박의 지금 서비스("+esc(d.svc)+")로 나간 예전 메일이 없어서, 다른 서비스 때의 메일을 본떴어요. 받는 사람을 꼭 확인해 주세요.");
   // 바로 보내기는 사람이 한 번 봐야 하는 메일에서는 막음: 전산에서 항차를 못 찾음 / 남의 메일·다른 선박·다른 서비스의 메일을 본뜸 / 제목 항차가 둘 / 로테이션을 못 바꿈 / 빠진 플랜이 있음
-  var blk=!R.ok||(M.notes||[]).some(function(n){return n==="notmine"||n==="rotfail"||n==="subjvoy"})||!!(cur&&(!cur.vslHit||(!cur.svcHit&&d.svc)))||(d.missing||[]).length>0||!outSel().length;
-  function ppl(a){return (a||[]).map(function(x){return '<span title="'+esc(x.a)+'">'+esc(x.n&&x.n.replace(/^'|'$/g,"")||x.a)+'</span>'}).join("")||"(없음)"}
+  var blk=!R.ok||(M.notes||[]).some(function(n){return n==="notmine"||n==="rotfail"||n==="subjvoy"})||!!(cur&&(!cur.vslHit||(!cur.svcHit&&d.svc)))||(d.missing||[]).length>0||!outSel().length||!outRc("to").length;
+  function ppl(k){return outRc(k).map(function(x,i){return '<span title="'+esc(x.a)+'">'+esc(x.n&&x.n.replace(/^'|'$/g,"")||x.a)+'<button type="button" data-rx="'+k+":"+i+'" title="빼기" aria-label="빼기">×</button></span>'}).join("")+
+    '<input type="text" data-ra="'+k+'" placeholder="메일 주소 넣고 Enter" spellcheck="false" autocomplete="off">'}
   var sch=R.ok?(R.calls||[]).map(function(c){return c.skip?"<s>"+esc(c.p)+"</s> 스킵":esc(c.p)+" "+esc(c.eta.slice(0,5))}).join(" → "):"";
   h+='<div class="owr"><b>플랜</b><div class="ro">'+esc(I.vsl||"?")+(R.name?" · "+esc(R.name):"")+" · "+esc(I.voy||"?")+(d.svc?" · 서비스 "+esc(d.svc):"")+(I.port?" · "+esc(I.port):"")+'</div></div>';
   h+='<div class="owr"><b>본뜬 메일</b><div><select id="outT">'+C.map(function(c){return '<option value="'+esc(c.id)+'"'+(c.id===M.id?" selected":"")+'>'+esc(c.when.slice(5,10)+" · "+c.from+" · "+c.sub.trim())+'</option>'}).join("")+'</select><small>받는 사람 · 문구 · 표를 이 메일에서 가져와요. 다른 메일을 고르면 그 메일로 다시 만들어요.</small></div></div>';
   h+='<div class="owr"><b>제목</b><div><input id="outS" value="'+esc(OUT.keepS!=null?OUT.keepS:M.subject)+'"></div></div>';
   h+='<div class="owr"><b>로테이션</b><div><input id="outR" value="'+esc(M.rot||M.oldRot||"")+'">'+(sch?'<small>전산 포트 스케줄: '+sch+'</small>':'')+(M.oldRot?'<small>본뜬 메일에는: '+esc(M.oldRot)+'</small>':'')+'<small>스킵한 포트는 <b>~PNC~</b> 처럼 물결표로 감싸 두면 메일에는 <s>PNC</s> 로 중간선이 그어져요.</small></div></div>';
-  h+='<div class="owr"><b>받는 사람</b><div class="ro">'+ppl(M.to)+'</div></div><div class="owr"><b>참조</b><div class="ro">'+ppl(M.cc)+'</div></div>';
+  h+='<div class="owr"><b>받는 사람</b><div class="ro">'+ppl("to")+'</div></div><div class="owr"><b>참조</b><div class="ro">'+ppl("cc")+'</div></div>';
   var ord=d.ports||[],G=(OUT.g||[]).slice().sort(function(a,b){var x=ord.indexOf(a.port),y=ord.indexOf(b.port);return (x<0?99:x)-(y<0?99:y)});
   h+='<div class="owr"><b>첨부</b><div>'+G.map(function(f){return '<label class="owa"><input type="checkbox" data-of="'+f.i+'"'+(OUT.off[f.i]?"":" checked")+'><input type="text" data-on="'+f.i+'" value="'+esc(OUT.nm[f.i]||f.name)+'"><span>'+esc(f.port||"?")+" · 컨테이너 "+f.n+"개"+(f.cur&&dirtyN()?" · 고친 내용 포함":"")+'</span></label>'}).join("")+
     '<small>같은 선박 · 같은 항차로 탭에 열려 있는 플랜을 함께 붙여요 (북항 · 신항). 빼려면 체크를 풀어 주세요.</small></div></div>';
   if(notes.length)h+='<div class="own"><ul>'+notes.map(function(n){return "<li>"+n+"</li>"}).join("")+'</ul></div>';
-  h+='<iframe class="owp" id="outP" sandbox="" title="본문 미리보기"></iframe>';
+  h+='<div class="owt"><b>본문</b><button type="button" data-ex="bold" title="고른 글자를 굵게 (Ctrl+B)"><b>굵게</b></button><button type="button" data-ex="strikeThrough" title="고른 글자에 중간선"><s>중간선</s></button>'+
+    '<button type="button" data-ex="foreColor" data-arg="#ff0000" title="고른 글자를 빨갛게" style="color:#c50f1f">빨간 글자</button><button type="button" data-ex="foreColor" data-arg="#000000" title="고른 글자를 검게">검은 글자</button>'+
+    '<button type="button" data-ex="undo" title="방금 고친 것 되돌리기 (Ctrl+Z)">↶ 되돌리기</button><span>아래 칸을 눌러서 메일 내용을 바로 고칠 수 있어요.</span><button type="button" id="outRe" title="본문에 고친 것을 모두 버리고 처음 만든 대로">본문 원래대로</button></div>';
+  h+='<div class="owpw"><iframe class="owp" id="outP" sandbox="allow-same-origin" title="본문 (바로 고칠 수 있어요)"></iframe></div>';
   if(OUT.ask&&!OUT.sent)h+='<div class="owc"><b>이대로 바로 보낼까요? 보낸 뒤에는 되돌릴 수 없어요.</b>'+
-    '<div>제목 : '+esc(OUT.keepS!=null?OUT.keepS:M.subject)+'</div><div>받는 사람 '+(M.to||[]).length+'명 · 참조 '+(M.cc||[]).length+'명</div>'+
+    '<div>제목 : '+esc(OUT.keepS!=null?OUT.keepS:M.subject)+'</div><div>받는 사람 '+outRc("to").length+'명 · 참조 '+outRc("cc").length+'명'+(OUT.to||OUT.cc?" (직접 고친 목록)":"")+'</div><div>본문 : '+(OUT.dirty?"직접 고친 내용 그대로":"본뜬 메일 그대로 (항차 · 로테이션만 새로)")+'</div>'+
     '<div>첨부 : '+outSel().map(function(f){return esc(OUT.nm[f.i]||f.name)}).join(", ")+'</div>'+
-    '<div class="owf"><span>본문의 그림(서명 등)은 이 미리보기에 안 보여도 메일에는 들어가요.</span><button type="button" id="outNo">취소</button><button type="button" class="danger" id="outYes"'+(OUT.busy?" disabled":"")+'>보내기</button></div></div>';
-  else h+='<div class="owf"><span>'+(OUT.done?'<b>'+esc(OUT.done)+'</b>':OUT.busy?"만드는 중이에요…":OUT.err?'<b style="color:#c50f1f">'+esc(OUT.err)+'</b>':blk?"확인할 것이 있어서 ‘바로 보내기’는 꺼 두었어요. 아웃룩에서 열어 내용을 보고 보내 주세요.":"‘아웃룩에서 열기’는 새 메일 창을 띄우고, ‘바로 보내기’는 한 번 더 확인한 뒤 바로 보내요.")+'</span><button type="button" id="outN2">닫기</button>'+
+    '<div class="owf"><span>본문 속 그림 가운데 이 화면에 안 보이는 것이 있어도 메일에는 들어가요.</span><button type="button" id="outNo">취소</button><button type="button" class="danger" id="outYes"'+(OUT.busy?" disabled":"")+'>보내기</button></div></div>';
+  else h+='<div class="owf"><span>'+(OUT.done?'<b>'+esc(OUT.done)+'</b>':OUT.busy?"만드는 중이에요…":OUT.err?'<b style="color:#c50f1f">'+esc(OUT.err)+'</b>':blk?"확인할 것이 있어서 ‘바로 보내기’는 꺼 두었어요. 아웃룩에서 열어 내용을 보고 보내 주세요.":"여기서 고친 제목 · 받는 사람 · 본문 그대로, ‘아웃룩에서 열기’는 새 메일 창을 띄우고 ‘바로 보내기’는 한 번 더 확인한 뒤 보내요.")+'</span><button type="button" id="outN2">닫기</button>'+
     '<button type="button" id="outSend"'+(OUT.busy||OUT.sent||blk?" disabled":"")+' title="'+(blk?"위 안내를 먼저 확인해야 해서 지금은 쓸 수 없어요":"확인 창이 한 번 뜬 뒤에 보내요")+'">바로 보내기</button>'+
     '<button type="button" class="go" id="outGo"'+(OUT.busy||OUT.sent?" disabled":"")+'>아웃룩에서 열기</button></div>';
-  B.innerHTML=h;$("outP").srcdoc=M.html||""}
-function outOpen(on){if(on==null)on=$("outV").hidden;if(on&&!st.plan)return say("플랜을 먼저 열어 주세요.");$("outV").hidden=!on;if(on){OUT.d=null;OUT.err="";OUT.done="";OUT.keepS=null;OUT.off={};OUT.nm={};OUT.ask=false;OUT.sent=false;OUT.g=outGroup();outPrep()}}
+  B.innerHTML=h;OUT.base=null;
+  var f=$("outP");f.onload=function(){var dd=outDoc();if(!dd||!dd.documentElement||!dd.body)return;
+    try{dd.designMode="on"}catch(_){}
+    if(!OUT.dirty){var eff=M.rot||M.oldRot||"";if(M.rot0!=null&&eff&&eff!==M.rot0)outSetRot(dd,eff)}      // 로테이션 칸을 바꿔 둔 게 있으면 새로 띄운 본문에도 반영
+    OUT.base=dd.documentElement.outerHTML};
+  f.srcdoc=OUT.dirty&&OUT.html?OUT.html:outPrev(M)}
+function outOpen(on){if(on==null)on=$("outV").hidden;if(on&&!st.plan)return say("플랜을 먼저 열어 주세요.");$("outV").hidden=!on;if(on){OUT.d=null;OUT.err="";OUT.done="";OUT.keepS=null;OUT.off={};OUT.nm={};OUT.ask=false;OUT.sent=false;OUT.html="";OUT.dirty=false;OUT.base=null;OUT.bid="";OUT.to=null;OUT.cc=null;OUT.rid="";OUT.lost=false;OUT.g=outGroup();outPrep()}}
 function outGo(send){
   var M=OUT.d&&OUT.d.mail;if(!M||OUT.busy||OUT.sent)return;var I=outInfo(),sub=$("outS").value,rot=$("outR").value.trim(),sel=outSel(),bad=null,files;
   if(!sel.length)return;
   files=sel.map(function(f){var nm=String(OUT.nm[f.i]||f.name).trim();if(!/^[^\\\/:*?"<>|]+\.(asc|edi)$/i.test(nm))bad=f.i;return {name:nm,b64:outB64(outFileOf(f.i))}});
   if(bad!=null){var el=document.querySelector('[data-on="'+bad+'"]');if(el)el.focus();return}
+  outKeep();var o={id:M.id,voy:I.voy,subject:sub,rot:rot,ports:OUT.d.ports||outPorts(),files:files,send:send===true};
+  if(OUT.dirty)o.html=outHtml();                                                    // 본문을 고쳤을 때만 고친 본문을 넘김 (안 고쳤으면 도우미가 예전처럼 만듦)
+  if(OUT.to||OUT.cc){o.to=outRc("to").map(function(x){return x.a}).filter(Boolean);o.cc=outRc("cc").map(function(x){return x.a}).filter(Boolean)}
   OUT.busy=true;OUT.err="";OUT.done="";OUT.keepS=sub;[].forEach.call($("outB").querySelectorAll(".owf button"),function(b){if(b.id!=="outN2")b.disabled=true});
-  mlPost("/outopen",{id:M.id,voy:I.voy,subject:sub,rot:rot,ports:OUT.d.ports||outPorts(),files:files,send:send===true}).then(function(r){OUT.ask=false;
+  mlPost("/outopen",o).then(function(r){OUT.ask=false;
       if(send===true){OUT.sent=true;OUT.done="메일을 보냈어요 (받는 사람 "+(r.to||0)+"명 · 참조 "+(r.cc||0)+"명). 아웃룩의 보낸 편지함에서 확인할 수 있어요."}
       else OUT.done="아웃룩에 새 메일 창을 띄웠어요. 작업 표시줄의 아웃룩을 확인해 주세요."})
     .catch(function(e){OUT.ask=false;var t=String(e&&e.message||e);OUT.err=send===true?"보내지 못했어요 ("+(/needs review/.test(t)?"내용 확인이 필요한 메일이에요":/recipient/.test(t)?"받는 사람 주소를 확인하지 못했어요":t)+"). 아웃룩에서 열어 확인해 주세요.":"아웃룩에 메일을 만들지 못했어요 ("+t+")"}).then(function(){OUT.busy=false;var s=$("outS").value,r=$("outR").value;outDraw();if($("outS")){$("outS").value=s;$("outR").value=r}})}
@@ -2524,7 +2577,12 @@ function outGo(send){
   if(window.__STATIC__||!window.__MAILSRVJS__)return;
   $("outBtn").hidden=false;$("outBtn").onclick=function(){outOpen()};$("outX").onclick=function(){outOpen(false)};
   $("outV").addEventListener("keydown",function(e){e.stopPropagation();if(e.key==="Escape")outOpen(false)});
-  $("outB").addEventListener("click",function(e){var id=e.target.id;
+  $("outB").addEventListener("mousedown",function(e){var b=e.target.closest&&e.target.closest("[data-ex]");if(b)e.preventDefault()});   // 글자 모양 버튼을 눌러도 본문에서 고른 자리가 풀리지 않게
+  $("outB").addEventListener("keydown",function(e){var k=e.target.dataset&&e.target.dataset.ra;if(k&&e.key==="Enter"){e.preventDefault();outAdd(k,e.target)}});
+  $("outB").addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("button"),id=b?b.id:"",M=OUT.d&&OUT.d.mail;
+    if(b&&b.dataset.ex){var dd=outDoc();if(dd){try{dd.execCommand(b.dataset.ex,false,b.dataset.arg||null)}catch(_){}}return}
+    if(b&&b.dataset.rx){var x=b.dataset.rx.split(":"),L=outRc(x[0]).slice();L.splice(+x[1],1);OUT[x[0]]=L;if($("outS"))OUT.keepS=$("outS").value;outDraw();return}
+    if(id==="outRe"){OUT.html="";OUT.dirty=false;OUT.base=null;OUT.lost=false;if($("outS"))OUT.keepS=$("outS").value;outDraw();return}
     if(id==="outGo")outGo();else if(id==="outN2")outOpen(false);
     else if(id==="outSend"){if($("outS"))OUT.keepS=$("outS").value;OUT.ask=true;outDraw();var y=$("outNo");if(y)y.focus()}      // 확인 단계로 (기본 초점은 '취소')
     else if(id==="outNo"){OUT.ask=false;outDraw()}
@@ -2532,7 +2590,10 @@ function outGo(send){
   $("outB").addEventListener("change",function(e){var of=e.target.dataset&&e.target.dataset.of,on=e.target.dataset&&e.target.dataset.on;
     if(of!=null){OUT.off[of]=!e.target.checked;OUT.keepS=null;outPrep("","");return}      // 붙일 플랜이 바뀌면 제목의 포트·본뜰 메일을 다시 정함
     if(on!=null){OUT.nm[on]=e.target.value;return}
-    if(e.target.id==="outT"){OUT.keepS=null;outPrep(e.target.value,"")}else if(e.target.id==="outS")OUT.keepS=e.target.value;else if(e.target.id==="outR"&&OUT.d&&OUT.d.mail){OUT.keepS=$("outS").value;outPrep(OUT.d.mail.id,e.target.value.trim())}})})();
+    if(e.target.dataset&&e.target.dataset.ra){outAdd(e.target.dataset.ra,e.target);return}
+    if(e.target.id==="outT"){OUT.keepS=null;outPrep(e.target.value,"")}else if(e.target.id==="outS")OUT.keepS=e.target.value;else if(e.target.id==="outR"&&OUT.d&&OUT.d.mail){     // 로테이션 칸을 고치면 본문의 ROTATION 줄에 바로 반영 (본문에 고친 다른 내용은 그대로)
+      var M=OUT.d.mail,dd=outDoc(),eff;outKeep();M.rot=e.target.value.trim();eff=M.rot||M.oldRot||"";
+      if(dd&&dd.documentElement&&eff){outSetRot(dd,eff);if(!OUT.dirty)OUT.base=dd.documentElement.outerHTML}}})})();
 (function(){
   if(window.__STATIC__)return;
   $("mailBtn").hidden=false;

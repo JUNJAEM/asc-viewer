@@ -57,12 +57,13 @@ function OutPrep($q) {
     foreach ($x in $pp) { if ($order -notcontains $x) { $order += $x } }
     $cand = @(Out-Find ([string]$q.vsl) $r.name $svc $order $r.ports)
     $id = [string]$q.id; if (-not $id -and $cand.Count) { $id = $cand[0].id }
-    $mail = $null; if ($id) { $mail = Out-Build $id ([string]$q.voy) ([string]$q.rot) $r.calls $order }
+    $mail = $null; if ($id) { $mail = Out-Build $id ([string]$q.voy) ([string]$q.rot) $r.calls $order; $mail.imgs = Out-Imgs $id $mail.html }
     return (@{ rot = $r; cand = $cand; mail = $mail; svc = $svc; ports = $order; missing = $missing } | ConvertTo-Json -Depth 7 -Compress)
 }
 function OutOpen($q) {
     $mode = if ($q.send -eq $true) { 'send' } elseif ($q.draft) { 'draft' } else { 'show' }
-    return ((Out-Open ([string]$q.id) ([string]$q.voy) ([string]$q.subject) ([string]$q.rot) @($q.files) $mode @($q.ports) $null) | ConvertTo-Json -Compress)
+    $rcp = $null; if ($q.PSObject.Properties['to'] -or $q.PSObject.Properties['cc']) { $rcp = @{ to = @($q.to); cc = @($q.cc) } }     # only when the person changed the recipients
+    return ((Out-Open ([string]$q.id) ([string]$q.voy) ([string]$q.subject) ([string]$q.rot) @($q.files) $mode @($q.ports) $null ([string]$q.html) $rcp) | ConvertTo-Json -Compress)
 }
 
 function Walk($f, $path, $since, $sentId) {
