@@ -61,7 +61,8 @@ function OutPrep($q) {
     return (@{ rot = $r; cand = $cand; mail = $mail; svc = $svc; ports = $order; missing = $missing } | ConvertTo-Json -Depth 7 -Compress)
 }
 function OutOpen($q) {
-    return ((Out-Open ([string]$q.id) ([string]$q.voy) ([string]$q.subject) ([string]$q.rot) @($q.files) (-not $q.draft) @($q.ports)) | ConvertTo-Json -Compress)
+    $mode = if ($q.send -eq $true) { 'send' } elseif ($q.draft) { 'draft' } else { 'show' }
+    return ((Out-Open ([string]$q.id) ([string]$q.voy) ([string]$q.subject) ([string]$q.rot) @($q.files) $mode @($q.ports) $null) | ConvertTo-Json -Compress)
 }
 
 function Walk($f, $path, $since, $sentId) {
