@@ -2846,13 +2846,16 @@ function unzip1(u){   // zip 안의 플랜 파일 하나 꺼내기 (.asc 먼저,
     new Response(new Blob([raw]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).arrayBuffer().then(function(b){ok({name:pick.name,data:new Uint8Array(b)})},no)})}
 function hashPlan(){
   var h=location.hash||"",m=/[#&]d=([\s\S]*)$/.exec(h);if(!m||window.__STATIC__)return;
+  var full=location.href.length;
   try{history.replaceState(null,"",location.pathname+location.search)}catch(_){}
   var raw=m[1],name="",a=/^#n=([^&]*)&d=/.exec(h),z=/&n=([^&]*)$/.exec(raw);
   if(a)name=a[1];else if(z){name=z[1];raw=raw.slice(0,z.index)}
   function pct(x){try{return decodeURIComponent(x)}catch(_){return x.replace(/%([0-9A-Fa-f]{2})/g,function(_,c){return String.fromCharCode(parseInt(c,16))})}}
   raw=pct(raw);name=pct(name);
   // 못 읽었을 때는 '무엇이 넘어왔는지'를 그대로 보여 줌 — 단축어의 어느 칸이 틀렸는지 화면만 보고 알 수 있게 (이 글은 이 기기 화면에만 나옴)
-  var got=" 받은 내용(모두 "+raw.length+"자): “"+raw.replace(/[\x00-\x1f\x7f-\x9f]+/g,"·").slice(0,60)+(raw.length>60?"…":"")+"”.";
+  function cnt(c){return raw.split(c).length-1}
+  var shown=raw.replace(/[\x00-\x1f\x7f-\x9f]+/g,"·"),
+      got=" 받은 내용(모두 "+raw.length+"자 · 주소 "+full+"자 · +"+cnt("+")+" /"+cnt("/")+" ="+cnt("=")+" %"+cnt("%")+" 빈칸"+(raw.length-raw.replace(/\s/g,"").length)+"): “"+shown.slice(0,60)+(shown.length>60?"… ”, 끝 “…"+shown.slice(-40):"")+"”.";
   var WHY="넘겨받은 내용이 플랜 파일이 아니에요."+got+" 단축어 ‘텍스트’ 칸의 주소 뒤에 붙인 파란 알약이 ‘Base64 인코딩’ 칸의 결과가 맞는지 확인해 주세요.";
   function isPlan(t){try{var P=isEdi(t)?parseEdi(t):parseAsc(t);return !!(P&&P.boxes.length)}catch(_){return false}}
   function go(bytes,n2){var f=String(n2||name||"").replace(/^.*[\\\/]/,"");
@@ -2864,9 +2867,12 @@ function hashPlan(){
   var b=raw.replace(/[\s\u200b-\u200d\u2060\ufeff\ufffc]+/g,"").replace(/-/g,"+").replace(/_/g,"/");
   if(!/^[A-Za-z0-9+\/]*=*$/.test(b)){var cl=b.replace(/[^A-Za-z0-9+\/]/g,"");if(cl.indexOf("UEsDB")===0)b=cl}   // 압축 파일(zip)이 맞는데 군더더기 글자가 섞여 온 경우
   b=b.replace(/=+$/,"");
+  if(b.indexOf("UEsDB")===0&&b.length%4===1)b=b.slice(0,-1);   // zip 인데 글자 수가 안 맞음(한 글자가 더 붙었거나 중간에 잘림): 읽을 수 있는 데까지 읽어 보고 아래에서 끝이 있는지 확인
   var bin=null;if(b&&/^[A-Za-z0-9+\/]+$/.test(b)&&b.length%4!==1){try{bin=atob(b)}catch(_){}}
   if(bin===null)return say(WHY,true);
   u=new Uint8Array(bin.length);for(i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
+  if(u[0]===0x50&&u[1]===0x4B){var eo=u.length-22;while(eo>=0&&!(u[eo]===0x50&&u[eo+1]===0x4B&&u[eo+2]===5&&u[eo+3]===6))eo--;
+    if(eo<0)return say("넘겨받은 압축 파일이 끝까지 오지 않았어요 — 주소가 중간에 잘린 것 같아요."+got,true)}
   if(u[0]===0x50&&u[1]===0x4B)return void unzip1(u).then(function(zf){go(zf.data,name||zf.name)}).catch(function(e){say("넘겨받은 압축 파일을 풀지 못했어요 ("+(e&&e.message||e)+")."+got,true)});
   if(isPlan(latin1(u)))return go(u,name);
   say(WHY,true)}
