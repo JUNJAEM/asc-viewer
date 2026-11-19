@@ -2275,17 +2275,17 @@ var ML={ship:"",items:[],cat:"",q:"",busy:false,err:"",at:"",days:3,order:[]};
 // ---- 폰·웹: 회사 계정으로 Microsoft 365 에 로그인해서 내 메일함을 직접 읽음 (Microsoft Graph). 메일은 Microsoft → 이 기기로만 오가고 다른 곳을 거치지 않음.
 // 필요한 것: 회사 Entra(Azure AD)에 등록한 앱 ID 하나 = mail-config.js 의 ASC_GRAPH.clientId  (종류: 단일 페이지 앱(SPA), 리디렉션 URI: 이 페이지 주소, 위임 권한: Mail.Read)
 // 로그인은 표준 방식(인증 코드 + PKCE)을 직접 구현 — 외부 라이브러리 없음. 토큰은 이 기기의 브라우저 저장소에만 둠.
-var GR={cfg:window.ASC_GRAPH||{},K:"ascGrTok"};
+var GR={cfg:window.ASC_GRAPH||{},K:"ascGrTok",mail:function(){try{return localStorage.getItem("ascGrMail")||""}catch(_){return ""}}};
 function grOn(){return !window.__MAILSRVJS__}                 // PC 설치판은 아웃룩 도우미, 그 밖(폰·웹)은 Graph
 function grReady(){return !!(GR.cfg&&GR.cfg.clientId)}
 function grHere(){return location.origin+location.pathname}
 function grAuth(){return "https://login.microsoftonline.com/"+(GR.cfg.tenant||"organizations")+"/oauth2/v2.0/"}
 function grB64(u8){var x="";for(var i=0;i<u8.length;i++)x+=String.fromCharCode(u8[i]);return btoa(x).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")}
-function grLogin(){var r=new Uint8Array(48);crypto.getRandomValues(r);var v=grB64(r);
+function grLogin(hint){var r=new Uint8Array(48);crypto.getRandomValues(r);var v=grB64(r);
   try{sessionStorage.setItem("ascGrV",v);localStorage.setItem("ascGrV",v)}catch(_){}
   crypto.subtle.digest("SHA-256",new TextEncoder().encode(v)).then(function(h){
     location.href=grAuth()+"authorize?client_id="+encodeURIComponent(GR.cfg.clientId)+"&response_type=code&redirect_uri="+encodeURIComponent(grHere())+"&response_mode=query&scope="+encodeURIComponent("openid offline_access Mail.Read")+
-      "&state=ascmail&prompt=select_account&code_challenge_method=S256&code_challenge="+grB64(new Uint8Array(h))})}
+      "&state=ascmail&prompt=login&login_hint="+encodeURIComponent(hint||"")+"&code_challenge_method=S256&code_challenge="+grB64(new Uint8Array(h))})}
 function grTok(q){q.client_id=GR.cfg.clientId;q.redirect_uri=grHere();q.scope="openid offline_access Mail.Read";
   return fetch(grAuth()+"token",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:Object.keys(q).map(function(k){return k+"="+encodeURIComponent(q[k])}).join("&")})
     .then(function(r){return r.json()}).then(function(j){if(!j.access_token)throw new Error(j.error_description||j.error||"login");
@@ -2369,7 +2369,7 @@ function mlDraw(){
   $("mlS").textContent=ML.busy?(grOn()?"회사 메일에서 읽는 중…":(ML.days>=14?"아웃룩에서 읽는 중… (기간이 길어서 몇 분 걸릴 수 있어요)":"아웃룩에서 읽는 중… (처음에는 20초쯤 걸려요)")):ML.err?"":(ML.at?ML.at+" 기준 · ":"")+"파일을 누르면 플랜으로 열려요";
   var B=$("mlB");
   if(ML.err&&grOn()){B.innerHTML=ML.err==="setup"?'<div class="msgbox"><b>폰·웹에서 메일함을 쓰려면 회사 계정 연결 설정이 한 번 필요해요.</b><br>회사 Microsoft 365(Entra)에 이 앱을 등록하고 받은 <b>앱 ID</b>를 넣으면, 여기서 회사 계정으로 로그인해 팀 메일의 플랜을 바로 열 수 있어요.<br>등록 방법은 만든 사람(준재)에게 물어봐 주세요. PC 에 설치한 뷰어에서는 지금도 메일함이 돼요.</div>'
-      :ML.err==="login"?'<div class="msgbox"><b>회사 계정으로 로그인해 주세요.</b><br>계정을 고르는 화면이 나오면 <b>회사 메일 주소</b>(…@heungaline.com 등)를 고르거나 ‘다른 계정 사용’으로 넣어 주세요. 개인 Microsoft 계정은 안 돼요.<br>로그인하면 내 메일함에서 ASC · EDI 가 붙은 메일만 골라 보여 줘요. 메일은 Microsoft 에서 이 기기로만 오가요.<br><br><button type="button" class="fb" id="grIn" style="font-size:15px;padding:9px 18px">Microsoft 365 로그인</button></div>'
+      :ML.err==="login"?'<div class="msgbox"><b>회사 계정으로 로그인해 주세요.</b><br>아래에 <b>회사 메일 주소</b>를 적고 로그인을 누르면, 그 계정의 비밀번호를 묻는 화면으로 바로 가요. (폰에 로그인돼 있는 개인 Microsoft 계정은 쓰지 않아요)<br>로그인하면 내 메일함에서 ASC · EDI 가 붙은 메일만 골라 보여 줘요. 메일은 Microsoft 에서 이 기기로만 오가요.<br><br><input id="grMail" type="email" inputmode="email" autocomplete="username" placeholder="회사 메일 주소 (예: hong@heungaline.com)" value="'+esc(GR.mail())+'" style="font:inherit;font-size:15px;width:min(100%,340px);padding:9px 10px;border:1px solid #8a8a8a;border-radius:2px;margin-bottom:10px;display:block"><button type="button" class="fb" id="grIn" style="font-size:15px;padding:9px 18px">Microsoft 365 로그인</button></div>'
       :'<div class="msgbox"><b>메일을 읽지 못했어요.</b><br>'+esc(ML.err)+'<br><br><button type="button" class="fb" id="grIn">다시 로그인</button></div>';return}
   if(ML.err){B.innerHTML='<div class="msgbox"><b>메일 도우미에 연결하지 못했어요.</b><br>아웃룩이 켜져 있는지 확인하고, 플랜 파일을 하나 더블클릭해서 뷰어를 다시 열어 주세요 (그때 도우미가 같이 켜져요).</div>';return}
   // 검색: 띄어 쓴 낱말이 모두 들어 있는 메일. 선박 코드(MJEP)를 치면 선박 이름(MOJI EXPRESS)으로 적힌 메일도, 이름을 치면 코드로 적힌 메일도 찾음
@@ -2409,7 +2409,10 @@ function mlPick(id,i,btn){
       history.replaceState(null,"",grHere());
       if(code&&grReady())grTok({grant_type:"authorization_code",code:code,code_verifier:v}).then(function(){mlOpen(true)}).catch(function(e){$("mailV").hidden=false;ML.err=String(e&&e.message||e);mlDraw()});
       else if(qs.get("error")){$("mailV").hidden=false;ML.err=qs.get("error_description")||qs.get("error");mlDraw()}}
-    $("mlB").addEventListener("click",function(e){if(e.target.id==="grIn"){if(grReady())grLogin()}})}
+    $("mlB").addEventListener("click",function(e){if(e.target.id!=="grIn"||!grReady())return;var i=$("grMail"),m=i?i.value.trim():GR.mail();
+      if(i&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m)){i.focus();i.style.borderColor="#c50f1f";return}
+      try{localStorage.setItem("ascGrMail",m)}catch(_){}grLogin(m)});
+    $("mlB").addEventListener("keydown",function(e){if(e.target.id==="grMail"){e.stopPropagation();if(e.key==="Enter")$("grIn").click()}})}
   $("mailBtn").onclick=function(){mlOpen()};$("mlX").onclick=function(){mlOpen(false)};$("mlR").onclick=function(){mlLoad()};
   $("mlD").onchange=function(){ML.days=+this.value||3;mlLoad()};
   $("mlQ").addEventListener("input",function(){ML.q=this.value;mlDraw()});
