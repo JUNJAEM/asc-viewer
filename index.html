@@ -607,10 +607,54 @@ header.win .body{background:#fff}
 .mli .fb,.mlb .fb{border-color:var(--acc);color:#005a9e;border-radius:2px}.mli .fb:hover{background:var(--acc);color:#fff}
 /* 폰 도구 막대 */
 @media (hover:none){.tpl button{border-radius:2px;border-color:#c6c6c6}.tpl button[aria-pressed="true"],.tpl button.on{background:var(--acc);border-color:var(--acc)}.tpc .go{background:#107c10;border-color:#107c10}}
+/* ===== 설정: 화면 모드 — 어둡게 (설정 ▸ 화면 모드). 밝게는 위의 기본값 그대로 ===== */
+#setV{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.32);padding:16px}#setV[hidden]{display:none}
+.setr{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:6px 2px}.setr b{min-width:76px}.seth{margin:10px 2px 2px;color:var(--fg2);font-size:12px;line-height:1.5}
+#thSeg button{padding:6px 18px;font-size:13px}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --desk:#1f1f1f; --win:#2b2b2b; --chrome:#323232; --edge:#555; --shade:#5c5c5c; --fg:#f1f1f1; --fg2:#b9b9b9;
+  --num:#73c0ff; --title:#0078d4; --title-fg:#fff; --acc:#0078d4; --acc2:#2b8fe0; --line:#3f3f3f; --cell:#8b919b;
+  --glass:#2b2b2b; --btn:#3a3a3a; --btn-h:#484848; --warn:#ff8a80;
+}
+[data-theme="dark"] body{background:var(--desk);color:var(--fg)}
+[data-theme="dark"] .win{border-color:#444;box-shadow:0 2px 12px rgba(0,0,0,.5)}
+[data-theme="dark"] .win>.tb,[data-theme="dark"] #sheet .edt{background:#2b2b2b;color:var(--fg);border-bottom-color:var(--line)}
+[data-theme="dark"] header.win .body{background:#2b2b2b}
+[data-theme="dark"] .note{background:#433519;border-color:#7a6220;color:#ffe9a8}[data-theme="dark"] .note.err{background:#4a1f1f;border-color:#8c3a3a;color:#ffc9c4}
+[data-theme="dark"] .btn,[data-theme="dark"] .x,[data-theme="dark"] .tb button,[data-theme="dark"] .bwin .tb button,[data-theme="dark"] .etab button,[data-theme="dark"] .bwf button,[data-theme="dark"] #eMsg button,[data-theme="dark"] #imgBtn,[data-theme="dark"] #v3 .tb button,[data-theme="dark"] .mwin .tb button,[data-theme="dark"] .askb button,[data-theme="dark"] .seg button,[data-theme="dark"] #llBox .llh button,[data-theme="dark"] #llForm button{background:var(--btn);border-color:#666;color:var(--fg)}
+[data-theme="dark"] .btn:hover,[data-theme="dark"] .tb button:hover,[data-theme="dark"] .seg button:hover,[data-theme="dark"] .bwf button:hover{background:var(--btn-h);border-color:#4cc2ff}
+[data-theme="dark"] .seg button[aria-pressed="true"],[data-theme="dark"] #openBtn{background:var(--acc);border-color:var(--acc);color:#fff}
+[data-theme="dark"] #edBtn[aria-pressed="true"],[data-theme="dark"] #v3 .tb button[aria-pressed="true"],[data-theme="dark"] #v3Btn[aria-pressed="true"]{background:#0f4a78;color:#fff;border-color:#4cc2ff}
+[data-theme="dark"] #saveBtn,[data-theme="dark"] #bwM{background:#4a2326;color:#ffb3b8;border-color:#8c3a40}[data-theme="dark"] #bwC{background:#1b3548;color:#9fd4ff;border-color:#2f6a94}
+[data-theme="dark"] #bwX,[data-theme="dark"] #v3X,[data-theme="dark"] .hwin .tb button{background:#c42b1c;border-color:#c42b1c;color:#fff}
+[data-theme="dark"] #ship,[data-theme="dark"] #q,[data-theme="dark"] .tb select,[data-theme="dark"] .pvc select,[data-theme="dark"] .ef,[data-theme="dark"] .ei,[data-theme="dark"] .mwin .tb select,[data-theme="dark"] .mwin .tb input,[data-theme="dark"] .plBrush input,[data-theme="dark"] #llForm input,[data-theme="dark"] .plBrush select,[data-theme="dark"] #llForm select,[data-theme="dark"] #fbox #q{background:#1c1c1c;color:var(--fg);border-color:#777}
+[data-theme="dark"] .chip{border-color:#666;background:var(--win)}[data-theme="dark"] .swc{border-right-color:#666}
+[data-theme="dark"] .gh{border-color:#3d3d3d}[data-theme="dark"] .hbar,[data-theme="dark"] .mbar{background:#c9cdd3}
+[data-theme="dark"] .c.xx,[data-theme="dark"] .m{color:#9aa0a8}
+[data-theme="dark"] body.planning #bwB .c[data-s]:hover,[data-theme="dark"] body.planning #gp .m[data-s]:hover{background:#1d3b57}[data-theme="dark"] body.canmv #bwB .c[data-s]:hover,[data-theme="dark"] body.canmv #gp .m[data-s]:hover{background:#5a4a12}
+[data-theme="dark"] #bwB .c.mk{background:#17456b}
+[data-theme="dark"] .bwf,[data-theme="dark"] .pvc,[data-theme="dark"] .bpl,[data-theme="dark"] .mlc,[data-theme="dark"] #llForm,[data-theme="dark"] .tpl{background:#303030;border-color:var(--line);color:var(--fg)}
+[data-theme="dark"] #sheet{background:#262626;border-color:#444}[data-theme="dark"] #sheet .emp dd{background:#303030}[data-theme="dark"] dd.chg .ei,[data-theme="dark"] dd.chg{background:#5a4a12;color:#fff}
+[data-theme="dark"] .etab button{background:transparent;border-color:transparent}[data-theme="dark"] .etab button.on{color:#73c0ff;box-shadow:inset 0 -2px 0 #4cc2ff}
+[data-theme="dark"] .et thead th,[data-theme="dark"] .et.pv th.rh,[data-theme="dark"] .et thead tr.efr th,[data-theme="dark"] .et.pv .tot{background:#343434;color:var(--fg)}[data-theme="dark"] .et th,[data-theme="dark"] .et td{border-color:#444}
+[data-theme="dark"] .et tbody tr:hover td,[data-theme="dark"] .et.pv td:hover:not(.z){background:#3d3d3d}[data-theme="dark"] .et tr.pk td{background:#5a2a2a}[data-theme="dark"] .et.pv td.z{color:#666}
+[data-theme="dark"] #expMenu,[data-theme="dark"] #pkTip,[data-theme="dark"] #llBox,[data-theme="dark"] #fbox,[data-theme="dark"] #v3Tip{background:#2f2f2f;color:var(--fg);border-color:#666}
+[data-theme="dark"] #plStrip{background:#10324d;border-color:#4cc2ff}[data-theme="dark"] #plStrip b,[data-theme="dark"] .bpl .plNm,[data-theme="dark"] .plMsg{color:#9fd4ff}[data-theme="dark"] .plMsg.err{color:#ff9d94}
+[data-theme="dark"] #llT th{background:#343434}[data-theme="dark"] #llT td,[data-theme="dark"] #llT th{border-color:#444}[data-theme="dark"] #llT tr.on td{background:#5a2a2a}[data-theme="dark"] #llBox .llf{color:#b9b9b9;border-color:#444}
+[data-theme="dark"] .mlc button{color:var(--fg)}[data-theme="dark"] .mlc button:hover{background:#3d3d3d}[data-theme="dark"] .mlc button[aria-pressed="true"]{background:#0f4a78}[data-theme="dark"] .mlc button .mlct{color:#73c0ff}[data-theme="dark"] .mlc .mlhd{color:#a9b4c4}
+[data-theme="dark"] .mld{background:#343434;border-color:#444;color:#d6d6d6}[data-theme="dark"] .mli{border-color:#3d3d3d}[data-theme="dark"] .mli:hover{background:#333}
+[data-theme="dark"] .mli .mlfr{color:var(--fg)}[data-theme="dark"] .mli .mlfr small,[data-theme="dark"] .mli .mltm,[data-theme="dark"] .mli .mltg{color:#a9b4c4}[data-theme="dark"] .mli .mlsb{color:#8fcbff}
+[data-theme="dark"] .mli .fb,[data-theme="dark"] .mlb .fb{background:#2b2b2b;color:#8fcbff;border-color:#4cc2ff}[data-theme="dark"] .mli .fb.edi{color:#f0c668;border-color:#b8902a}[data-theme="dark"] .mlb .emp{color:#c9c9c9}[data-theme="dark"] .mlb mark{background:#7a6400;color:#fff}
+[data-theme="dark"] .hwin td{border-color:#444}[data-theme="dark"] .hwin kbd{background:#3a3a3a;border-color:#777;color:var(--fg)}
+[data-theme="dark"] #tabs .tab{background:#333;color:var(--fg);border-color:#555}[data-theme="dark"] #tabs .tab.on{background:#2b2b2b;border-color:#4cc2ff}
+[data-theme="dark"] .tpl button{background:#3a3a3a;color:var(--fg);border-color:#666}[data-theme="dark"] .tpd{background:#2b2b2b}[data-theme="dark"] .tpm{background:#10324d;color:#9fd4ff}[data-theme="dark"] .tpm.err{background:#4a1f1f;color:#ffc9c4}
+[data-theme="dark"] .bwf .pkl{color:#ff9d94}
+[data-theme="dark"] .cr{color:#8a8a8a}[data-theme="dark"] .lg{border-color:#999;background:var(--win)}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-19 10:38 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-19 10:44 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -619,6 +663,7 @@ header.win .body{background:#fff}
     <span class="seg plMir"><button type="button" data-mir="S" title="Single — 누른 칸에만 (Alt + Z)">S</button><button type="button" data-mir="2FA" title="Mirror for Fore and Aft — 같은 해치의 앞·뒤 20' 베이에 같이 (Alt + C)">2F/A</button></span></span>
       <button class="btn" id="edBtn" type="button" aria-pressed="false" title="컨테이너 목록(Editor)과 집계표(Pivot) 창을 켜고 꺼요 (Alt + E)">EDITOR / PIVOT</button>
       <button class="btn" id="helpBtn" type="button" title="단축키 모음 (F1)">도움말</button>
+      <button class="btn" id="setBtn" type="button" title="화면 밝게 · 어둡게 등">설정</button>
       <button class="btn" id="saveBtn" type="button" hidden>ASC 저장</button>
       <button class="btn" id="instBtn" type="button" hidden title="이 기기에 앱으로 설치해요 (홈 화면에 아이콘이 생겨요)">앱 설치</button>
       <button class="btn" id="openBtn" type="button" title="ASC · EDI 플랜 파일을 열어요 (파일을 화면에 끌어다 놓아도 돼요)">IMPORT PLAN</button>
@@ -703,6 +748,10 @@ header.win .body{background:#fff}
     <button type="button" id="mlR" title="아웃룩에서 다시 읽기">새로고침</button><button type="button" id="mlX" aria-label="닫기" title="닫기 (Esc)">×</button></div>
   <div class="mlx"><nav class="mlc" id="mlC" aria-label="메일 폴더"></nav>
   <div class="mlb" id="mlB"></div></div></div></div>
+<div id="setV" hidden><div class="win hwin" role="dialog" aria-label="설정">
+  <div class="tb">설정<span class="sp"></span><button type="button" id="setX" aria-label="닫기">×</button></div>
+  <div class="body"><div class="setr"><b>화면 모드</b><span class="seg" id="thSeg"><button type="button" data-th="light">밝게</button><button type="button" data-th="dark">어둡게</button></span></div>
+    <p class="seth">고른 모드는 이 기기에 기억돼요. 플랜 칸의 포트 색은 두 모드에서 같아요. ‘이미지로 저장’은 항상 밝은 바탕으로 저장돼요.</p></div></div></div>
 <div id="ask" hidden><div class="win hwin" role="alertdialog" aria-label="컨테이너 삭제">
   <div class="tb">컨테이너 삭제</div>
   <div class="body"><p id="askT"></p><div class="askb"><button type="button" id="askY">삭제</button><button type="button" id="askN">취소</button></div></div></div></div>
@@ -2363,6 +2412,20 @@ function mlPick(id,i,btn){
   $("mailV").addEventListener("click",function(e){if(e.target.id==="mailV")mlOpen(false)});
   document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!$("mailV").hidden&&$("ask").hidden){e.stopPropagation();mlOpen(false)}},true);
   if(!grOn())setInterval(function(){mlGet("/ping").catch(function(){})},5*60000);   // 뷰어가 떠 있는 동안 도우미가 꺼지지 않게
+})();
+// ---------- 설정: 화면 모드(밝게 · 어둡게) ----------
+// 고른 값은 이 기기에만 기억(localStorage "ascTheme"). 색은 스타일의 [data-theme="dark"] 묶음.
+function setTheme(t,keep){t=t==="dark"?"dark":"light";if(t==="dark")document.documentElement.setAttribute("data-theme","dark");else document.documentElement.removeAttribute("data-theme");
+  if(keep)try{localStorage.setItem("ascTheme",t)}catch(_){}
+  [].forEach.call(document.querySelectorAll("#thSeg button"),function(b){b.setAttribute("aria-pressed",b.dataset.th===t)})}
+(function(){var t="light";try{t=localStorage.getItem("ascTheme")||"light"}catch(_){}
+  setTheme(window.__STATIC__?"light":t);
+  if(window.__STATIC__){$("setBtn").hidden=true;return}
+  function box(on){var v=$("setV");if(on==null)on=v.hidden;v.hidden=!on}
+  $("setBtn").onclick=function(){box()};$("setX").onclick=function(){box(false)};
+  $("setV").addEventListener("click",function(e){if(e.target.id==="setV")box(false)});
+  $("thSeg").addEventListener("click",function(e){var b=e.target.closest("[data-th]");if(b){setTheme(b.dataset.th,true);if(st.plan)render()}});
+  document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!$("setV").hidden){e.stopPropagation();box(false)}},true);
 })();
 // ---------- 3D VIEW ----------
 // 선박 모양은 도면이 아니라 cCASP 구조에서 만든 것: 전장·폭·깊이, 베이·로우·티어 칸, 거주구가 어느 베이 뒤에 있는지(ships.js 의 g).
