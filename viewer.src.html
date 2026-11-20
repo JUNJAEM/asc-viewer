@@ -373,7 +373,7 @@ body.planning #gp .m[data-s]{cursor:crosshair}body.planning #gp .m[data-s]:hover
 #llBox .llw{overflow:auto;flex:1 1 auto;min-height:40px}#llT{border-collapse:collapse;width:100%}
 #llT td,#llT th{padding:2px 6px;border-bottom:1px solid #e3e8f0;text-align:left;white-space:nowrap}#llT th{position:sticky;top:0;background:#eef3fa}
 #llT td.n{text-align:right}.lls{display:inline-block;margin-right:4px;padding:0 4px;border-radius:3px;background:#7a00c8;color:#fff;font-size:10px;font-weight:700;line-height:14px;vertical-align:1px}
-.et.pv td.sfc,.et.pv th.sfc{color:#7a00c8;font-weight:700;background:#f7f0ff}.et.pv td.sfc.z{color:#bbb;font-weight:400;cursor:default}[data-theme="dark"] .et.pv td.sfc,[data-theme="dark"] .et.pv th.sfc{background:#2d2140;color:#cfa6ff}#llT tbody tr{cursor:pointer}#llT tr.on td{background:#ffd9d9}#llT td.msgbox{color:#667;white-space:normal;cursor:default}
+.et.pv td.sfc,.et.pv th.sfc{color:#7a00c8;font-weight:700;background:#f7f0ff}.et.pv td.sfc.z{color:#bbb;font-weight:400;cursor:default}.et.sft td.arr{color:#7a00c8;font-weight:700;text-align:center}.et.sft small{color:var(--fg2)}.et.pv td.sfc,.et.pv th.sfc{border-left:3px double #7a00c8}[data-theme="dark"] .et.pv td.sfc,[data-theme="dark"] .et.pv th.sfc{background:#2d2140;color:#cfa6ff}#llT tbody tr{cursor:pointer}#llT tr.on td{background:#ffd9d9}#llT td.msgbox{color:#667;white-space:normal;cursor:default}
 #llBox .llf{padding:5px 8px;border-top:1px solid var(--edge);color:#445;font-size:11px;line-height:1.35}
 .llp{display:flex;gap:4px 8px;align-items:center;flex-wrap:wrap;padding:4px 8px;border-bottom:1px solid var(--edge);font-size:11.5px}
 .llp #llPv{display:inline-flex;gap:4px 6px;align-items:center;flex-wrap:wrap}.llp #llPv[hidden]{display:none}
@@ -774,7 +774,7 @@ header.win .body{background:#fff}
       <button type="button" id="zF" title="모든 베이가 보이는 가장 큰 비율로 다시 맞춰요">맞춤</button></span></div>
     <div class="gpx"><aside class="gi" id="gpInfo"></aside><div class="gpw" id="gpw"><div class="gp" id="gp"></div></div></div>
     <div class="rz rzr" data-rz="r" title="끌어서 너비 조절 (더블클릭: 원래대로)"></div><div class="rz rzb" data-rz="b" title="끌어서 높이 조절 (더블클릭: 원래대로)"></div><div class="rz rzc" data-rz="c" title="끌어서 크기 조절 (더블클릭: 원래대로)"></div></section>
-  <section class="win" id="edWin" hidden><div class="tb"><span class="etab"><button type="button" id="tabE">Editor</button><button type="button" id="tabP">Pivot</button></span>
+  <section class="win" id="edWin" hidden><div class="tb"><span class="etab"><button type="button" id="tabE">Editor</button><button type="button" id="tabP">Pivot</button><button type="button" id="tabS" title="쉬프팅한 컨테이너만 모아 봐요 (원래 자리 → 지금 자리)">Shifting</button></span>
       <small id="edCnt"></small><span class="sp"></span>
       <label class="fo" title="고른 컨테이너만 진하게, 나머지는 흐리게 (cCASP의 Highlight · Fade Out)"><input type="checkbox" id="edFade"> Fade Out</label>
       <button type="button" id="edCS" title="정렬 지우기 (Clear Sorters)">정렬 지우기</button><button type="button" id="edCF" title="조건 지우기 (Clear Filters)">조건 지우기</button></div>
@@ -1245,11 +1245,34 @@ function edRows(){
   $("edCnt").textContent=L.length.toLocaleString()+" / "+st.plan.boxes.length.toLocaleString()+"개 · "+teu+" TEU · "+Math.round(kg/1000).toLocaleString()+" t"+(st.pick.length?" · 고른 것 "+st.pick.length+"개":"");
   return L;
 }
+// ---------- Shifting 탭 (EDITOR / PIVOT 창) ----------
+// 쉬프팅한 컨테이너만 모아 보는 표: 실려 있는 것(원래 자리 → 지금 자리)과, 빼서 아직 LOAD LIST 에 있는 것. Pivot 탭은 이 컨테이너들을 빼고 셈(사용자 결정: 쉬프팅이 피벗 합계에 섞이면 불편).
+function sftRows(){
+  var out=[];if(!st.plan)return out;
+  st.plan.boxes.forEach(function(b){var fr=fromOf(b);if(fr)out.push({b:b,from:fr,to:p6(b.bay,b.row,b.tier),i:b.i})});
+  (st.ll||[]).forEach(function(e){if(e.sft)out.push({b:e.b,from:e.from||"",to:"",ll:e.id})});
+  return out.sort(function(x,y){return x.from<y.from?-1:x.from>y.from?1:0})}
+function sftText(R){   // 복사용 (엑셀 · 메일에 붙이면 표가 됨)
+  return ["NO\tCNTR NO\tSZTP\tOPR\tPOL\tPOD\tTON\tFROM\tTO"].concat(R.map(function(x,k){var b=x.b;
+    return [k+1,b.cntr||"",b.type||"",b.line||"",b.pol||"",b.pod||"",ton(b.kg),x.from?p6d(x.from):"",x.to?p6d(x.to):"LOAD LIST"].join("\t")})).join("\n")}
+function sftHtml(){
+  var R=sftRows(),teu=0,kg=0,inLL=0;R.forEach(function(x){teu+=x.b.size===20?1:2;kg+=x.b.kg;if(!x.to)inLL++});
+  if(!R.length)return '<div class="msgbox">쉬프팅한 컨테이너가 없어요.<br>Shift 모드에서 컨테이너를 눌러 빼고 다른 자리에 실으면 여기에 모여요.</div>';
+  return '<div class="pvc"><b>쉬프팅 '+R.length+' VAN</b><span>'+teu+' TEU</span><span>'+(kg/1000).toLocaleString("en-US",{maximumFractionDigits:1})+' t</span>'+(inLL?'<span style="color:#c50f1f">그중 '+inLL+' VAN 은 빼기만 하고 아직 안 실었어요 (LOAD LIST)</span>':'')+
+      '<button type="button" class="x" id="sfCopy" title="이 표를 복사해요 — 엑셀이나 메일에 붙이면 표가 돼요">리스트 복사</button><span class="hint">줄을 누르면 그 컨테이너가 골라져요 (더블클릭 = Bay Plan). Pivot 탭의 숫자에는 이 컨테이너들이 들어 있지 않아요.</span></div>'+
+    '<div class="edw"><table class="et sft"><thead><tr><th class="n">No</th><th>Cntr No</th><th>SzTp</th><th>OPR</th><th>POL</th><th>POD</th><th class="n">t</th><th>원래 자리</th><th></th><th>지금 자리</th></tr></thead><tbody>'+
+    R.map(function(x,k){var b=x.b,same=x.to&&x.to===x.from;
+      return '<tr'+(x.i!=null?' data-i="'+x.i+'"'+(st.pick.indexOf(x.i)>=0?' class="pk"':''):' data-ll="'+x.ll+'"')+'><td class="n">'+(k+1)+'</td><td>'+esc(b.cntr||"(번호 없음)")+'</td><td>'+esc(b.type||"")+'</td><td>'+esc(b.line||"")+'</td><td>'+esc(b.pol||"")+'</td><td>'+esc(b.pod||"")+'</td><td class="n">'+ton(b.kg)+'</td><td>'+(x.from?p6d(x.from):"")+'</td><td class="arr">→</td><td>'+
+        (x.to?p6d(x.to)+(same?' <small>(같은 자리에 다시 실음)</small>':''):'<span style="color:#c50f1f">LOAD LIST (아직 안 실음)</span>')+'</td></tr>'}).join("")+'</tbody></table></div>'}
+function sftCopy(){var R=sftRows(),t=sftText(R),done=function(){say("쉬프팅 리스트 "+R.length+"줄을 복사했어요. 엑셀이나 메일에 붙여 넣으면 표가 돼요.")};
+  function old(){var a=document.createElement("textarea");a.value=t;a.style.position="fixed";a.style.opacity="0";document.body.appendChild(a);a.select();try{document.execCommand("copy");done()}catch(_){say("복사하지 못했어요.",true)}a.remove()}
+  try{navigator.clipboard.writeText(t).then(done,old)}catch(_){old()}}
 function edDraw(){
   if(!st.plan||window.__STATIC__)return;
   $("edWin").hidden=!ES.on;$("edBtn").setAttribute("aria-pressed",ES.on?"true":"false");
   if(!ES.on)return;   // 꺼져 있으면 그리지 않음
   $("tabE").className=ES.tab==="E"?"on":"";$("tabP").className=ES.tab==="P"?"on":"";$("edFade").checked=ES.fade;
+  var nSf=sftRows().length;$("tabS").className=ES.tab==="S"?"on":"";$("tabS").textContent="Shifting"+(nSf?" "+nSf:"");
   var body=$("edBody");
   if(ES.tab==="E"){
     var cols=EF.filter(function(f){return f[4]});
@@ -1258,27 +1281,31 @@ function edDraw(){
       '</tr><tr class="efr">'+cols.map(function(f){var v=ES.flt[f[0]]||"";return '<th><input class="ef'+(v?' on':'')+'" data-k="'+f[0]+'" value="'+esc(v)+'" placeholder="'+(f[2]?">":"")+'" title="'+(f[2]?"숫자 조건: >20000, <=5000, =40":"글자 일부. 쉼표로 여러 개 (OSA,UKB), =값 은 완전히 같은 것")+'" autocomplete="off" spellcheck="false" aria-label="'+f[1]+' 조건"></th>'}).join("")+
       '</tr></thead><tbody id="edTb"></tbody></table></div>';
     edRows();
+  }else if(ES.tab==="S"){
+    body.innerHTML=sftHtml();
   }else{
     var pf=EF.filter(function(f){return f[5]}),L=edRows()||edList();
     var opt=function(sel){return pf.map(function(f){return '<option value="'+f[0]+'"'+(f[0]===sel?' selected':'')+'>'+f[1]+'</option>'}).join("")};
     var VS=[["van","Unit (개수)"],["teu","TEU"],["kg","Weight 합계 (t)"],["avg","Weight 평균 (t)"]];
-    var fr=EFM[ES.pr],fc=EFM[ES.pc],R={},C={},M={};
-    L.forEach(function(b){var r=String(fr[3](b)),c=String(fc[3](b));R[r]=1;C[c]=1;(M[r+"\u0001"+c]=M[r+"\u0001"+c]||[]).push(b)});
+    // 쉬프팅한 컨테이너(칸에 보라색 S)는 칸 · 합계에 넣지 않고, 합계 뒤의 따로 떨어진 '쉬프팅' 열에만 보임 — 합계 + 쉬프팅 = 실려 있는 전체.
+    // (사용자 결정: cCASP 처럼 쉬프팅이 피벗 합계의 TEU · 톤에 섞이면 불편. LOAD LIST 피벗과 같은 모양)
+    var fr=EFM[ES.pr],fc=EFM[ES.pc],R={},C={},M={},N=L.filter(function(b){return !fromOf(b)}),SF=L.filter(function(b){return !!fromOf(b)});
+    N.forEach(function(b){var r=String(fr[3](b)),c=String(fc[3](b));R[r]=1;C[c]=1;(M[r+"\u0001"+c]=M[r+"\u0001"+c]||[]).push(b)});
     var srt=function(f){return function(a,b){return f[2]?a-b:(a<b?-1:a>b?1:0)}};
     var rs=Object.keys(R).sort(srt(fr)),cs=Object.keys(C).sort(srt(fc));
     var val=function(bs){if(!bs||!bs.length)return "";var kg=0,teu=0;bs.forEach(function(b){kg+=b.kg;teu+=b.size===20?1:2});
       return ES.pv==="van"?bs.length.toLocaleString():ES.pv==="teu"?teu.toLocaleString():ES.pv==="kg"?(kg/1000).toLocaleString("en-US",{maximumFractionDigits:1}):(kg/bs.length/1000).toFixed(1)};
-    var all=function(pred){return L.filter(pred)};
-    // 쉬프팅 열: 값(Unit·TEU·무게) 고르기와 상관없이 늘 개수. 칸에 보라색 S 가 붙은 컨테이너(옮겼거나, 들었다 놓은 것)
-    var SFC="\u0003",sfc=function(r,bs){return '<td class="sfc'+(bs.length?'':' z')+'" data-pr="'+esc(r)+'" data-pc="'+SFC+'" title="쉬프팅한 컨테이너 '+bs.length+'개'+(bs.length?' — 누르면 골라져요':'')+'">'+(bs.length||"·")+'</td>'};
-    var cell=function(r,c,bs,cls){var v=val(bs);return '<td class="'+(v===""?'z ':'')+(cls||'')+'" data-pr="'+esc(r)+'" data-pc="'+esc(c)+'" title="누르면 이 '+(bs?bs.length:0)+'개가 골라져요">'+(v===""?"·":v)+'</td>'};
+    var rowIs=function(r){return function(b){return String(fr[3](b))===r}};
+    var SFC="\u0003";
+    var cell=function(r,c,bs,cls){var v=val(bs);return '<td class="'+(v===""?'z ':'')+(cls||'')+'" data-pr="'+esc(r)+'" data-pc="'+esc(c)+'" title="'+(c===SFC?"쉬프팅한 컨테이너 ":"누르면 이 ")+(bs?bs.length:0)+'개'+(c===SFC?" — 합계에는 들어 있지 않아요. 누르면 골라져요":"가 골라져요")+'">'+(v===""?"·":v)+'</td>'};
     var NUL="\u0002";
     body.innerHTML='<div class="pvc"><label>행 <select id="pvR">'+opt(ES.pr)+'</select></label><label>열 <select id="pvC">'+opt(ES.pc)+'</select></label>'+
       '<label>값 <select id="pvV">'+VS.map(function(v){return '<option value="'+v[0]+'"'+(v[0]===ES.pv?' selected':'')+'>'+v[1]+'</option>'}).join("")+'</select></label>'+
-      '<button type="button" class="x" id="pvX" title="행과 열 바꾸기">행 ↔ 열</button><span class="hint">칸을 누르면 그 컨테이너들이 골라져요. Editor의 조건이 그대로 적용돼요.</span></div>'+
-      '<div class="edw"><table class="et pv"><thead><tr><th class="rh">'+fr[1]+' \\ '+fc[1]+'</th>'+cs.map(function(c){return '<th class="n" data-pr="'+NUL+'" data-pc="'+esc(c)+'">'+esc(c||"(없음)")+'</th>'}).join("")+'<th class="n sfc" data-pr="'+NUL+'" data-pc="'+SFC+'" title="쉬프팅한 컨테이너 수 (칸에 보라색 S 가 붙은 것). 누르면 그 컨테이너들이 골라져요">쉬프팅</th><th class="n tot" data-pr="'+NUL+'" data-pc="'+NUL+'">합계</th></tr></thead><tbody>'+
-      rs.map(function(r){return '<tr><th class="rh" data-pr="'+esc(r)+'" data-pc="'+NUL+'">'+esc(r||"(없음)")+'</th>'+cs.map(function(c){return cell(r,c,M[r+"\u0001"+c])}).join("")+sfc(r,all(function(b){return String(fr[3](b))===r&&!!fromOf(b)}))+cell(r,NUL,all(function(b){return String(fr[3](b))===r}),"tot")+'</tr>'}).join("")+
-      '<tr class="tot"><th class="rh">합계</th>'+cs.map(function(c){return cell(NUL,c,all(function(b){return String(fc[3](b))===c}),"tot")}).join("")+sfc(NUL,all(function(b){return !!fromOf(b)}))+cell(NUL,NUL,L,"tot")+'</tr></tbody></table></div>';
+      '<button type="button" class="x" id="pvX" title="행과 열 바꾸기">행 ↔ 열</button><span class="hint">칸을 누르면 그 컨테이너들이 골라져요. Editor의 조건이 그대로 적용돼요.</span>'+(SF.length?'<button type="button" class="x" id="pvS" style="color:#7a00c8" title="쉬프팅한 컨테이너는 이 표의 칸 · 합계에 넣지 않았어요. 누르면 Shifting 탭으로 가요">쉬프팅 '+SF.length+' VAN 은 빼고 셌어요 → Shifting 탭</button>':'')+'</div>'+
+      '<div class="edw"><table class="et pv"><thead><tr><th class="rh">'+fr[1]+' \\ '+fc[1]+'</th>'+cs.map(function(c){return '<th class="n" data-pr="'+NUL+'" data-pc="'+esc(c)+'">'+esc(c||"(없음)")+'</th>'}).join("")+
+        '<th class="n tot" data-pr="'+NUL+'" data-pc="'+NUL+'" title="쉬프팅한 것은 빼고 센 합계">합계</th></tr></thead><tbody>'+
+      rs.map(function(r){return '<tr><th class="rh" data-pr="'+esc(r)+'" data-pc="'+NUL+'">'+esc(r||"(없음)")+'</th>'+cs.map(function(c){return cell(r,c,M[r+"\u0001"+c])}).join("")+cell(r,NUL,N.filter(rowIs(r)),"tot")+'</tr>'}).join("")+
+      '<tr class="tot"><th class="rh">합계</th>'+cs.map(function(c){return cell(NUL,c,N.filter(function(b){return String(fc[3](b))===c}),"tot")}).join("")+cell(NUL,NUL,N,"tot")+'</tr></tbody></table></div>';
   }
 }
 (function(){
@@ -1286,13 +1313,16 @@ function edDraw(){
   $("edBtn").onclick=function(){ES.on=!ES.on;try{localStorage.setItem("ascEdOn",ES.on?"1":"0")}catch(_){}
     if(!ES.on&&ES.fade){ES.fade=false;render()}else edDraw();
     if(ES.on)W.scrollIntoView({block:"nearest"})};
-  $("tabE").onclick=function(){ES.tab="E";edDraw()};$("tabP").onclick=function(){ES.tab="P";edDraw()};
+  $("tabE").onclick=function(){ES.tab="E";edDraw()};$("tabP").onclick=function(){ES.tab="P";edDraw()};$("tabS").onclick=function(){ES.tab="S";edDraw()};
   $("edFade").onchange=function(e){ES.fade=e.target.checked;render()};
   $("edCS").onclick=function(){ES.sort=[];edDraw()};$("edCF").onclick=function(){ES.flt={};edDraw()};
   W.addEventListener("input",function(e){var t=e.target;if(!t.classList.contains("ef"))return;ES.flt[t.dataset.k]=t.value.trim();t.classList.toggle("on",!!t.value.trim());edRows()});
   W.addEventListener("change",function(e){var id=e.target.id;if(id==="pvR"){ES.pr=e.target.value;edDraw()}else if(id==="pvC"){ES.pc=e.target.value;edDraw()}else if(id==="pvV"){ES.pv=e.target.value;edDraw()}});
   W.addEventListener("click",function(e){
     if(e.target.id==="pvX"){var t=ES.pr;ES.pr=ES.pc;ES.pc=t;edDraw();return}
+    if(e.target.id==="pvS"){ES.tab="S";edDraw();return}
+    if(e.target.id==="sfCopy"){sftCopy();return}
+    var lr=e.target.closest("tbody tr[data-ll]");if(lr){PL.lsel=[+lr.dataset.ll];plDraw();return}      // Shifting 탭에서 아직 LOAD LIST 에 있는 줄 → LOAD LIST 에서 고름
     var th=e.target.closest("thead th[data-k]"),tr=e.target.closest("tbody tr[data-i]"),pc=e.target.closest("[data-pr]");
     if(th&&!e.target.classList.contains("ef")){var k=th.dataset.k,i=-1;ES.sort.forEach(function(s,j){if(s.k===k)i=j});
       if(e.shiftKey){if(i<0)ES.sort.push({k:k,d:1});else if(ES.sort[i].d>0)ES.sort[i].d=-1;else ES.sort.splice(i,1)}
@@ -1306,7 +1336,7 @@ function edDraw(){
       else st.pick=[bi];
       var sc=W.querySelector(".edw").scrollTop;if(off2)unmark(bi);else showBox(bi);render();W.querySelector(".edw").scrollTop=sc;return}
     if(pc&&ES.tab==="P"){var NUL="\u0002",r=pc.dataset.pr,c=pc.dataset.pc,fr=EFM[ES.pr],fc=EFM[ES.pc];
-      st.pick=edList().filter(function(b){return (r===NUL||String(fr[3](b))===r)&&(c===NUL||(c==="\u0003"?!!fromOf(b):String(fc[3](b))===c))}).map(function(b){return b.i});
+      st.pick=edList().filter(function(b){return (r===NUL||String(fr[3](b))===r)&&(c==="\u0003"?!!fromOf(b):!fromOf(b)&&(c===NUL||String(fc[3](b))===c))}).map(function(b){return b.i});   // 쉬프팅한 것은 쉬프팅 열에서만 잡힘
       if(r===NUL&&c===NUL&&e.target.tagName==="TH")st.pick=[];
       render()}
   });
