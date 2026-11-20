@@ -282,7 +282,10 @@ body.empty #helpBtn{display:inline-block}
 #pkBtn{font:inherit;font-size:12px;font-weight:700;padding:1px 9px;margin-right:2px;border:1px solid #7a1c16;border-radius:3px;background:#d8382e;color:#fff;white-space:nowrap;cursor:pointer;text-shadow:none;animation:pkb 1.2s ease-in-out infinite}
 @keyframes pkb{50%{background:#ff7a70}}
 #pkBtn[aria-pressed="true"]{background:#7a1c16;box-shadow:inset 0 2px 4px rgba(0,0,0,.5);animation:none}
-@media (prefers-reduced-motion:reduce){#pkBtn{animation:none}}
+/* Shifting 탭: 쉬프팅한 컨테이너가 있을 때만 '지정중' 알림과 같은 모양으로 강조. 없으면 보통 탭 그대로 */
+#tabS.has{border:1px solid #7a1c16;border-radius:3px;background:#d8382e;color:#fff;opacity:1;text-shadow:none;box-shadow:none;animation:pkb 1.2s ease-in-out infinite}
+#tabS.has.on{background:#7a1c16;color:#fff;box-shadow:inset 0 2px 4px rgba(0,0,0,.5);animation:none}
+@media (prefers-reduced-motion:reduce){#pkBtn,#tabS.has{animation:none}}
 #pkTip{position:fixed;z-index:75;min-width:150px;padding:8px 10px;background:var(--win);color:var(--fg);border:1px solid #7a1c16;border-radius:6px;box-shadow:0 10px 28px rgba(0,20,60,.35);font-size:12.5px;pointer-events:none}
 #pkTip table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
 #pkTip td{padding:2px 4px}#pkTip td:last-child{text-align:right;font-weight:700}
@@ -1272,7 +1275,7 @@ function edDraw(){
   $("edWin").hidden=!ES.on;$("edBtn").setAttribute("aria-pressed",ES.on?"true":"false");
   if(!ES.on)return;   // 꺼져 있으면 그리지 않음
   $("tabE").className=ES.tab==="E"?"on":"";$("tabP").className=ES.tab==="P"?"on":"";$("edFade").checked=ES.fade;
-  var nSf=sftRows().length;$("tabS").className=ES.tab==="S"?"on":"";$("tabS").textContent="Shifting"+(nSf?" "+nSf:"");
+  var nSf=sftRows().length;$("tabS").className=(ES.tab==="S"?"on":"")+(nSf?" has":"");$("tabS").textContent="Shifting"+(nSf?" !":"");   // 개수는 안 붙임. 쉬프팅이 있을 때만 'CNTR 지정중 !' 처럼 강조(사용자 지시)
   var body=$("edBody");
   if(ES.tab==="E"){
     var cols=EF.filter(function(f){return f[4]});
