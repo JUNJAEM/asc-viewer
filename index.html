@@ -277,7 +277,9 @@ body.empty #helpBtn{display:inline-block}
 #pkTip table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
 #pkTip td{padding:2px 4px}#pkTip td:last-child{text-align:right;font-weight:700}
 #pkTip tr.tt td{border-top:1px solid #8fa3c0;font-weight:700}
-/* 3D VIEW: General Plan 바로 위에 뜨는 창 */
+/* VESSEL VIEW (예전 이름 3D VIEW): General Plan 바로 위에 뜨는 창. 입체 / 옆모습 / 윗모습 */
+#v3.flat .v3a,#v3.flat #v3S,#v3.flat #v3H,#v3.flat #v3R,#v3.flat .tb small{display:none}#v3.flat #v3C{cursor:default}#v3.flat #v3C.pt{cursor:pointer}
+#v3 .tb .seg button{border-radius:0;margin-left:-1px}#v3 .tb .seg button:first-child{border-radius:3px 0 0 3px;margin-left:0}#v3 .tb .seg button:last-child{border-radius:0 3px 3px 0}
 #v3 .tb{display:flex;align-items:center;gap:10px;flex-wrap:nowrap}#v3 .tb .sp{flex:1}#v3 .tb small{font-weight:400;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #v3 .tb button{font:inherit;font-size:12px;font-weight:700;padding:1px 9px;border:1px solid var(--edge);border-radius:3px;background:var(--chrome);color:var(--fg);cursor:pointer;white-space:nowrap;text-shadow:none}
 #v3 .tb button[aria-pressed="true"]{background:#0b3f94;color:#fff}
@@ -677,7 +679,7 @@ header.win .body{background:#fff}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-20 09:50 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-20 09:54 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -711,8 +713,9 @@ header.win .body{background:#fff}
     <select id="ship"></select>
     <button type="button" class="x" id="findBtn" title="컨테이너 번호 찾기 (Alt + F)">컨테이너 찾기</button>
   </div>
-  <section class="win" id="v3" hidden aria-label="3D VIEW">
-    <div class="tb"><span id="v3T">3D VIEW</span><small>끌거나 양옆 화살표로 돌리기 · 휠로 확대 · 베이를 누르면 Bay Plan</small><span class="sp"></span>
+  <section class="win" id="v3" hidden aria-label="VESSEL VIEW">
+    <div class="tb"><span id="v3T">VESSEL VIEW</span><small>끌거나 양옆 화살표로 돌리기 · 휠로 확대 · 베이를 누르면 Bay Plan</small><span class="sp"></span>
+      <span class="seg" id="v3M" role="group" aria-label="보는 방법"><button type="button" data-vm="3d" title="돌려 볼 수 있는 입체 그림">입체</button><button type="button" data-vm="side" title="옆에서 본 그림 (선수가 오른쪽)">옆모습</button><button type="button" data-vm="top" title="위에서 본 그림 (위쪽이 좌현)">윗모습</button><button type="button" data-vm="both" title="옆모습과 윗모습을 위아래로 같이">옆 + 윗</button></span>
       <button type="button" id="v3S" aria-pressed="true" title="햇빛 · 그림자 · 물결이 있는 입체 그림으로 보여 줘요. 끄면 예전의 단순한 그림이에요">입체 음영</button>
       <button type="button" id="v3H" aria-pressed="false" title="선체를 비쳐 보이게 해서 홀드 안 컨테이너를 봐요">홀드 보기</button>
       <button type="button" id="v3R" title="처음 각도로">처음 각도</button><button type="button" id="v3X" aria-label="닫기">×</button></div>
@@ -1042,7 +1045,7 @@ function render(){
     '<div><span>DG</span><b>'+dg+'</b></div><div><span>RF</span><b>'+rf+'</b></div><div><span>Empty</span><b>'+em+'</b></div>'+
     (nout?'<div><span>구조에 없는 칸</span><b style="color:var(--warn)">'+nout+'</b></div>':'')+'</div>'+
     (rot?'<div class="rot">Port Rotation: '+esc(rot)+'</div>':'')+
-    '<div class="chips"><button type="button" class="x" id="sortCol" title="양하항 '+order.length+'개에 맞춰 가장 잘 구분되는 색으로 다시 칠해요">색정렬</button><button type="button" class="x" id="v3Btn" title="General Plan 위에 선박 3D 그림을 켜고 꺼요. 베이를 누르면 Bay Plan이 떠요" aria-pressed="'+!$("v3").hidden+'">3D VIEW</button><em>POD</em>'+order.map(function(k){return chip(k,k,groups[k])}).join("")+
+    '<div class="chips"><button type="button" class="x" id="sortCol" title="양하항 '+order.length+'개에 맞춰 가장 잘 구분되는 색으로 다시 칠해요">색정렬</button><button type="button" class="x" id="v3Btn" title="General Plan 위에 선박 그림(입체 · 옆모습 · 윗모습)을 켜고 꺼요. 베이를 누르면 Bay Plan이 떠요" aria-pressed="'+!$("v3").hidden+'">VESSEL VIEW</button><em>POD</em>'+order.map(function(k){return chip(k,k,groups[k])}).join("")+
       '<em>POL</em>'+polOrder.map(function(k){return chip(k,"@"+k,pols[k])}).join("")+'</div>';
   function chip(k,f,g){return '<span class="chip'+(st.filter===f?' on':'')+'">'+
     '<input type="color" class="swc" id="col-'+esc(f)+'" data-port="'+esc(k)+'" value="'+(f[0]==="@"?hexL[k]:hex[k])+'" aria-label="'+esc(k)+' 색 바꾸기" title="색 바꾸기">'+
@@ -2640,7 +2643,7 @@ function setTheme(t,keep){t=t==="dark"?"dark":"light";if(t==="dark")document.doc
   $("thSeg").addEventListener("click",function(e){var b=e.target.closest("[data-th]");if(b){setTheme(b.dataset.th,true);if(st.plan)render()}});
   document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!$("setV").hidden){e.stopPropagation();box(false)}},true);
 })();
-// ---------- 3D VIEW ----------
+// ---------- VESSEL VIEW (예전 이름 3D VIEW — 코드 안 이름은 v3 그대로) ----------
 // 선박 모양은 도면이 아니라 cCASP 구조에서 만든 것: 전장·폭·깊이, 베이·로우·티어 칸, 거주구가 어느 베이 뒤에 있는지(ships.js 의 g).
 // 그리기는 캔버스 하나로 직접(외부 라이브러리 없음): 모든 것을 같은 크기의 상자 칸으로 쪼개서, 먼 것부터 덧칠.
 // GA 도면(스캔 그림)을 보고 읽어 넣은 선박별 값: nav = 항해 갑판(브리지 바닥) 높이, eye = 조타 위치 눈높이, lv = 상갑판 위 층수 (모두 용골 기준 m)
@@ -2658,7 +2661,7 @@ var LOOK={SHVY:{hull:"#2f6fb0",under:"#b8434a",fun:"#7fc49a",house:"#f1ecdd"},NB
   PCBJ:{hull:"#c0453a",fun:"#f2f2f2",cr:2,crc:"#e8d58a"},PCSZ:{hull:"#8a3530",fun:"#f0c870",cr:3,crc:"#f0c870"},SDTR:{fun:"#5cb531",cr:2,crc:"#b9bfc8"},
   NGTR:{hull:"#6a2430",fun:"#275b4b"},MZBG:{hull:"#7d3035",fun:"#5fd060"},MBBG:{hull:"#7a2a2c",fun:"#7bba63"},SWSR:{hull:"#b5452f"},
   HAB:{hull:"#1f4a9c",txt:"H E U N G - A"}};   // txt = 선체 옆에 크게 적힌 글씨
-var HEX={},BAY2P={},V3={yaw:-0.62,pit:0.5,zoom:1,hold:false,faces:[],hov:null,M:null,port:{}};
+var HEX={},BAY2P={},V3={mode:"3d",yaw:-0.62,pit:0.5,zoom:1,hold:false,faces:[],hov:null,M:null,port:{}};
 // ---------- 그 항의 실제 바람·파도 ----------
 // 파일 이름에서 포트를 읽음: 5글자(JPOIT) 먼저, 없으면 회사 3글자(OIT). 좌표는 ships.js 의 ASC_GEO(tools/build_geo.py).
 // 날씨는 공개 예보 서버에 위도·경도만 보내서 받음(wxLoad). 인터넷이 막힌 곳에서는 그냥 안 나옴.
@@ -2767,8 +2770,8 @@ function wxLoad(code){
 function wxWhen(t){var d=new Date(t);if(isNaN(d))return "";function z(n){return (n<10?"0":"")+n}return (d.getMonth()+1)+"/"+d.getDate()+" "+z(d.getHours())+":"+z(d.getMinutes())}
 function compass(d){return ["북","북동","동","남동","남","남서","서","북서"][Math.round(d/45)%8]}
 function v3Model(){
-  var P=st.plan,B=P.boxes,sh=curShip(),g=sh&&sh.g||[0,0,0,-1,-1],odd={},evn={},k,rows={},holdT=0,deckT=0;
-  function seen(bay,row,t){(bay%2?odd:evn)[bay]=1;rows[row]=1;if(t<80)holdT=Math.max(holdT,t/2);else deckT=Math.max(deckT,(t-80)/2)}
+  var P=st.plan,B=P.boxes,sh=curShip(),g=sh&&sh.g||[0,0,0,-1,-1],odd={},evn={},k,rows={},holdT=0,deckT=0,r0={};
+  function seen(bay,row,t){(bay%2?odd:evn)[bay]=1;rows[row]=1;if(row===0)r0[bay+(t<80?"h":"d")]=1;if(t<80)holdT=Math.max(holdT,t/2);else deckT=Math.max(deckT,(t-80)/2)}
   if(sh)for(k in sh.b)for(var t in sh.b[k]){var rs=sh.b[k][t];for(var i=0;i<rs.length;i+=2)seen(+k,+rs.substr(i,2),+t)}
   B.forEach(function(b){seen(b.bay,b.row,b.tier)});
   for(k in evn){if(!odd[+k-1])odd[+k-1]=1;if(!odd[+k+1])odd[+k+1]=1}
@@ -2787,11 +2790,12 @@ function v3Model(){
   var cargoBow=0,cargoAft=x,L=g[0]>50&&g[0]<450?g[0]:0,need=(cargoBow-cargoAft),bowL=Math.max(9,need*0.1),stL=Math.max(6,need*0.06);
   if(L>need+bowL+stL){var ex=L-need-bowL-stL;bowL+=ex*0.6;stL+=ex*0.4}
   var xB=cargoBow+bowL,xS=cargoAft-stL,Lh=xB-xS,hb=W/2,zH=D-0.4-holdT*CH,zD=D+1.2;
-  function y0(row){var n=Math.ceil(row/2),sg=row===0?0:(row%2?1:-1);return half?sg*(n-0.5)*CW:sg*n*CW}
+  // 로우의 좌우 자리. 가운데 로우(00)가 있는 줄은 00 이 한가운데, 없는 줄은 01·02 가 한가운데를 사이에 두고 반 칸씩 — 같은 배라도 베이마다, 홀드와 갑판이 다를 수 있음
+  function y0(row,bay,hd){var n=Math.ceil(row/2),sg=row===0?0:(row%2?1:-1),q=hd?"h":"d",hf=bay==null?half:!(r0[bay+q]||r0[(bay-1)+q]||r0[(bay+1)+q]);return hf?sg*(n-0.5)*CW:sg*n*CW}
   var cells=[];   // [x0,x1,yc,z0,색,베이,상자번호,종류]
   // 높이: 일반 8'6" = 2.59 m, 하이큐빅 9'6" = 2.90 m. 티어 번호로 높이를 정하지 않고 아래에서부터 실제 높이를 쌓아 올림(40'는 밑의 20' 두 줄 중 높은 쪽 위에).
   var top={};
-  B.slice().sort(function(u,v){return u.tier-v.tier}).forEach(function(b){var c=HEX[keyOf(b)]||"#999",yc=y0(b.row),hd=b.tier<80,bs=b.bay%2?[b.bay]:[b.bay-1,b.bay+1];
+  B.slice().sort(function(u,v){return u.tier-v.tier}).forEach(function(b){var c=HEX[keyOf(b)]||"#999",hd=b.tier<80,yc=y0(b.row,b.bay,hd),bs=b.bay%2?[b.bay]:[b.bay-1,b.bay+1];
     var hh=b.hc?2.896:2.591,zz=hd?zH:zD;bs.forEach(function(bb){var t=top[bb+"_"+b.row+"_"+hd];if(t>zz)zz=t});
     bs.forEach(function(bb){top[bb+"_"+b.row+"_"+hd]=zz+hh});
     bs.forEach(function(bb,j){var r=X[bb];if(!r)return;
@@ -2834,7 +2838,7 @@ function v3Model(){
   for(var bk=0;bk<2;bk++){var yb=ya+bk*(6*2.6+10);blocks.push([yb-1.3,yb+5*2.6+1.3]);
     for(var bx=xS-34,ci=0;bx<xB+34;bx+=6.4,ci++){if(ci%10===9)continue;
       for(var rr=0;rr<6;rr++){var hn=Math.floor(rnd()*5);if(hn)yard.push({x0:bx,x1:bx+6.1,y:yb+rr*2.6,n:hn,c:YC[Math.floor(rnd()*YC.length)]})}}}
-  return {lk:lk,gear:gear,shipName:sh&&sh.n||"",q0:q0,yard:yard,blocks:blocks,q1:ya+2*(6*2.6+10)+2,cells:cells,X:X,bays:bays,evn:evn,xB:xB,xS:xS,L:Lh,hb:hb,D:D,CW:CW,CH:CH,zD:zD,draft:draft,vis:vis,name:(sh?st.ship+" ":"")+(P.voy||"")};
+  return {lk:lk,gear:gear,shipName:sh&&sh.n||"",q0:q0,yard:yard,blocks:blocks,q1:ya+2*(6*2.6+10)+2,cells:cells,X:X,bays:bays,evn:evn,xB:xB,xS:xS,L:Lh,hb:hb,D:D,CW:CW,CH:CH,zD:zD,zH:zH,y0:y0,draft:draft,vis:vis,name:(sh?st.ship+" ":"")+(P.voy||"")};
 }
 // ---------- 3D VIEW: 입체 음영 (WebGL2) ----------
 // 아래 v3Draw(캔버스에 직접 그리기)와 똑같은 각도·크기로, 같은 모델(V3.M)을 그래픽 카드로 그림.
@@ -3030,13 +3034,85 @@ function vgDraw(M,q){
     gl.depthMask(true);gl.disable(gl.BLEND);gl.bindVertexArray(null);
     return true
   }catch(e){VG.fail=true;VG.err=String(e&&e.message||e);return false}}
+// ---------- VESSEL VIEW: 옆모습 · 윗모습 (움직이지 않는 그림) ----------
+// 옆모습 = 우현에서 본 모습(선수가 오른쪽). 베이·단마다 그 단에 가장 많이 실린 포트의 색, 빈 칸은 테두리만. 회색 띠 = 해치 덮개, 파란 선 = 흘수선(어림: 깊이의 68%).
+// 윗모습 = 위에서 본 갑판(위쪽이 좌현). 칸마다 갑판 맨 윗단 컨테이너의 색, 갑판에 아무것도 없으면 회색(해치 덮개).
+// 입체 그림과 같은 모델(V3.M)·같은 포트 색(HEX)을 쓰고, 베이를 누르면 똑같이 Bay Plan 이 뜸(V3.faces).
+function v3Flat(){
+  var M=V3.M,cv=$("v3C"),mode=V3.mode;if(!M)return;
+  var dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr)}
+  var g=cv.getContext("2d");g.setTransform(dpr,0,0,dpr,0,0);g.globalAlpha=1;g.setLineDash([]);g.fillStyle="#131a24";g.fillRect(0,0,w,h);V3.faces=[];
+  var B=st.plan.boxes,sh=curShip(),CH=M.CH,CW=M.CW,D=M.D,L=M.xB-M.xS,hb=M.hb,fc=M.xB-1.2>=4,k,t,i;
+  var HULL="#2a323f",EDGE="#93a3ba",HATCH="#687282",SLOT="#3b4453";
+  // 20' 자리(홀수 베이)마다: 옆에서 본 단별 색 개수, 위에서 본 로우별 맨 윗단
+  var side={},top={},pk={},tpk={},dmin=82,slot={},drow={};
+  B.forEach(function(b){if(b.tier>=80&&b.tier<dmin)dmin=b.tier});
+  B.forEach(function(b){var c=HEX[keyOf(b)]||"#999999",bs=b.bay%2?[b.bay]:[b.bay-1,b.bay+1],p=st.pick.indexOf(b.i)>=0;
+    bs.forEach(function(bb){if(!M.X[bb])return;var s=side[bb]=side[bb]||{},q=s[b.tier]=s[b.tier]||{};q[c]=(q[c]||0)+1;if(p)(pk[bb]=pk[bb]||{})[b.tier]=1;
+      if(b.tier>=80){var o=top[bb]=top[bb]||{};if(!o[b.row]||o[b.row][0]<b.tier)o[b.row]=[b.tier,c];if(p)(tpk[bb]=tpk[bb]||{})[b.row]=1}})});
+  if(sh)for(k in sh.b){var bay=+k,bs2=bay%2?[bay]:[bay-1,bay+1];for(t in sh.b[k]){var rs=sh.b[k][t];
+      for(var q2=0;q2<bs2.length;q2++){var bb2=bs2[q2];if(!M.X[bb2])continue;(slot[bb2]=slot[bb2]||{})[+t]=1;if(+t>=80)for(i=0;i<rs.length;i+=2)(drow[bb2]=drow[bb2]||{})[+rs.substr(i,2)]=1}}}
+  function tz(tr){return tr<80?M.zH+(tr/2-1)*CH:M.zD+((tr-dmin)/2)*CH}
+  var zTop=D+4;M.cells.forEach(function(c){if(c.house)zTop=Math.max(zTop,c.z+(c.hh||CH))});
+  M.bays.forEach(function(b){[side[b],slot[b]].forEach(function(o){for(var x in o||{})zTop=Math.max(zTop,tz(+x)+CH)})});
+  // 자리 잡기: 옆모습 높이 Hs, 윗모습 높이 Ht (m) 를 한 축척으로
+  var zBot=-1.5,Hs=zTop-zBot+0.5,Ht=2*hb+2,gap=4,padX=18,padT=34,padB=30,ext=L*0.03+3;
+  var need=mode==="side"?Hs:mode==="top"?Ht:Hs+gap+Ht,s=Math.min((w-2*padX)/(L+2*ext),(h-padT-padB)/need);
+  var ox=(w-L*s)/2,y0=padT+((h-padT-padB)-need*s)/2,cy=y0+(mode==="top"?0:(Hs+gap)*s)+(hb+1)*s;
+  function X(x){return ox+(x-M.xS)*s}function Z(z){return y0+(zTop+0.5-z)*s}function Y(y){return cy+y*s}
+  function rect(x0,x1,y1,y2,fill,stroke){var a=X(x0),b=X(x1);if(fill){g.fillStyle=fill;g.fillRect(a,y1,b-a,y2-y1)}if(stroke){g.strokeStyle=stroke;g.strokeRect(a+0.5,y1+0.5,b-a-1,y2-y1-1)}}
+  function hov(b){return V3.hov!=null&&(V3.hov===b||V3.hov===b+1||V3.hov===b-1)}
+  g.lineWidth=1;g.lineJoin="round";
+  if(mode!=="top"){
+    // 선체 옆모습: 선미 트랜섬 · 물밑이 깎인 선미 · 용골 · 구상 선수 · 기운 선수재 · 선수루
+    var dr=M.draft,ft=fc?D+2.3:D,pts=[[M.xS,D]];if(fc)pts.push([1.2,D],[1.2,ft]);
+    pts.push([M.xB,ft],[M.xB-L*0.012,dr*1.08],[M.xB+L*0.016,dr*0.78],[M.xB+L*0.024,dr*0.5],[M.xB+L*0.014,dr*0.24],[M.xB-L*0.03,0],[M.xS+L*0.075,0],[M.xS+L*0.05,dr*0.42],[M.xS+L*0.015,dr*0.9],[M.xS,dr*1.06]);
+    g.beginPath();pts.forEach(function(p,n){if(n)g.lineTo(X(p[0]),Z(p[1]));else g.moveTo(X(p[0]),Z(p[1]))});g.closePath();g.fillStyle=HULL;g.fill();g.strokeStyle=EDGE;g.lineWidth=1.3;g.stroke();g.lineWidth=1;
+    rect(M.xS+L*0.022,M.xS+L*0.036,Z(dr*0.78),Z(dr*0.08),"#465163","#93a3ba");                                             // 키
+    g.fillStyle="#c9a23a";g.beginPath();g.ellipse(X(M.xS+L*0.048),Z(dr*0.3),Math.max(1.5,s*0.45),Math.max(3,dr*0.2*s),0,0,7);g.fill();   // 프로펠러
+    M.cells.forEach(function(c){if(!c.house)return;rect(c.x0,c.x1,Z(c.z+(c.hh||CH)),Z(c.z),c.c,null);                       // 거주구 · 연돌 · 마스트 · 크레인
+      if(c.wn){var z0=c.z+(c.hh||CH)*(c.wn===2?0.38:0.48),z1=c.z+(c.hh||CH)*(c.wn===2?0.84:0.76);rect(c.x0+0.25,c.x1-0.25,Z(z1),Z(z0),c.wn===2?"#1f2f4a":"#33465f",null)}});
+    if(fc)M.gear.forEach(function(c){rect(c.x0,c.x1,Z(c.z+(c.hh||CH)),Z(c.z),c.c,null)});
+    M.bays.forEach(function(b){var r=M.X[b],x0=r[0]+0.14,x1=r[1]-0.14,ss=side[b]||{},sl=slot[b]||{},zt=D+1.2,zb=D;
+      for(t in sl){if(!ss[t])rect(x0,x1,Z(tz(+t)+CH*0.93),Z(tz(+t)),null,SLOT)}                                             // 빈 칸
+      for(t in ss){var best="",n=0;for(var c in ss[t])if(ss[t][c]>n){n=ss[t][c];best=c}
+        rect(x0,x1,Z(tz(+t)+CH*0.93),Z(tz(+t)),best,"rgba(0,0,0,.55)");
+        if(pk[b]&&pk[b][t]){g.lineWidth=2;rect(x0,x1,Z(tz(+t)+CH*0.93),Z(tz(+t)),null,"#ff2a2a");g.lineWidth=1}}
+      for(t in ss){zt=Math.max(zt,tz(+t)+CH);zb=Math.min(zb,tz(+t))}for(t in sl){zt=Math.max(zt,tz(+t)+CH);zb=Math.min(zb,tz(+t))}
+      rect(r[0]+0.05,r[1]-0.05,Z(D+1.08),Z(D+0.2),HATCH,null);                                                              // 해치 덮개
+      if(hov(b))rect(r[0],r[1],Z(zt),Z(zb),"rgba(255,244,168,.28)",null);
+      V3.faces.push([[[X(r[0]),Z(zt)],[X(r[1]),Z(zt)],[X(r[1]),Z(Math.min(zb,0))],[X(r[0]),Z(Math.min(zb,0))]],b])});
+    g.fillStyle="rgba(46,124,214,.13)";g.fillRect(0,Z(dr),w,Z(zBot)-Z(dr)+2);g.strokeStyle="#3b8fe0";g.lineWidth=1.4;g.beginPath();g.moveTo(X(M.xS)-ext*s,Z(dr));g.lineTo(X(M.xB)+ext*s,Z(dr));g.stroke();g.lineWidth=1}
+  if(mode!=="side"){
+    var o=v3Outline(M),ring=o.concat(o.slice(0,o.length-1).reverse().map(function(p){return [p[0],-p[1]]}));
+    g.beginPath();ring.forEach(function(p,n){if(n)g.lineTo(X(p[0]),Y(p[1]));else g.moveTo(X(p[0]),Y(p[1]))});g.closePath();g.fillStyle=HULL;g.fill();g.strokeStyle=EDGE;g.lineWidth=1.3;g.stroke();g.lineWidth=1;
+    M.cells.filter(function(c){return c.house}).sort(function(a,b){return a.z-b.z}).forEach(function(c){var hw=c.w||CW*0.47;rect(c.x0,c.x1,Y(c.y-hw),Y(c.y+hw),c.c,null)});
+    if(fc)M.gear.forEach(function(c){var hw=c.w||CW*0.47;rect(c.x0,c.x1,Y(c.y-hw),Y(c.y+hw),c.c,null)});
+    M.bays.forEach(function(b){var r=M.X[b],x0=r[0]+0.14,x1=r[1]-0.14,tp=top[b]||{},rows={},ymin=1e9,ymax=-1e9;
+      for(k in drow[b]||{})rows[k]=1;for(k in tp)rows[k]=1;
+      for(k in rows){var yc=M.y0(+k,b,false),ya=Y(yc-CW*0.47),yb=Y(yc+CW*0.47);ymin=Math.min(ymin,ya);ymax=Math.max(ymax,yb);
+        rect(x0,x1,ya,yb,tp[k]?tp[k][1]:HATCH,"rgba(0,0,0,.5)");
+        if(tpk[b]&&tpk[b][k]){g.lineWidth=2;rect(x0,x1,ya,yb,null,"#ff2a2a");g.lineWidth=1}}
+      if(ymin>ymax){ymin=Y(-hb+1.4);ymax=Y(hb-1.4)}
+      if(hov(b))rect(r[0],r[1],ymin,ymax,"rgba(255,244,168,.28)",null);
+      V3.faces.push([[[X(r[0]),ymin],[X(r[1]),ymin],[X(r[1]),ymax],[X(r[0]),ymax]],b])})}
+  // 베이 번호 (그림 아래), 안내 글
+  var ly=(mode==="side"?Z(zBot):Y(hb+1))+15,sw=6.1*s,step=sw>=17?1:sw>=9?2:4;
+  g.font="bold "+Math.max(9,Math.min(12,sw*0.5))+"px Arial";g.textAlign="center";g.textBaseline="middle";
+  M.bays.forEach(function(b,n){if(n%step)return;var r=M.X[b];g.fillStyle=hov(b)?"#ffd54a":"#aab6c8";g.fillText((b<10?"0":"")+b,X((r[0]+r[1])/2),ly)});
+  g.textAlign="left";g.font="11.5px Arial";g.fillStyle="#8fa0b8";
+  var n1="옆모습: 단마다 가장 많이 실린 포트 색 · 회색 띠는 해치 덮개 · 파란 선은 흘수선(어림)",n2="윗모습: 위쪽이 좌현 · 갑판 맨 윗단 색 · 회색은 해치 덮개";
+  if(mode==="side")g.fillText(n1,12,16);else if(mode==="top")g.fillText(n2,12,16);
+  else if(g.measureText(n1+"     "+n2).width<w-24)g.fillText(n1+"     "+n2,12,16);else{g.fillText(n1,12,13);g.fillText(n2,12,27)}
+}
 function v3Tick(){clearTimeout(V3.tm);if($("v3").hidden)return;
-  if(!document.hidden&&!V3.still){V3.t=performance.now()/1000;v3Draw()}
+  if(!document.hidden&&!V3.still&&V3.mode==="3d"){V3.t=performance.now()/1000;v3Draw()}
   V3.tm=setTimeout(v3Tick,70)}
-function v3Build(){V3.M=v3Model();$("v3T").textContent="3D VIEW  "+V3.M.name;
+function v3Build(){V3.M=v3Model();$("v3T").textContent="VESSEL VIEW  "+V3.M.name;
   wxLoad(v3Port());v3Draw()}
 function v3Draw(){
   var M=V3.M,cv=$("v3C");if(!M||$("v3").hidden)return;
+  if(V3.mode!=="3d"){$("v3G").hidden=true;return v3Flat()}      // 옆모습 · 윗모습
   var dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr)}
   var g=cv.getContext("2d"),a=V3.yaw,p=V3.pit,ca=Math.cos(a),sa=Math.sin(a),cp=Math.cos(p),sp=Math.sin(p);
   var xm=(M.xB+M.xS)/2,sc=(V3.quay?Math.min(w*0.6/M.L,h*0.5/(M.L*0.42)):Math.min(w*0.74/M.L,h*0.72/(M.L*0.42)))*V3.zoom,ox=w/2,oy=h*(V3.quay?0.74:0.62);
@@ -3200,9 +3276,9 @@ function v3Open(on){if(on==null)on=$("v3").hidden;$("v3").hidden=!on;var b=$("v3
 (function(){
   var cv=$("v3C"),d=null;
   function xy(e){var r=cv.getBoundingClientRect();return [e.clientX-r.left,e.clientY-r.top]}
-  cv.addEventListener("pointerdown",function(e){if(e.button!==0)return;d={x:e.clientX,y:e.clientY,yaw:V3.yaw,pit:V3.pit,mv:false};cv.setPointerCapture(e.pointerId)});
+  cv.addEventListener("pointerdown",function(e){if(e.button!==0)return;d={x:e.clientX,y:e.clientY,yaw:V3.yaw,pit:V3.pit,mv:false,flat:V3.mode!=="3d"};cv.setPointerCapture(e.pointerId)});
   cv.addEventListener("pointermove",function(e){
-    if(d){var dx=e.clientX-d.x,dy=e.clientY-d.y;if(!d.mv&&Math.abs(dx)<5&&Math.abs(dy)<5)return;d.mv=true;
+    if(d&&!d.flat){var dx=e.clientX-d.x,dy=e.clientY-d.y;if(!d.mv&&Math.abs(dx)<5&&Math.abs(dy)<5)return;d.mv=true;
       V3.yaw=d.yaw-dx*0.008;V3.pit=Math.max(0.22,Math.min(1.25,d.pit+dy*0.006));V3.hov=null;$("v3Tip").hidden=true;v3Draw();return}
     var q=xy(e),b=v3Pick(q[0],q[1]),t=$("v3Tip");
     if(b!==V3.hov){V3.hov=b;v3Draw()}
@@ -3212,9 +3288,13 @@ function v3Open(on){if(on==null)on=$("v3").hidden;$("v3").hidden=!on;var b=$("v3
     var id=BAY2P[b]||BAY2P[b+1]||BAY2P[b-1];if(!id)return;
     openBay(id)});
   cv.addEventListener("pointerleave",function(){if(V3.hov!=null){V3.hov=null;$("v3Tip").hidden=true;v3Draw()}});
-  cv.addEventListener("wheel",function(e){e.preventDefault();V3.zoom=Math.max(0.5,Math.min(6,V3.zoom*(e.deltaY<0?1.12:1/1.12)));v3Draw()},{passive:false});
+  cv.addEventListener("wheel",function(e){if(V3.mode!=="3d")return;e.preventDefault();V3.zoom=Math.max(0.5,Math.min(6,V3.zoom*(e.deltaY<0?1.12:1/1.12)));v3Draw()},{passive:false});
   $("v3X").onclick=function(){v3Open(false)};
   $("v3R").onclick=function(){V3.yaw=-0.62;V3.pit=0.5;V3.zoom=1;v3Draw()};
+  function vMode(m){V3.mode=m;$("v3").classList.toggle("flat",m!=="3d");[].forEach.call($("v3M").children,function(b){b.setAttribute("aria-pressed",b.dataset.vm===m)});
+    V3.hov=null;$("v3Tip").hidden=true;try{localStorage.setItem("ascVvMode",m)}catch(_){}v3Draw()}
+  $("v3M").addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("[data-vm]");if(b)vMode(b.dataset.vm)});
+  var m0="3d";try{m0=localStorage.getItem("ascVvMode")||"3d"}catch(_){}if(!/^(3d|side|top|both)$/.test(m0))m0="3d";vMode(m0);
   $("v3S").setAttribute("aria-pressed",VG.on);
   $("v3S").onclick=function(){VG.on=!VG.on;this.setAttribute("aria-pressed",VG.on);try{localStorage.setItem("ascV3Shade",VG.on?"1":"0")}catch(_){}v3Draw()};
   $("v3H").onclick=function(){V3.hold=!V3.hold;this.setAttribute("aria-pressed",V3.hold);v3Draw()};
