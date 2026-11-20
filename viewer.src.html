@@ -388,7 +388,7 @@ body.planning #gp .m[data-s]{cursor:crosshair}body.planning #gp .m[data-s]:hover
 #llT.pv td,#llT.pv th{border:1px solid #c9d3e2;text-align:right;padding:2px 7px}
 #llT.pv th.rh{text-align:left;left:0;z-index:1}#llT.pv tbody th{top:auto;position:sticky;cursor:pointer}#llT.pv thead th.rh{z-index:3;cursor:default}
 #llT.pv td:hover:not(.z){background:#e3ecff}#llT.pv td.part,#llT.pv td.part:hover{background:#ffeec2}#llT.pv td.on,#llT.pv td.on:hover{background:#ffd0d0;font-weight:700;box-shadow:inset 0 0 0 1px #c00}
-#llT.pv td.z{cursor:default}#llT.pv td.msgbox{text-align:left;border:0;max-width:300px}
+#llT.pv td.z{cursor:default}#llT.pv td.sfc,#llT.pv th.sfc{border-left:3px double #7a00c8}#llT.pv td.msgbox{text-align:left;border:0;max-width:300px}
 .llnew{color:#d83b01;font-size:9px;font-weight:700;margin-left:1px}
 [data-theme="dark"] #llT.pv td,[data-theme="dark"] #llT.pv th{border-color:#444}[data-theme="dark"] #llT.pv td:hover:not(.z){background:#3d3d3d}
 [data-theme="dark"] #llT.pv td.part,[data-theme="dark"] #llT.pv td.part:hover{background:#4a4020}[data-theme="dark"] #llT.pv td.on,[data-theme="dark"] #llT.pv td.on:hover{background:#5a2a2a}
@@ -2304,7 +2304,7 @@ PL.lv="p";PL.pr="pod";PL.pc="type";PL.pvv="van";PL.shown=[];
 try{var llSv=JSON.parse(localStorage.getItem("ascLlPv")||"null");if(llSv){if(llSv.v==="l"||llSv.v==="p")PL.lv=llSv.v;if(LLFM[llSv.r])PL.pr=llSv.r;if(LLFM[llSv.c]&&llSv.c!==PL.pr)PL.pc=llSv.c;if(/^(van|teu|kg)$/.test(llSv.val))PL.pvv=llSv.val}}catch(_){}
 function llSave(){try{localStorage.setItem("ascLlPv",JSON.stringify({v:PL.lv,r:PL.pr,c:PL.pc,val:PL.pvv}))}catch(_){}}
 function llPick(r,c){var NUL="\u0002",fr=LLFM[PL.pr],fc=LLFM[PL.pc];   // 피벗 칸(행 r · 열 c)에 든 로드리스트 줄들. NUL = 전부, \u0003 = 쉬프팅 열
-  return (PL.shown||[]).filter(function(e){return (r===NUL||String(fr[2](e.b))===r)&&(c===NUL||(c==="\u0003"?!!e.sft:String(fc[2](e.b))===c))})}
+  return (PL.shown||[]).filter(function(e){return (r===NUL||String(fr[2](e.b))===r)&&(c==="\u0003"?!!e.sft:!e.sft&&(c===NUL||String(fc[2](e.b))===c))})}   // 쉬프팅으로 내린 것은 쉬프팅 열에서만 잡힘
 function llCell(t,ctrl){   // 칸을 누름: 그 묶음만 고름(같은 칸을 다시 누르면 해제). Ctrl = 다른 칸을 더하거나 빼기
   var ids=llPick(t.dataset.pr,t.dataset.pc).map(function(e){return e.id});if(!ids.length)return;
   var allIn=ids.every(function(i){return PL.lsel.indexOf(i)>=0});
@@ -2316,22 +2316,25 @@ function llList(L){
     (L.length?L.map(function(e){var b=e.b;return '<tr data-l="'+e.id+'"'+(PL.lsel.indexOf(e.id)>=0?' class="on"':'')+'><td>'+(e.chg?'<span class="lln" title="CBF 가 바뀌어서 새로 생긴 것">N</span>':'')+(e.sft?'<span class="lls" title="쉬프팅으로 빼낸 컨테이너 — 다시 실어도 쉬프팅 표시(S)가 남아요">S</span>':'')+esc(b.cntr||"(번호 없음)")+'</td><td>'+esc(b.pol)+'</td><td>'+esc(b.pod)+'</td><td>'+esc(b.type)+'</td><td class="n">'+ton(b.kg)+'</td><td>'+(e.from?p6d(e.from):"")+'</td></tr>'}).join("")
       :'<tr><td colspan="6" class="msgbox">비어 있어요. Bay Plan 에서 컨테이너를 오른쪽 버튼으로 누르거나 끌면 여기로 내려오고, ＋ 추가로 새로 만들 수도 있어요.</td></tr>')+"</tbody>"}
 function llPivot(L){
+  // 쉬프팅으로 내린 컨테이너는 칸 · 합계에 넣지 않음 — 합계는 실을 화물만(부킹 · CBF 수량과 바로 견줄 수 있게). 쉬프팅은 합계 뒤의 따로 떨어진 열에만.
+  // (cCASP 는 쉬프팅을 피벗 합계의 TEU · 톤에 같이 넣어서 헷갈린다는 사용자 지적)
   if(!L.length)return '<tbody><tr><td class="msgbox">비어 있어요. Bay Plan 에서 컨테이너를 오른쪽 버튼으로 누르거나 끌면 여기로 내려오고, ＋ 추가로 새로 만들 수도 있어요.</td></tr></tbody>';
-  var NUL="\u0002",SFC="\u0003",fr=LLFM[PL.pr],fc=LLFM[PL.pc],R={},C={},M={},anyS=L.some(function(e){return e.sft});
-  L.forEach(function(e){var r=String(fr[2](e.b)),c=String(fc[2](e.b));R[r]=1;C[c]=1;(M[r+"\u0001"+c]=M[r+"\u0001"+c]||[]).push(e)});
+  var NUL="\u0002",SFC="\u0003",fr=LLFM[PL.pr],fc=LLFM[PL.pc],R={},C={},M={},N=L.filter(function(e){return !e.sft}),SF=L.filter(function(e){return e.sft}),anyS=SF.length>0;
+  L.forEach(function(e){R[String(fr[2](e.b))]=1});
+  N.forEach(function(e){var r=String(fr[2](e.b)),c=String(fc[2](e.b));C[c]=1;(M[r+"\u0001"+c]=M[r+"\u0001"+c]||[]).push(e)});
   var srt=function(f){return function(a,b){return f[3]?a-b:(a<b?-1:a>b?1:0)}},rs=Object.keys(R).sort(srt(fr)),cs=Object.keys(C).sort(srt(fc));
   function val(es){var kg=0,teu=0;es.forEach(function(e){kg+=e.b.kg;teu+=e.b.size===20?1:2});
     return PL.pvv==="van"?es.length.toLocaleString():PL.pvv==="teu"?teu.toLocaleString():(kg/1000).toLocaleString("en-US",{maximumFractionDigits:1})}
-  function cell(r,c,es,cls,cnt){es=es||[];var n=es.length,s=es.filter(function(e){return PL.lsel.indexOf(e.id)>=0}).length,nw=es.some(function(e){return e.chg});
-    return '<td class="'+(n?'':'z ')+(s?(s===n?'on ':'part '):'')+(cls||'')+'" data-pr="'+esc(r)+'" data-pc="'+esc(c)+'"'+(n?' title="'+n+' VAN'+(s?' · 고른 것 '+s:'')+' — 누르면 골라져요 (Ctrl = 여러 칸)"':'')+'>'+(n?(cnt?n:val(es))+(nw?'<sup class="llnew" title="CBF 가 바뀌어서 새로 생긴 것이 들어 있어요">N</sup>':''):"·")+'</td>'}
-  function all(p){return L.filter(p)}
+  function cell(r,c,es,cls){es=es||[];var n=es.length,s=es.filter(function(e){return PL.lsel.indexOf(e.id)>=0}).length,nw=es.some(function(e){return e.chg});
+    return '<td class="'+(n?'':'z ')+(s?(s===n?'on ':'part '):'')+(cls||'')+'" data-pr="'+esc(r)+'" data-pc="'+esc(c)+'"'+(n?' title="'+n+' VAN'+(s?' · 고른 것 '+s:'')+' — 누르면 골라져요 (Ctrl = 여러 칸)"':'')+'>'+(n?val(es)+(nw?'<sup class="llnew" title="CBF 가 바뀌어서 새로 생긴 것이 들어 있어요">N</sup>':''):"·")+'</td>'}
   function rowIs(r){return function(e){return String(fr[2](e.b))===r}}
   return '<thead><tr><th class="rh">'+fr[1]+' \\ '+fc[1]+'</th>'+cs.map(function(c){return '<th class="n" data-pr="'+NUL+'" data-pc="'+esc(c)+'" title="누르면 이 열 전체가 골라져요">'+esc(c||"(없음)")+'</th>'}).join("")+
-      (anyS?'<th class="n sfc" data-pr="'+NUL+'" data-pc="'+SFC+'" title="쉬프팅으로 빼낸 컨테이너 수. 누르면 그 컨테이너들이 골라져요">쉬프팅</th>':'')+'<th class="n tot" data-pr="'+NUL+'" data-pc="'+NUL+'" title="누르면 전부 골라져요">합계</th></tr></thead><tbody>'+
-    rs.map(function(r){return '<tr><th class="rh" data-pr="'+esc(r)+'" data-pc="'+NUL+'" title="누르면 이 행 전체가 골라져요">'+esc(r||"(없음)")+'</th>'+cs.map(function(c){return cell(r,c,M[r+"\u0001"+c])}).join("")+
-      (anyS?cell(r,SFC,all(function(e){return rowIs(r)(e)&&e.sft}),"sfc",1):'')+cell(r,NUL,all(rowIs(r)),"tot")+'</tr>'}).join("")+
-    '<tr class="tot"><th class="rh" data-pr="'+NUL+'" data-pc="'+NUL+'">합계</th>'+cs.map(function(c){return cell(NUL,c,all(function(e){return String(fc[2](e.b))===c}),"tot")}).join("")+
-      (anyS?cell(NUL,SFC,all(function(e){return e.sft}),"sfc",1):'')+cell(NUL,NUL,L,"tot")+'</tr></tbody>'}
+      '<th class="n tot" data-pr="'+NUL+'" data-pc="'+NUL+'" title="실을 화물만 센 합계 (쉬프팅은 빼고). 누르면 전부 골라져요">합계</th>'+
+      (anyS?'<th class="n sfc" data-pr="'+NUL+'" data-pc="'+SFC+'" title="쉬프팅으로 내린 컨테이너 — 합계에는 들어 있지 않아요. 누르면 그 컨테이너들이 골라져요">쉬프팅</th>':'')+'</tr></thead><tbody>'+
+    rs.map(function(r){return '<tr><th class="rh" data-pr="'+esc(r)+'" data-pc="'+NUL+'" title="누르면 이 행 전체가 골라져요 (쉬프팅은 빼고)">'+esc(r||"(없음)")+'</th>'+cs.map(function(c){return cell(r,c,M[r+"\u0001"+c])}).join("")+
+      cell(r,NUL,N.filter(rowIs(r)),"tot")+(anyS?cell(r,SFC,SF.filter(rowIs(r)),"sfc"):'')+'</tr>'}).join("")+
+    '<tr class="tot"><th class="rh" data-pr="'+NUL+'" data-pc="'+NUL+'">합계</th>'+cs.map(function(c){return cell(NUL,c,N.filter(function(e){return String(fc[2](e.b))===c}),"tot")}).join("")+
+      cell(NUL,NUL,N,"tot")+(anyS?cell(NUL,SFC,SF,"sfc"):'')+'</tr></tbody>'}
 function llTable(L){   // LOAD LIST 창의 표 (피벗 또는 목록)
   PL.shown=L;var pv=PL.lv!=="l",T=$("llT"),sc=T.parentNode,st0=sc.scrollTop,sl0=sc.scrollLeft;
   $("llBox").classList.toggle("pv",pv);T.className=pv?"et pv":"";$("llPv").hidden=!pv;
@@ -2360,7 +2363,7 @@ function plDraw(){
   cbfDraw();var S0=cbfSt();if(S0&&!S0.d&&!S0.busy&&!S0.err&&PL.mode==="ll")cbfLoad();      // 로드리스트 모드에 들어오면 전산 CBF 를 불러와 맞춤 (그 뒤로 10분마다)
   if(PL.onlyChg)L=L.filter(function(e){return e.chg});
   PL.lsel=PL.lsel.filter(function(i){return L.some(function(e){return e.id===i})});
-  $("llN").textContent=L.length+" VAN"+(PL.lsel.length?" · 고른 것 "+PL.lsel.length:"");
+  var nSf=L.filter(function(e){return e.sft}).length;$("llN").textContent=(L.length-nSf)+" VAN"+(nSf?" + 쉬프팅 "+nSf:"")+(PL.lsel.length?" · 고른 것 "+PL.lsel.length:"");
   llTable(L)}
 (function(){
   document.addEventListener("click",function(e){if(!e.target.closest)return;var b=e.target.closest(".plModes [data-pm]"),m=e.target.closest(".plMir [data-mir]");
