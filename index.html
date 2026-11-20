@@ -408,7 +408,7 @@ body.planning #gp .m[data-s]{cursor:crosshair}body.planning #gp .m[data-s]:hover
 .c.sf{box-shadow:inset 0 0 0 2px #7a00c8}.c .sfm{position:absolute;top:0;left:50%;transform:translateX(-50%);font-size:8px;font-weight:700;line-height:10px;padding:0 3px;background:#7a00c8;color:#fff;border-radius:0 0 3px 3px}
 .m.sf{box-shadow:inset 0 0 0 1.5px #7a00c8}
 #llBox{position:fixed;left:max(12px,env(safe-area-inset-left,0px));bottom:12px;z-index:46;width:330px;max-width:calc(100vw - 24px);background:var(--win);border:1px solid var(--edge);border-radius:8px;box-shadow:0 10px 30px rgba(0,20,60,.45);font-size:12px;display:flex;flex-direction:column;max-height:46vh}
-#llBox[hidden]{display:none}
+#llBox[hidden]{display:none}#llBox.sft .llh,[data-theme="dark"] #llBox.sft .llh{background:#7a00c8}
 #llBox .llh{cursor:move;touch-action:none;user-select:none;-webkit-user-select:none}#llBox .llh button{cursor:pointer}
 #llBox .llh{display:flex;gap:6px;align-items:center;padding:5px 8px;background:#0b3f94;color:#fff;border-radius:7px 7px 0 0}#llBox .llh .sp{flex:1}
 #llBox .llh button,#llForm button{font:inherit;font-size:11.5px;font-weight:700;padding:1px 7px;border:1px solid var(--edge);border-radius:3px;background:#fff;color:#111;cursor:pointer}
@@ -760,7 +760,7 @@ header.win .body{background:#fff}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-20 16:07 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-20 16:12 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -885,7 +885,7 @@ header.win .body{background:#fff}
   <div class="tb">컨테이너 삭제</div>
   <div class="body"><p id="askT"></p><div class="askb"><button type="button" id="askY">삭제</button><button type="button" id="askN">취소</button></div></div></div></div>
 <div id="pkTip" hidden role="tooltip"></div>
-<div id="llBox" hidden><div class="llh" title="끌어서 창을 옮길 수 있어요 (두 번 누르면 처음 자리로)"><b>LOAD LIST</b> <span id="llN"></span><span class="sp"></span>
+<div id="llBox" hidden><div class="llh" title="끌어서 창을 옮길 수 있어요 (두 번 누르면 처음 자리로)"><b id="llTtl">LOAD LIST</b> <span id="llN"></span><span class="sp"></span>
     <button type="button" id="llBack" title="고른 것 중 쉬프팅으로 내린 컨테이너를 원래 자리에 다시 놓아요">원래 자리로</button><button type="button" id="llAll" title="전부 고르기 · 다시 누르면 전부 해제">전체</button><button type="button" id="llAdd" title="조건과 수량으로 로드리스트 만들기">＋ 추가</button></div>
   <div class="llc" id="llC" hidden><span id="cbfS"></span><label title="CBF 가 바뀌어서 새로 생긴 것만 보기"><input type="checkbox" id="llChg"> 변동분만</label></div>
   <div id="cbfP" hidden title="누르면 닫혀요"></div>
@@ -898,7 +898,7 @@ header.win .body{background:#fff}
 <div id="rc" hidden role="region" aria-label="플랜 리모컨">
   <div class="rct"><b id="rcTtl">리모컨</b><span id="rcPos"></span><span class="sp"></span><button type="button" data-rc="bay" id="rcBayB" title="커서가 있는 베이의 Bay Plan 을 열어요 (POD 같은 내용은 거기서 고쳐요)">Bay Plan</button><button type="button" id="rcX" aria-label="리모컨 닫기">×</button></div>
   <div id="rcInfo"></div><div id="rcHeld"></div><span class="plMsg"></span>
-  <div class="rcx" id="rcPalT" hidden><span class="plBrush" hidden>POL<select data-b="pol" aria-label="팔레트 POL"></select><input data-b="pol" maxlength="5" list="palPolL" aria-label="팔레트 POL 직접 입력" hidden> POD<select data-b="pod" aria-label="팔레트 POD"></select><input data-b="pod" maxlength="5" list="palPodL" aria-label="팔레트 POD 직접 입력" hidden> SzTp<select data-b="type" aria-label="팔레트 SzTp"></select> ton<input data-bt="1" maxlength="5" class="w" inputmode="decimal" aria-label="팔레트 무게 톤"> <select data-b="fe" aria-label="팔레트 F/E"><option>F</option><option>E</option></select></span></div>
+  <div class="rcx" id="rcPalT" hidden><span class="plBrush" hidden>POL<select data-b="pol" aria-label="팔레트 POL"></select><input data-b="pol" maxlength="5" list="palPolL" aria-label="팔레트 POL 직접 입력" hidden> POD<select data-b="pod" aria-label="팔레트 POD"></select><input data-b="pod" maxlength="5" list="palPodL" aria-label="팔레트 POD 직접 입력" hidden> SzTp<select data-b="type" aria-label="팔레트 SzTp"></select> <select data-b="fe" aria-label="팔레트 F/E"><option>F</option><option>E</option></select></span></div>
   <div class="rcx rcg" id="rcLlT" hidden></div>
   <div class="rcb">
     <div class="rcpad"><button type="button" class="bj" data-rc="bl" title="왼쪽 베이로">◀◀<br>베이</button><button type="button" data-rc="u" aria-label="위로">▲</button><button type="button" class="bj" data-rc="br" title="오른쪽 베이로">▶▶<br>베이</button>
@@ -2423,7 +2423,7 @@ PL.lv="p";PL.pr="pod";PL.pc="type";PL.pvv="van";PL.shown=[];
 try{var llSv=JSON.parse(localStorage.getItem("ascLlPv")||"null");if(llSv){if(llSv.v==="l"||llSv.v==="p")PL.lv=llSv.v;if(LLFM[llSv.r])PL.pr=llSv.r;if(LLFM[llSv.c]&&llSv.c!==PL.pr)PL.pc=llSv.c;if(/^(van|teu|kg)$/.test(llSv.val))PL.pvv=llSv.val}}catch(_){}
 function llSave(){try{localStorage.setItem("ascLlPv",JSON.stringify({v:PL.lv,r:PL.pr,c:PL.pc,val:PL.pvv}))}catch(_){}}
 function llPick(r,c){var NUL="\u0002",fr=LLFM[PL.pr],fc=LLFM[PL.pc];   // 피벗 칸(행 r · 열 c)에 든 로드리스트 줄들. NUL = 전부, \u0003 = 쉬프팅 열
-  return (PL.shown||[]).filter(function(e){return (r===NUL||String(fr[2](e.b))===r)&&(c==="\u0003"?!!e.sft:!e.sft&&(c===NUL||String(fc[2](e.b))===c))})}   // 쉬프팅으로 내린 것은 쉬프팅 열에서만 잡힘
+  return (PL.shown||[]).filter(function(e){return (r===NUL||String(fr[2](e.b))===r)&&(PL.mode==="sft"?(c===NUL||String(fc[2](e.b))===c):(c==="\u0003"?!!e.sft:!e.sft&&(c===NUL||String(fc[2](e.b))===c)))})}   // 쉬프팅으로 내린 것은 쉬프팅 열에서만 잡힘
 function llCell(t,ctrl){   // 칸을 누름: 그 묶음만 고름(같은 칸을 다시 누르면 해제). Ctrl = 다른 칸을 더하거나 빼기
   var ids=llPick(t.dataset.pr,t.dataset.pc).map(function(e){return e.id});if(!ids.length)return;
   var allIn=ids.every(function(i){return PL.lsel.indexOf(i)>=0});
@@ -2437,8 +2437,8 @@ function llList(L){
 function llPivot(L){
   // 쉬프팅으로 내린 컨테이너는 칸 · 합계에 넣지 않음 — 합계는 실을 화물만(부킹 · CBF 수량과 바로 견줄 수 있게). 쉬프팅은 합계 뒤의 따로 떨어진 열에만.
   // (cCASP 는 쉬프팅을 피벗 합계의 TEU · 톤에 같이 넣어서 헷갈린다는 사용자 지적)
-  if(!L.length)return '<tbody><tr><td class="msgbox">비어 있어요. Bay Plan 에서 컨테이너를 오른쪽 버튼으로 누르거나 끌면 여기로 내려오고, ＋ 추가로 새로 만들 수도 있어요.</td></tr></tbody>';
-  var NUL="\u0002",SFC="\u0003",fr=LLFM[PL.pr],fc=LLFM[PL.pc],R={},C={},M={},N=L.filter(function(e){return !e.sft}),SF=L.filter(function(e){return e.sft}),anyS=SF.length>0;
+  if(!L.length)return '<tbody><tr><td class="msgbox">'+(PL.mode==="sft"?"쉬프팅으로 뺀 컨테이너가 없어요. 옮길 컨테이너를 누르거나 끌면 여기로 빠지고, 빈 칸을 누르면 다시 실려요.":"비어 있어요. Bay Plan 에서 컨테이너를 오른쪽 버튼으로 누르거나 끌면 여기로 내려오고, ＋ 추가로 새로 만들 수도 있어요.")+'</td></tr></tbody>';
+  var NUL="\u0002",SFC="\u0003",fr=LLFM[PL.pr],fc=LLFM[PL.pc],R={},C={},M={},sfm=PL.mode==="sft",N=sfm?L:L.filter(function(e){return !e.sft}),SF=sfm?[]:L.filter(function(e){return e.sft}),anyS=SF.length>0;
   L.forEach(function(e){R[String(fr[2](e.b))]=1});
   N.forEach(function(e){var r=String(fr[2](e.b)),c=String(fc[2](e.b));C[c]=1;(M[r+"\u0001"+c]=M[r+"\u0001"+c]||[]).push(e)});
   var srt=function(f){return function(a,b){return f[3]?a-b:(a<b?-1:a>b?1:0)}},rs=Object.keys(R).sort(srt(fr)),cs=Object.keys(C).sort(srt(fc));
@@ -2460,7 +2460,8 @@ function llTable(L){   // LOAD LIST 창의 표 (피벗 또는 목록)
   [].forEach.call($("llP").querySelectorAll("[data-lv]"),function(b){b.setAttribute("aria-pressed",b.dataset.lv===PL.lv)});
   [["llR",PL.pr],["llK",PL.pc],["llV",PL.pvv]].forEach(function(x){var s=$(x[0]);if(s.value!==x[1])s.value=x[1]});
   T.innerHTML=pv?llPivot(L):llList(L);sc.scrollTop=st0;sc.scrollLeft=sl0;
-  $("llF").textContent=pv?"칸을 누르면 그 묶음이 골라져요 (Ctrl = 여러 칸 · 행 / 열 제목 = 그 줄 전체). 이어서 Bay Plan 의 빈 칸을 누르거나 끌면 무거운 것부터 실려요. 오른쪽 버튼 = 다시 로드리스트로."
+  $("llF").textContent=PL.mode==="sft"?"쉬프팅으로 뺀 컨테이너예요. "+(pv?"칸":"줄")+"을 눌러 고르고 빈 칸을 누르거나 끌면 다시 실려요(S 표시가 남아요). 오른쪽 버튼 = 쉬프팅 취소(원래 자리로)."
+    :pv?"칸을 누르면 그 묶음이 골라져요 (Ctrl = 여러 칸 · 행 / 열 제목 = 그 줄 전체). 이어서 Bay Plan 의 빈 칸을 누르거나 끌면 무거운 것부터 실려요. 오른쪽 버튼 = 다시 로드리스트로."
     :"줄을 눌러 고르고(Ctrl·Shift 여러 개, 더블클릭 = 그 줄부터 끝까지) Bay Plan 의 빈 칸을 누르거나 끌면 실려요. 오른쪽 버튼 = 다시 로드리스트로.";
   if(PL.fit)PL.fit()}
 function plDraw(){
@@ -2480,9 +2481,12 @@ function plDraw(){
   var L=(st.ll||[]).slice().sort(function(a,b){return b.b.kg-a.b.kg}),show=(PL.mode==="ll"||PL.mode==="sft")&&!!st.plan;
   $("llBox").hidden=!show;if(!show)return;
   cbfDraw();var S0=cbfSt();if(S0&&!S0.d&&!S0.busy&&!S0.err&&PL.mode==="ll")cbfLoad();      // 로드리스트 모드에 들어오면 전산 CBF 를 불러와 맞춤 (그 뒤로 10분마다)
-  if(PL.onlyChg)L=L.filter(function(e){return e.chg});
+  // Shift 모드의 창은 쉬프팅 전용(사용자: "SHIFT MODE 를 누르면 일반 로드리스트가 뜬다"): 제목 SHIFTING, 쉬프팅으로 뺀 것만, CBF 줄 · 추가 칸 없음
+  var sfm=PL.mode==="sft";$("llBox").classList.toggle("sft",sfm);$("llTtl").textContent=sfm?"SHIFTING":"LOAD LIST";$("llAdd").hidden=sfm;
+  if(sfm){$("llC").hidden=true;$("llForm").hidden=true;L=L.filter(function(e){return e.sft})}
+  else if(PL.onlyChg)L=L.filter(function(e){return e.chg});
   PL.lsel=PL.lsel.filter(function(i){return L.some(function(e){return e.id===i})});
-  var nSf=L.filter(function(e){return e.sft}).length;$("llN").textContent=(L.length-nSf)+" VAN"+(nSf?" + 쉬프팅 "+nSf:"")+(PL.lsel.length?" · 고른 것 "+PL.lsel.length:"");
+  var nSf=L.filter(function(e){return e.sft}).length;$("llN").textContent=(sfm?L.length+" VAN":(L.length-nSf)+" VAN"+(nSf?" + 쉬프팅 "+nSf:""))+(PL.lsel.length?" · 고른 것 "+PL.lsel.length:"");
   llTable(L)}
 (function(){
   document.addEventListener("click",function(e){if(!e.target.closest)return;var b=e.target.closest(".plModes [data-pm]"),m=e.target.closest(".plMir [data-mir]");
@@ -2497,7 +2501,7 @@ function plDraw(){
     pushUndo();var E=[];for(var k=0;k<n;k++)E.push({id:++PL.seq,b:mkObj(f),raw:null,li:null,from:null});
     st.ll=(st.ll||[]).concat(E);PL.lsel=E.map(function(e){return e.id});plDraw();plSay("로드리스트에 "+n+" VAN 을 만들었어요 ("+f.pol+" "+f.pod+" "+f.type+"). 고른 상태예요.")};
   $("llBack").onclick=function(){plBack()};
-  $("llAll").onclick=function(){PL.lsel=PL.lsel.length?[]:(st.ll||[]).map(function(e){return e.id});plDraw()};
+  $("llAll").onclick=function(){PL.lsel=PL.lsel.length?[]:(PL.shown&&PL.shown.length?PL.shown:(st.ll||[])).map(function(e){return e.id});plDraw()};   // 지금 창에 보이는 것만 (Shift 모드에서는 쉬프팅한 것만)
   $("llR").innerHTML=$("llK").innerHTML=LLF.map(function(f){return '<option value="'+f[0]+'">'+f[1]+'</option>'}).join("");
   $("llP").addEventListener("click",function(e){var b=e.target.closest("[data-lv]");if(b){PL.lv=b.dataset.lv;llSave();plDraw();return}
     if(e.target.id==="llX"){var t=PL.pr;PL.pr=PL.pc;PL.pc=t;llSave();plDraw()}});
