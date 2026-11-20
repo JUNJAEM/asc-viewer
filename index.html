@@ -251,6 +251,17 @@ body.banding{user-select:none;-webkit-user-select:none;cursor:crosshair}
 #expMenu button:hover,#expMenu button:focus-visible{background:#dbe7fb}
 #expMenu small{font-weight:400;color:var(--fg2)}
 body.empty .expw{display:none}
+.mn{position:relative;display:inline-block}.mn.none{display:none}
+.mnb::after{content:" \25BE";font-size:.85em;opacity:.8}.mnb[aria-expanded="true"]{box-shadow:inset 0 0 0 2px var(--num)}
+.mnp{position:absolute;left:0;top:calc(100% + 4px);z-index:47;min-width:210px;max-width:calc(100vw - 16px);padding:4px;background:var(--win);border:1px solid #5d7fae;border-radius:6px;box-shadow:0 10px 28px rgba(0,20,60,.35);display:flex;flex-direction:column;gap:1px}
+.mnp[hidden]{display:none}.mnp.r{left:auto;right:0}.mnp small{font-weight:400;color:var(--fg2)}
+.mn:not(.one) .mnp>button{display:flex;justify-content:space-between;align-items:baseline;gap:14px;width:100%;margin:0;font:inherit;font-size:12.5px;font-weight:700;text-align:left;white-space:nowrap;padding:8px 10px;border:0!important;background:none!important;color:var(--fg)!important;box-shadow:none!important;text-shadow:none!important;border-radius:4px;cursor:pointer}
+.mn:not(.one) .mnp>button[hidden]{display:none}
+.mn:not(.one) .mnp>button:hover,.mn:not(.one) .mnp>button:focus-visible{background:#dbe7fb!important}
+.mn:not(.one) .mnp>#edBtn[aria-pressed="true"]::after{content:"\CF1C\C9D0  \2713";font-weight:400;color:var(--num)}
+.mn.one>.mnb{display:none}.mn.one>.mnp,.mn.one>.mnp[hidden]{display:contents!important}
+body.empty .exi,body.empty #outBtn{display:none!important}body.empty .mn[data-mn="mail"]{order:-1}
+[data-theme="dark"] .mnp{background:#2f2f2f;border-color:#666}[data-theme="dark"] .mn:not(.one) .mnp>button:hover,[data-theme="dark"] .mn:not(.one) .mnp>button:focus-visible{background:#3d3d3d!important}
 /* 도움말 창 (F1) */
 #help{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:rgba(20,45,85,.28);padding:16px}
 .hwin{width:min(460px,100%);max-height:100%;overflow:auto;box-shadow:0 16px 48px rgba(0,20,60,.5)}
@@ -706,27 +717,28 @@ header.win .body{background:#fff}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-20 13:26 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-20 13:33 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
-      <button class="btn" id="mailBtn" type="button" hidden title="팀 메일로 온 플랜(ASC · EDI)을 아웃룩에서 바로 불러와요 (Alt + M)">메일함</button>
-      <button class="btn" id="findBtn" type="button" title="컨테이너 번호 찾기 (Alt + F)">SEARCH CNTR</button>
+      <span class="mn" data-mn="plan"><button class="btn mnb" type="button" aria-haspopup="true" aria-expanded="false" title="플랜 파일 열기 · 내보내기">플랜 파일</button><div class="mnp" hidden role="menu">
+        <button class="btn" id="openBtn" type="button" title="ASC · EDI 플랜 파일을 열어요 (파일을 화면에 끌어다 놓아도 돼요)">IMPORT PLAN</button>
+        <button class="btn exi" type="button" data-x="asc" title="지금 플랜(고친 내용 포함)을 ASC 파일로 내보내요">EXPORT · ASC <small>CASP $609</small></button>
+        <button class="btn exi" type="button" data-x="edi22" title="지금 플랜(고친 내용 포함)을 EDI 파일로 내보내요">EXPORT · EDI <small>BAPLIE 2.2</small></button>
+        <button class="btn exi" type="button" data-x="edi15" title="지금 플랜(고친 내용 포함)을 EDI 파일로 내보내요">EXPORT · EDI <small>BAPLIE 1.5</small></button></div></span>
+      <button class="btn" id="saveBtn" type="button" hidden>ASC 저장</button>
+      <span class="mn" data-mn="mail"><button class="btn mnb" type="button" aria-haspopup="true" aria-expanded="false" title="메일함에서 플랜 불러오기 · OUTBOUND 메일 만들기">메일</button><div class="mnp" hidden role="menu">
+        <button class="btn" id="mailBtn" type="button" hidden title="팀 메일로 온 플랜(ASC · EDI)을 아웃룩에서 바로 불러와요 (Alt + M)">메일함</button>
+        <button class="btn" id="outBtn" type="button" hidden title="지금 플랜(고친 내용 포함)을 붙인 OUTBOUND 메일을 만들어요 — 받는 사람 · 본문을 그 자리에서 고치고, 아웃룩에서 열거나 확인 후 바로 보낼 수 있어요">OUTBOUND 메일</button></div></span>
+      <span class="mn" data-mn="tool"><button class="btn mnb" type="button" aria-haspopup="true" aria-expanded="false" title="컨테이너 찾기 · 목록과 집계표">도구</button><div class="mnp" hidden role="menu">
+        <button class="btn" id="findBtn" type="button" title="컨테이너 번호 찾기 (Alt + F)">SEARCH CNTR</button>
+        <button class="btn" id="edBtn" type="button" aria-pressed="false" title="컨테이너 목록(Editor)과 집계표(Pivot) 창을 켜고 꺼요 (Alt + E)">EDITOR / PIVOT</button></div></span>
       <span class="pltop" id="plTop"><span class="seg plModes"><button type="button" data-pm="v" title="보기만 (플래닝 끔)">보기</button><button type="button" data-pm="ll" title="Planning by Load List (Alt + S)">로드리스트</button><button type="button" data-pm="pal" title="Planning by Palette (Alt + Q)">팔레트</button><button type="button" data-pm="sft" title="Shift Mode (Alt + W) — 컨테이너를 눌러 빼낸 뒤 다른 자리에 다시 싣기">Shift</button></span>
     <span class="seg plMir"><button type="button" data-mir="S" title="Single — 누른 칸에만 (Alt + Z)">S</button><button type="button" data-mir="2FA" title="Mirror for Fore and Aft — 같은 해치의 앞·뒤 20' 베이에 같이 (Alt + C)">2F/A</button></span></span>
-      <button class="btn" id="edBtn" type="button" aria-pressed="false" title="컨테이너 목록(Editor)과 집계표(Pivot) 창을 켜고 꺼요 (Alt + E)">EDITOR / PIVOT</button>
-      <button class="btn" id="helpBtn" type="button" title="단축키 모음 (F1)">도움말</button>
-      <button class="btn" id="setBtn" type="button" title="화면 밝게 · 어둡게 등">설정</button>
-      <button class="btn" id="saveBtn" type="button" hidden>ASC 저장</button>
-      <button class="btn" id="instBtn" type="button" hidden title="이 기기에 앱으로 설치해요 (홈 화면에 아이콘이 생겨요)">앱 설치</button>
-      <button class="btn" id="openBtn" type="button" title="ASC · EDI 플랜 파일을 열어요 (파일을 화면에 끌어다 놓아도 돼요)">IMPORT PLAN</button>
-      <span class="expw"><button class="btn" id="expBtn" type="button" aria-haspopup="true" aria-expanded="false" title="지금 플랜(고친 내용 포함)을 ASC 또는 EDI 파일로 내보내요">EXPORT PLAN</button>
-        <div id="expMenu" hidden role="menu">
-          <button type="button" role="menuitem" data-x="asc">ASC <small>CASP $609</small></button>
-          <button type="button" role="menuitem" data-x="edi22">EDI <small>BAPLIE 2.2</small></button>
-          <button type="button" role="menuitem" data-x="edi15">EDI <small>BAPLIE 1.5</small></button>
-        </div></span>
-      <button class="btn" id="outBtn" type="button" hidden title="지금 플랜(고친 내용 포함)을 붙인 OUTBOUND 메일을 만들어요 — 받는 사람 · 본문을 그 자리에서 고치고, 아웃룩에서 열거나 확인 후 바로 보낼 수 있어요">OUTBOUND 메일</button>
+      <span class="mn" data-mn="etc"><button class="btn mnb" type="button" aria-haspopup="true" aria-expanded="false" title="단축키 모음 · 화면 설정">도움말 · 설정</button><div class="mnp" hidden role="menu">
+        <button class="btn" id="helpBtn" type="button" title="단축키 모음 (F1)">도움말</button>
+        <button class="btn" id="setBtn" type="button" title="화면 밝게 · 어둡게 등">설정</button>
+        <button class="btn" id="instBtn" type="button" hidden title="이 기기에 앱으로 설치해요 (홈 화면에 아이콘이 생겨요)">앱 설치</button></div></span>
       <input type="file" id="file" accept="application/octet-stream,text/plain,.asc,.edi" hidden>
     </div>
   </header>
@@ -1727,10 +1739,23 @@ $("pkBtn").addEventListener("mouseleave",function(){$("pkTip").hidden=true});
 $("pkBtn").addEventListener("click",function(){ES.fade=!ES.fade;render()});
 $("askY").onclick=function(){askEnd(true)};$("askN").onclick=function(){askEnd(false)};
 $("ask").addEventListener("click",function(e){if(e.target.id==="ask")askEnd(false)});
-function expMenu(on){var m=$("expMenu");if(on==null)on=m.hidden;m.hidden=!on;$("expBtn").setAttribute("aria-expanded",on)}
-$("expBtn").onclick=function(e){e.stopPropagation();expMenu()};
-$("expMenu").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;expMenu(false);exportPlan(b.dataset.x)});
-document.addEventListener("click",function(e){if(!$("expMenu").hidden&&!e.target.closest(".expw"))expMenu(false)});
+// ---------- 위쪽 메뉴 묶음 (플랜 파일 · 메일 · 도구 · 도움말/설정) ----------
+// 비슷한 기능의 버튼을 한 묶음(드롭다운)으로. 버튼 자체(id · 하는 일)는 그대로이고 자리만 묶음 안으로 옮김. 보기/로드리스트/팔레트/Shift 와 S · 2F/A 는 묶지 않음(사용자 지시).
+// 묶음 안에 보이는 버튼이 하나뿐이면(예: 플랜을 열기 전의 IMPORT PLAN) 메뉴 없이 그 버튼만 그대로 보이고, 하나도 없으면 묶음이 숨음.
+var MN=[].slice.call(document.querySelectorAll("header.win .mn"));
+function mnShut(){var was=false;MN.forEach(function(m){var p=m.querySelector(".mnp");if(!p.hidden){if(!m.classList.contains("one"))was=true;p.hidden=true}
+  var b=m.querySelector(".mnb");if(b.getAttribute("aria-expanded")!=="false")b.setAttribute("aria-expanded","false")});return was}   // 열려 있던 메뉴가 있었으면 true
+function mnSync(){MN.forEach(function(m){var p=m.querySelector(".mnp"),n=[].filter.call(p.children,function(b){return b.tagName==="BUTTON"&&!b.hidden&&getComputedStyle(b).display!=="none"}).length;
+  m.classList.toggle("one",n===1);m.classList.toggle("none",n===0);if(n<2&&!p.hidden)p.hidden=true})}
+(function(){
+  MN.forEach(function(m){var b=m.querySelector(".mnb"),p=m.querySelector(".mnp");
+    b.onclick=function(e){e.stopPropagation();var on=p.hidden;mnShut();if(on){p.hidden=false;p.classList.remove("r");if(p.getBoundingClientRect().right>window.innerWidth-4)p.classList.add("r");b.setAttribute("aria-expanded","true")}};
+    p.addEventListener("click",function(e){var x=e.target.closest("button");if(!x)return;if(!m.classList.contains("one"))mnShut();if(x.dataset.x)exportPlan(x.dataset.x)})});
+  document.addEventListener("click",function(e){if(!e.target.closest||!e.target.closest(".mn"))mnShut()});
+  var raf=0,mo=new MutationObserver(function(){if(!raf)raf=requestAnimationFrame(function(){raf=0;mnSync()})});      // 버튼이 보였다 숨었다 하면(플랜을 열 때 등) 묶음 모양을 다시 맞춤
+  mo.observe(document.querySelector("header.win .body"),{attributes:true,subtree:true,attributeFilter:["hidden","class","style"]});mo.observe(document.body,{attributes:true,attributeFilter:["class"]});
+  mnSync();window.addEventListener("load",mnSync);
+})();
 document.addEventListener("change",function(e){var t=e.target;if(!t.classList||!t.classList.contains("ei"))return;
   var i=st.sel,er=editBox(i,t.dataset.k,t.value);
   if(er){$("eMsg").innerHTML='<div class="er">'+esc(er)+'</div>';t.focus();return}
@@ -2979,7 +3004,6 @@ function outGo(send){
     if(b&&b.id==="mlWide"){ML.days=30;$("mlD").value="30";mlLoad();return}
     if(b&&b.dataset.mid)mlPick(b.dataset.mid,b.dataset.mi,b)});
   $("mailV").addEventListener("click",function(e){if(e.target.id==="mailV")mlOpen(false)});
-  document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!$("mailV").hidden&&$("ask").hidden){e.stopPropagation();mlOpen(false)}},true);
   if(!grOn())setInterval(function(){mlGet("/ping").catch(function(){})},5*60000);   // 뷰어가 떠 있는 동안 도우미가 꺼지지 않게
 })();
 // ---------- 설정: 화면 모드(밝게 · 어둡게) ----------
@@ -2994,7 +3018,6 @@ function setTheme(t,keep){t=t==="dark"?"dark":"light";if(t==="dark")document.doc
   $("setBtn").onclick=function(){box()};$("setX").onclick=function(){box(false)};
   $("setV").addEventListener("click",function(e){if(e.target.id==="setV")box(false)});
   $("thSeg").addEventListener("click",function(e){var b=e.target.closest("[data-th]");if(b){setTheme(b.dataset.th,true);if(st.plan)render()}});
-  document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!$("setV").hidden){e.stopPropagation();box(false)}},true);
 })();
 // ---------- VESSEL VIEW (예전 이름 3D VIEW — 코드 안 이름은 v3 그대로) ----------
 // 선박 모양은 도면이 아니라 cCASP 구조에서 만든 것: 전장·폭·깊이, 베이·로우·티어 칸, 거주구가 어느 베이 뒤에 있는지(ships.js 의 g).
@@ -3716,12 +3739,23 @@ document.addEventListener("keydown",function(e){
   for(var ki=0;ki<KEYS.length;ki++){var K=KEYS[ki];   // 단축키 표에서 찾아 실행 (한글 입력 상태에서도 되게 자판 위치 e.code 로 봄)
     if(K.code&&(K.code===e.code||K.code2===e.code)&&!!K.alt===e.altKey&&!!K.ctrl===(e.ctrlKey||e.metaKey)&&!!K.shift===e.shiftKey){
       e.preventDefault();if(K.plan&&!st.plan)return;K.fn();return}}
-  if(e.key==="Escape"&&!$("expMenu").hidden){e.stopPropagation();expMenu(false);return}
-  if(e.key==="Escape"&&!$("help").hidden){e.stopPropagation();helpBox(false)}
-  else if(e.key==="Escape"&&!$("help").hidden){e.stopPropagation();helpBox(false)}
-  else if(e.key==="Escape"&&!$("fbox").hidden&&document.activeElement===$("q")){e.stopPropagation();findBox(false)}
+  if(e.key==="Escape"&&escClose(e)){e.preventDefault();e.stopPropagation()}
 },true);
 document.addEventListener("keyup",function(e){if(e.key==="Alt")e.preventDefault()},true);
+function escClose(e){   // Esc 한 번에 떠 있는 창 하나를 닫음 — 맨 위에 떠 있는 것부터. 닫은 것이 있으면 true (버튼으로 연 창은 어디를 눌러 둔 상태든 Esc 로 닫히게: 사용자 지시)
+  var t=e.target,typing=!!(t&&t.tagName&&(/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)||t.isContentEditable));
+  if(mnShut())return true;                                       // 열린 드롭다운 메뉴
+  if(!$("setV").hidden){$("setV").hidden=true;return true}       // 설정
+  if(!$("help").hidden){helpBox(false);return true}              // 도움말
+  if(!$("outV").hidden){outOpen(false);return true}              // OUTBOUND 메일
+  if(!$("cbfV").hidden){cbfOpen(false);return true}              // CBF 점검
+  if(!$("mailV").hidden){mlOpen(false);return true}              // 메일함
+  if(typing){if(t.closest("#fbox")){findBox(false);return true}return false}   // 글자를 넣는 중이면 그 칸이 든 창만 닫음(다른 창은 그대로)
+  if(st.open){closeBay();return true}                            // Bay Plan
+  if(!$("fbox").hidden){findBox(false);return true}              // SEARCH CNTR
+  if(!$("v3").hidden){v3Open(false);return true}                 // VESSEL VIEW
+  if(ES.on&&st.plan){$("edBtn").click();return true}             // EDITOR / PIVOT
+  return false}
 function helpBox(on){var h=$("help");if(on==null)on=h.hidden;h.hidden=!on}
 $("helpBtn").onclick=function(){helpBox()};$("hX").onclick=function(){helpBox(false)};
 $("help").addEventListener("click",function(e){if(e.target.id==="help")helpBox(false)});
