@@ -2777,9 +2777,10 @@ function cbfLine(S){   // LOAD LIST 창의 한 줄 요약. 차이 · 변동 표�
   var tip=function(key,txt,html){return '<span class="cbtip" data-k="'+key+'" title="'+esc(txt)+'">'+html+'</span>'},nm=function(key){var p=key.split("|");return p[0]+" "+(CBNAME[p[1]]||p[1])+" "+p[2]};
   for(k in h.plan)pl+=h.plan[k];for(k in h.ll)ll+=h.ll[k];
   Object.keys(m).concat(Object.keys(h.plan),Object.keys(h.ll)).forEach(function(x){ks[x]=1});
-  Object.keys(ks).sort().forEach(function(x){var a=m[x]?m[x].n:0,p=h.plan[x]||0,l=h.ll[x]||0;if(a!==p+l)bad.push(needTxt(x,a-p-l))});
-  t=(S.d.src?"B/K 기준 ":"CBF 조회값 ")+esc(S.d.at.slice(11))+" · <b>"+tot+"</b> VAN = 플랜 "+pl+" + 로드리스트 "+ll+
-    (!bad.length?' <b style="color:#0a7a2f">✓</b>':' '+tip("cnt",bad.slice(0,14).join("\n")+(bad.length>14?"\n… 외 "+(bad.length-14)+"군데":""),'<b style="color:#c50f1f">✗ '+(pl+ll===tot?"칸별 차이 "+bad.length:pl+ll>tot?"플랜 초과 "+(pl+ll-tot):"모자람 "+(tot-pl-ll))+'</b>'));
+  Object.keys(ks).sort().forEach(function(x){var a=m[x]?m[x].n:0,p=h.plan[x]||0;if(a!==p)bad.push(needTxt(x,a-p))});   // 플랜에 그려진 수만 셈 — 아직 LOAD LIST 에 있는 것은 안 실은 것(사용자 지시). 마감 전에도 같은 기준
+  var bkN=S.d.src?"부킹":"CBF";
+  t=(S.d.src?"B/K 기준 ":"CBF 조회값 ")+esc(S.d.at.slice(11))+" · "+bkN+" <b>"+tot+"</b> VAN · 플랜 "+pl+" · 로드리스트 "+ll+" · "+
+    (!bad.length?'<b style="color:#0a7a2f">✓ '+bkN+'과 일치</b>':tip("cnt",bad.slice(0,14).join("\n")+(bad.length>14?"\n… 외 "+(bad.length-14)+"군데":""),'<b style="color:#c50f1f">✗ '+bkN+'과 차이 '+bad.length+'건</b>'));
   if(S.hist.length)t+=' · '+tip("hist","불러온 뒤로 바뀐 수량\n"+S.hist.slice(0,12).map(function(x){var dd=x.to-x.from;return "· "+x.at.slice(5)+"  "+x.pod+" "+CBNAME[x.kind]+" "+x.fe+" : "+x.from+" → "+x.to+" ("+(dd>0?"+":"")+dd+")"}).join("\n")+(S.hist.length>12?"\n… 외 "+(S.hist.length-12)+"건":""),'변동 '+S.hist.length+'건');
   if(S.d.stale&&S.d.stale.length)t+=' · '+tip("stale","저장된 CBF(조회)와 실시간 부킹이 다른 곳 — 전산에서 아직 B/K Recalculation 이 안 된 변동분\n"+S.d.stale.slice(0,12).map(function(x){return "· "+x.line+" "+x.pod+" "+CBNAME[x.kind]+" "+x.fe+" : 조회 "+x.a+" → 실시간 "+x.b}).join("\n")+(S.d.stale.length>12?"\n… 외 "+(S.d.stale.length-12)+"군데":""),'조회값과 차이 '+S.d.stale.length);
   if(c.any){var ct='<b style="color:'+(R&&R.diff?"#c50f1f":"#0a7a2f")+'">마감'+(R?(R.diff?" — 로딩리스트와 차이 "+R.diff+"건":" — 로딩리스트와 일치"):"")+'</b>';t+=' · '+(R?tip("cmp",cmpTip(R),ct):ct)}
