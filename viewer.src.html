@@ -2119,16 +2119,22 @@ function plRun(G,is40,next,skip,word){   // 돌려주는 값 = 놓은 개수   /
   if(done)plDone(word+" "+done+" VAN."+(no?" 건너뛴 자리: "+no+".":"")+" Alt + 3 으로 되돌릴 수 있어요.");
   else plSay(no?"실을 수 있는 자리가 없어요 ("+no+").":"빈 칸을 누르거나 끌어 주세요.",true);
   return done}
-// 여러 개를 한 번에 놓기 — 20' 와 40' 가 섞여 있어도 됨 (끌어서 지정하면 두 크기가 같이 잡히기 마련이라, 섞였다고 막으면 아무것도 안 옮겨짐).
-// 20' 를 먼저(아래쪽), 그다음 40' 를 그 크기가 들어갈 수 있는 칸에. items 는 무거운 것부터. 돌려주는 값 {done: 놓은 것들, no: 건너뛴 자리 설명}
+// 여러 개를 한 번에 놓기 (이동 · 로드리스트에서 싣기) — cCASP 의 onPlanning / onPlanningAssignment 가 하는 그대로:
+//  · 끈 네모 안의 칸을 베이마다, 아래 단부터, 로우 00 · 01 · 02 … 순서로 봄. 컨테이너는 무거운 것부터.
+//  · 구조에 없는 칸 · 이미 실려 있는 칸은 그냥 지나감(컨테이너를 쓰지 않음).
+//  · 빈 칸이면 다음 컨테이너를 거기에 놓아 봄. 플래닝 규칙에 걸리면(밑이 비어 있음 = cCASP 의 Air container, 40' 위에 20' = Small over large — 둘 다 회사 기본값 ON)
+//    그 컨테이너는 건너뜀: 제자리에 그대로 두고(지정도 그대로) 다음 칸에는 그다음 컨테이너를 놓음. 다음 칸에서 다시 시도하지 않음.
+//  · cCASP 는 20' 와 40' 가 섞이면 아예 막지만(베이 그림이 크기별로 따로라 섞일 일이 없음), 여기는 한 그림에 두 크기가 같이 있어 섞여 잡히므로 20' 먼저, 그다음 40' 를 같은 방법으로 놓음.
+// 돌려주는 값 {done: 놓은 것들, skip: 규칙에 걸려 건너뛴 것들, no: 지나간 자리 설명}
+var PLRULE={"밑이 비어 있는 칸":1,"40' 위에 20' 는 못 실음":1};
 function plRunMix(G,items,sizeOf,place,skip){
-  var O=occMap(skip),done=[],why={},pushed=false;
+  var O=occMap(skip),done=[],miss=[],why={},pushed=false;
   [false,true].forEach(function(is40){var L=items.filter(function(x){return (sizeOf(x)===40)===is40});if(!L.length)return;var T=plTargets(G,is40),n=0;
     for(var k=0;k<T.length&&n<L.length;k++){var t=T[k],w=whyNot(is40,t.H,t.bay,t.row,t.tier,O);
-      if(w){if(!t.mir)why[w]=(why[w]||0)+1;continue}
+      if(w){why[w]=(why[w]||0)+1;if(PLRULE[w])miss.push(L[n++]);continue}
       if(!pushed){pushUndo();pushed=true}
       place(L[n],t);done.push(L[n]);O[t.bay+"_"+t.row+"_"+t.tier]={};n++}});
-  return {done:done,no:Object.keys(why).map(function(w2){return w2+" "+why[w2]+"곳"}).join(", ")}}
+  return {done:done,skip:miss,no:Object.keys(why).map(function(w2){return w2+" "+why[w2]+"곳"}).join(", ")}}
 function f604(){return !!st.lines&&(st.lines[0]||"").indexOf("$604")===0}
 function plPaint(G){
   var f=plFields(PL.brush);if(typeof f==="string")return plSay(f,true);
@@ -2139,7 +2145,7 @@ function plLoad(G){
   if(!sel.length)return plSay("LOAD LIST 에서 실을 컨테이너를 먼저 골라 주세요.",true);
   if(f604()&&sel.some(function(e){return !e.raw}))return plSay("옛 CASP($604) 파일에는 새로 만든 로드리스트를 실을 수 없어요.",true);
   var R=plRunMix(G,sel,function(e){return e.b.size},function(e,t){addBox(e.b,t,e);st.ll=st.ll.filter(function(x){return x!==e});PL.lsel=PL.lsel.filter(function(i){return i!==e.id})},null),left=sel.length-R.done.length;
-  if(R.done.length)plDone("로드리스트에서 실은 컨테이너 "+R.done.length+" VAN."+(left?" 자리가 모자라 남은 것 "+left+" VAN 은 LOAD LIST 에 고른 채로 있어요.":"")+(R.no?" 건너뛴 자리: "+R.no+".":"")+" Alt + 3 으로 되돌릴 수 있어요.");
+  if(R.done.length)plDone("로드리스트에서 실은 컨테이너 "+R.done.length+" VAN."+(left?" 못 실은 "+left+" VAN 은 LOAD LIST 에 고른 채로 있어요"+(R.skip.length?" (그중 "+R.skip.length+" VAN 은 놓으려던 칸이 규칙에 걸려 건너뜀)":"")+".":"")+(R.no?" 지나간 자리: "+R.no+".":"")+" Alt + 3 으로 되돌릴 수 있어요.");
   else plSay(R.no?"실을 수 있는 자리가 없어요 ("+R.no+").":"빈 칸을 누르거나 끌어 주세요.",true)}
 function plPicked(){var B=st.plan.boxes;return st.pick.map(function(i){return B[i]}).filter(Boolean).sort(function(a,b){return b.kg-a.kg})}
 function plMove(G,list){
@@ -2147,7 +2153,7 @@ function plMove(G,list){
   var R=plRunMix(G,mv,function(b){return b.size},function(b,t){setPos(b,t)},mv),moved=R.done,left=mv.length-moved.length;
   if(!moved.length)return plSay(R.no?"옮길 수 있는 자리가 없어요 ("+R.no+").":"빈 칸을 누르거나 끌어 주세요.",true);
   var rest=all.filter(function(b){return moved.indexOf(b)<0}).map(function(b){return st.lines?b.li:b});
-  plDone("옮긴 컨테이너 "+moved.length+" VAN ("+vanSum(moved).join(", ")+")."+(left?" 자리가 모자라 못 옮긴 "+left+" VAN 은 지정된 채로 있어요 — 빈 칸을 더 끌어 주세요.":"")+(R.no?" 건너뛴 자리: "+R.no+".":"")+" Alt + 3 으로 되돌릴 수 있어요.");
+  plDone("옮긴 컨테이너 "+moved.length+" VAN ("+vanSum(moved).join(", ")+")."+(left?" 못 옮긴 "+left+" VAN 은 지정된 채로 있어요"+(R.skip.length?" (그중 "+R.skip.length+" VAN 은 놓으려던 칸이 규칙에 걸려 건너뜀)":"")+" — 빈 칸을 다시 끌어 주세요.":"")+(R.no?" 지나간 자리: "+R.no+".":"")+" Alt + 3 으로 되돌릴 수 있어요.");
   if(rest.length){st.pick=st.plan.boxes.filter(function(b){return rest.indexOf(st.lines?b.li:b)>=0}).map(function(b){return b.i});PL.cp=st.pick.length>0;render()}}
 function plSwap(hit){
   var A=plPicked(),Bx=hit.filter(function(b){return A.indexOf(b)<0}).sort(function(a,b){return b.kg-a.kg});
