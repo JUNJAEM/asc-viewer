@@ -355,8 +355,9 @@ body.canmv #bwB .c[data-s],body.canmv #gp .m[data-s]{cursor:crosshair}body.canmv
 body.planning #gp .m[data-s]{cursor:crosshair}body.planning #gp .m[data-s]:hover{background:#bfe0ff}
 .c.sf{box-shadow:inset 0 0 0 2px #7a00c8}.c .sfm{position:absolute;top:0;left:50%;transform:translateX(-50%);font-size:8px;font-weight:700;line-height:10px;padding:0 3px;background:#7a00c8;color:#fff;border-radius:0 0 3px 3px}
 .m.sf{box-shadow:inset 0 0 0 1.5px #7a00c8}
-#llBox{position:fixed;left:max(12px,env(safe-area-inset-left,0px));bottom:12px;z-index:41;width:330px;max-width:calc(100vw - 24px);background:var(--win);border:1px solid var(--edge);border-radius:8px;box-shadow:0 10px 30px rgba(0,20,60,.45);font-size:12px;display:flex;flex-direction:column;max-height:46vh}
+#llBox{position:fixed;left:max(12px,env(safe-area-inset-left,0px));bottom:12px;z-index:46;width:330px;max-width:calc(100vw - 24px);background:var(--win);border:1px solid var(--edge);border-radius:8px;box-shadow:0 10px 30px rgba(0,20,60,.45);font-size:12px;display:flex;flex-direction:column;max-height:46vh}
 #llBox[hidden]{display:none}
+#llBox .llh{cursor:move;touch-action:none;user-select:none;-webkit-user-select:none}#llBox .llh button{cursor:pointer}
 #llBox .llh{display:flex;gap:6px;align-items:center;padding:5px 8px;background:#0b3f94;color:#fff;border-radius:7px 7px 0 0}#llBox .llh .sp{flex:1}
 #llBox .llh button,#llForm button{font:inherit;font-size:11.5px;font-weight:700;padding:1px 7px;border:1px solid var(--edge);border-radius:3px;background:#fff;color:#111;cursor:pointer}
 #llForm{padding:6px 8px;border-bottom:1px solid var(--edge);background:var(--chrome)}
@@ -688,7 +689,7 @@ header.win .body{background:#fff}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-20 11:34 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-20 11:50 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -810,7 +811,7 @@ header.win .body{background:#fff}
   <div class="tb">컨테이너 삭제</div>
   <div class="body"><p id="askT"></p><div class="askb"><button type="button" id="askY">삭제</button><button type="button" id="askN">취소</button></div></div></div></div>
 <div id="pkTip" hidden role="tooltip"></div>
-<div id="llBox" hidden><div class="llh"><b>LOAD LIST</b> <span id="llN"></span><span class="sp"></span>
+<div id="llBox" hidden><div class="llh" title="끌어서 창을 옮길 수 있어요 (두 번 누르면 처음 자리로)"><b>LOAD LIST</b> <span id="llN"></span><span class="sp"></span>
     <button type="button" id="llBack" title="고른 것 중 쉬프팅으로 내린 컨테이너를 원래 자리에 다시 놓아요">원래 자리로</button><button type="button" id="llAll" title="전부 고르기 · 다시 누르면 전부 해제">전체</button><button type="button" id="llAdd" title="조건과 수량으로 로드리스트 만들기">＋ 추가</button></div>
   <div class="llc" id="llC" hidden><button type="button" id="cbfBtn" title="전산 CBF 와 플랜 대조 · 변동분 · 마감 점검">CBF 점검</button><span id="cbfS"></span><label title="CBF 가 바뀌어서 새로 생긴 것만 보기"><input type="checkbox" id="llChg"> 변동분만</label></div>
   <div id="llForm" hidden>POL<input data-l="pol" maxlength="5"> POD<input data-l="pod" maxlength="5"> SzTp<input data-l="type" maxlength="4"> kg<input data-l="kg" maxlength="5" class="w">
@@ -2542,6 +2543,19 @@ function mlPick(id,i,btn){
     MREF[st.name]={id:m.id,sub:m.sub,key:m.from+"|"+m.fd};                                                      // 이 플랜이 붙어 온 메일 (포트를 못 읽을 때 단서로 씀)
     if(!st.ship){var c=detectShip(f.n);if(c){pickShip(c);render();tabDraw()}}                                 // 제목에서 선박을 못 찾으면 원래 파일 이름으로
   }).catch(function(e){say("메일에서 파일을 가져오지 못했어요 ("+String(e&&e.message||e)+"). 메일함에서 새로고침한 뒤 다시 해 주세요.",true)}).then(function(){btn.textContent=old;btn.disabled=false})}
+// LOAD LIST 창 옮기기: 제목줄(파란 줄)을 끌면 원하는 자리로. 자리는 기억함(ascLlPos). 제목줄을 두 번 누르면 처음 자리(왼쪽 아래)로.
+(function(){var f=$("llBox"),hd=f.querySelector(".llh"),d=null;
+  function put(x,y){x=Math.max(0,Math.min(window.innerWidth-Math.max(f.offsetWidth,120),x));y=Math.max(0,Math.min(window.innerHeight-40,y));
+    f.style.left=x+"px";f.style.top=y+"px";f.style.bottom="auto";f.style.maxHeight=Math.max(140,Math.min(window.innerHeight*0.8,window.innerHeight-y-8))+"px";return [x,y]}   // 옮긴 자리에서 화면 아래까지를 쓸 수 있게
+  function back(){try{var sv=JSON.parse(localStorage.getItem("ascLlPos")||"null");if(sv)put(sv[0],sv[1])}catch(_){}}
+  window.addEventListener("load",back);back();
+  window.addEventListener("resize",function(){if(f.style.top)put(parseFloat(f.style.left)||0,parseFloat(f.style.top)||0)});
+  hd.addEventListener("pointerdown",function(e){if(e.button!==0||e.target.closest("button,input,select,label"))return;var r=f.getBoundingClientRect();d={dx:e.clientX-r.left,dy:e.clientY-r.top};hd.setPointerCapture(e.pointerId);e.preventDefault()});
+  hd.addEventListener("pointermove",function(e){if(d)d.p=put(e.clientX-d.dx,e.clientY-d.dy)});
+  function end(){if(d&&d.p)try{localStorage.setItem("ascLlPos",JSON.stringify(d.p))}catch(_){}d=null}
+  hd.addEventListener("pointerup",end);hd.addEventListener("pointercancel",end);
+  hd.addEventListener("dblclick",function(e){if(e.target.closest("button"))return;f.style.left="";f.style.top="";f.style.bottom="";f.style.maxHeight="";try{localStorage.removeItem("ascLlPos")}catch(_){}});
+})();
 // ---------- 로드리스트 ↔ 전산 CBF (PC 설치판) ----------
 // 로드리스트 모드에서 메일 도우미에게 전산의 CBF(Container Booking Forecast)를 물어서 LOAD LIST 를 맞춤. 10분마다 다시 물어봄.
 //  · 전산: HAS 라인은 흥아 전산, 그 밖의 라인(SKR 등)은 장금 전산 값을 씀(도우미가 합쳐 줌). 선박 · 항차 · 이 플랜의 포트로 조회.
