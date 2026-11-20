@@ -2444,6 +2444,7 @@ function mlPick(id,i,btn){
     var ext=(/\.[a-z0-9]+$/i.exec(f.n)||[".asc"])[0],nm=String(m.sub||f.n).replace(/^\s*((RE|FW|FWD)\s*:\s*)+/i,"").replace(/[\\\/:*?"<>|\r\n\t]+/g," ").replace(/\s+/g," ").trim().slice(0,90);
     var same=m.files.filter(function(x){return /\.[a-z0-9]+$/i.exec(x.n)&&/\.[a-z0-9]+$/i.exec(x.n)[0].toLowerCase()===ext.toLowerCase()}).length>1;   // 한 메일에 같은 종류가 여러 개면 원래 파일 이름을 덧붙여 구분
     mlOpen(false);loadBytes(new Uint8Array(buf),(nm||"plan")+(same?" - "+f.n.replace(/\.[a-z0-9]+$/i,""):"")+ext);
+    MREF[st.name]={id:m.id,sub:m.sub,key:m.from+"|"+m.fd};                                                      // 이 플랜이 붙어 온 메일 (포트를 못 읽을 때 단서로 씀)
     if(!st.ship){var c=detectShip(f.n);if(c){pickShip(c);render();tabDraw()}}                                 // 제목에서 선박을 못 찾으면 원래 파일 이름으로
   }).catch(function(e){say("메일에서 파일을 가져오지 못했어요 ("+String(e&&e.message||e)+"). 메일함에서 새로고침한 뒤 다시 해 주세요.",true)}).then(function(){btn.textContent=old;btn.disabled=false})}
 // ---------- OUTBOUND 메일 작성 (PC 설치판) ----------
@@ -2659,16 +2660,84 @@ var HEX={},BAY2P={},V3={yaw:-0.62,pit:0.5,zoom:1,hold:false,faces:[],hov:null,M:
 // ---------- 그 항의 실제 바람·파도 ----------
 // 파일 이름에서 포트를 읽음: 5글자(JPOIT) 먼저, 없으면 회사 3글자(OIT). 좌표는 ships.js 의 ASC_GEO(tools/build_geo.py).
 // 날씨는 공개 예보 서버에 위도·경도만 보내서 받음(wxLoad). 인터넷이 막힌 곳에서는 그냥 안 나옴.
-var WX={},WXSKIP={PRE:1,FIN:1,ASC:1,EDI:1,NEW:1,REV:1,PLAN:1,BAY:1,FINAL:1,REAL:1};
+var WX={},WXSKIP={PRE:1,FIN:1,ASC:1,EDI:1,NEW:1,REV:1,PLAN:1,BAY:1,FINAL:1,REAL:1,PAN:1,SMD:1,DEP:1,ARR:1,OUT:1,ETA:1,TKS:1};
 function portNorm(c){c=String(c||"").toUpperCase().replace(/[^A-Z]/g,"");var G=window.ASC_GEO||{},P=window.ASC_PORTS||{};
   if(c.length===5&&G[c])return c;if(c.length===3&&P[c])return P[c];return ""}
-function fnPort(){
-  var t=(st.name||"").toUpperCase().replace(/\.(ASC|EDI)$/,"").split(/[^A-Z0-9]+/),P=window.ASC_PORTS||{},G=window.ASC_GEO||{},i;
-  var sv=st.ship&&SHIPS&&SHIPS[st.ship]?String(SHIPS[st.ship].s||"").split("\u00b7"):[];
-  for(i=0;i<t.length;i++)if(t[i].length===5&&/^[A-Z]+$/.test(t[i])&&(G[t[i]]||P[t[i].slice(2)]===t[i]))return t[i];
-  for(i=0;i<t.length;i++)if(t[i].length===3&&P[t[i]]&&!WXSKIP[t[i]]&&sv.indexOf(t[i])<0&&t[i]!==st.ship)return P[t[i]];
+// 파일 이름에서 포트 읽기. 메일함의 플랜 첨부 이름 1만 8천여 개를 보고 맞춘 규칙(2026-11) — 사람마다 KRPUS · PUS · 항차에 붙여 쓴 2610SPUS · PUSDEP · PUS3 · MOJI 처럼 다르게 씀.
+// 차례: ① 따로 적힌 5글자(KRPUS)  ② 항차 바로 뒤에 붙은 글자(2634WAXT, 2610SKRPUS, 2612SKANPRE22, 2652IYM)  ③ 항차 뒤의 낱말(PUS, KIJ1, PUSDEP, KANPRE2, MOJI)
+//       ④ 항차 앞의 3글자(선박 코드·서비스 이름은 빼고)  ⑤ PU-1 · PU-2 (부산)
+var PSUF=/^(?:PRE|PREPLAN|DEP|ARR|FIN|FINAL|FINALPLAN|PLAN|SI|RE|REV|NEW|P|F|D|R)?\d*$/,PSUF2=/^(?:PRE|PREPLAN|DEP|ARR|FIN|FINAL|FINALPLAN|PLAN|SI)\d*$/;
+var PNAME={BUSAN:"KRPUS",PUSAN:"KRPUS",BUS:"KRPUS",INCHEON:"KRINC",INCHON:"KRINC",KWANGYANG:"KRKAN",GWANGYANG:"KRKAN",ULSAN:"KRUSN",MOJI:"JPMOJ",OITA:"JPOIT",HAKATA:"JPHKT",HIBIKI:"JPHBK",KOBE:"JPUKB",OSAKA:"JPOSA",TOKYO:"JPTYO",YOKOHAMA:"JPYOK",NAGOYA:"JPNGO",SHANGHAI:"CNSHA"};
+function portOfName(nm,ship){
+  var u=String(nm||"").toUpperCase().replace(/\.(ASC|EDI)$/,""),t=u.split(/[^A-Z0-9]+/),P=window.ASC_PORTS||{},G=window.ASC_GEO||{},i,p;
+  var sv=ship&&SHIPS&&SHIPS[ship]?String(SHIPS[ship].s||"").split("\u00b7"):[];
+  function ok5(x){return !!(G[x]||P[x.slice(2)]===x)}
+  function at(x,suf){if(x.length>=5&&ok5(x.slice(0,5)))return x.slice(0,5);var c=x.slice(0,3);return x.length>=3&&P[c]&&!WXSKIP[c]&&suf.test(x.slice(3))?P[c]:""}
+  for(i=0;i<t.length;i++)if(t[i].length===5&&/^[A-Z]+$/.test(t[i])&&ok5(t[i]))return t[i];
+  var vm=/\d{4}[EWSN]/.exec(u)||/\d{3}[EWSN]/.exec(u)||/\d{4}/.exec(u);
+  if(vm){var aft=u.slice(vm.index+vm[0].length),r=/^[A-Z]+/.exec(aft),d=/[EWSN]$/.test(vm[0])?vm[0].slice(-1):"";
+    if(r&&(p=at(r[0],PSUF)))return p;
+    if(r&&d&&(p=at(d+r[0],PSUF)))return p;                       // 2607SHA 처럼 방향 글자 없이 포트를 붙여 쓴 경우
+    var ta=aft.split(/[^A-Z0-9]+/);
+    for(i=0;i<ta.length;i++){var x=ta[i],m;if(!x)continue;
+      if(x.length===3&&P[x]&&!WXSKIP[x])return P[x];
+      if((m=/^([A-Z]{3})\d{1,2}$/.exec(x))&&P[m[1]]&&!WXSKIP[m[1]])return P[m[1]];
+      if(PNAME[x])return PNAME[x];
+      if((m=/^([A-Z]{4,})\d*$/.exec(x))&&(p=at(m[1],PSUF2)))return p}}
+  for(i=0;i<t.length;i++)if(t[i].length===3&&P[t[i]]&&!WXSKIP[t[i]]&&sv.indexOf(t[i])<0&&t[i]!==ship)return P[t[i]];
+  if(/(^|[^A-Z])PU[\s_\-]*\d/.test(u))return "KRPUS";
   return ""}
-function v3Port(){return V3.port[st.name]!=null?V3.port[st.name]:fnPort()}
+function fnPort(){return portOfName(st.name,st.ship)}
+// 이름에 포트가 없을 때만: 파일 안 내용으로 추정. 확실할 때만 답함 —
+//  ⓐ Port Rotation 의 어느 자리를 '지금 포트'로 보면 컨테이너의 80% 이상이 "그 자리까지 싣고 그 뒤에 내림"으로 맞아떨어질 때 그 포트
+//  ⓑ 한 포트에서 실은 것이 85% 이상일 때 그 포트   ⓒ 실은 곳이 전부 한국이고 부산(PUS·PNC)이 있으면 부산
+// PC 에 있던 플랜 159개로 대조: 답한 95개 중 90개가 이름의 포트와 같은 곳. 여러 포트에서 실었는데 기항 순서가 없으면 답하지 않음(틀린 날씨를 보여 주느니 비워 둠).
+function portInside(){
+  var pl=st.plan,B=pl&&pl.boxes||[];if(!B.length)return "";
+  var key=st.name+"|"+B.length;if(V3.pin&&V3.pin[0]===key)return V3.pin[1];
+  var P=window.ASC_PORTS||{},G=window.ASC_GEO||{},rot=pl.rotation||[],cnt={},n=0,i,k,p3="",top="",best=null,out="";
+  function c5(p){return p.length===5?p:(P[p]||"")}
+  B.forEach(function(b){if(b.pol){cnt[b.pol]=(cnt[b.pol]||0)+1;n++}});
+  for(k in cnt)if(!top||cnt[k]>cnt[top])top=k;
+  for(k=0;k<rot.length;k++){if(!cnt[rot[k]])continue;var bf={},af={},ok=0;for(i=0;i<=k;i++)bf[rot[i]]=1;for(i=k+1;i<rot.length;i++)af[rot[i]]=1;
+    B.forEach(function(b){if(bf[b.pol]&&af[b.pod])ok++});if(!best||ok>=best[0])best=[ok,rot[k]]}
+  if(best&&best[0]>=0.8*n)p3=best[1];
+  else if(top&&cnt[top]>=0.85*n)p3=top;
+  else{var kr=true,pu=0,pn=0;for(k in cnt){var c=c5(k);if(cnt[k]>=0.05*n&&c.slice(0,2)!=="KR")kr=false;if(c==="KRPUS")pu+=cnt[k];if(c==="KRPNC")pn+=cnt[k]}
+    if(kr&&(pu||pn))out=pu>=pn?"KRPUS":"KRPNC"}
+  if(p3){var f={},bt="";B.forEach(function(b){if(b.pol===p3&&b.pol5)f[b.pol5]=(f[b.pol5]||0)+1});for(k in f)if(!bt||f[k]>f[bt])bt=k;out=bt&&G[bt]?bt:c5(p3)}
+  V3.pin=[key,out];return out}
+// ---------- 포트 단서: 그 플랜이 붙어 온 메일 ----------
+// 파일 이름에서 포트를 못 읽었을 때만 씀. PC 설치판은 메일 도우미에게 "이 이름의 첨부가 붙은 메일"을 물어서 제목 · 본문 앞부분 · 같은 사람이 보낸 다른 플랜 이름을 받고,
+// 메일함에서 연 플랜은 그 메일의 제목과, 목록에 있는 같은 발신인의 다른 플랜을 봄. 본문은 이 PC 안에서만 오가고 어디에도 남기지 않음.
+var MH={},MREF={},BODYSKIP={YOU:1,HAS:1,CAN:1,ETA:1,TON:1,BAY:1,HIS:1,TKS:1,KOR:1,SIN:1,MAR:1,NOV:1};
+function portOfText(txt){   // 메일 본문 앞부분에 또렷이 적힌 포트만: 5글자 코드(KRPUS), "PUS OUTBOUND · KAN DEP" 같은 말 (ROTATION 줄은 그 플랜의 포트가 아닐 때가 많아 안 봄)
+  var P=window.ASC_PORTS||{},G=window.ASC_GEO||{},L=String(txt||"").toUpperCase().split(/\r?\n/).map(function(x){return x.trim()}).filter(Boolean).slice(0,30),i,j,m;
+  for(i=0;i<L.length;i++){var w=L[i].split(/[^A-Z0-9]+/);
+    for(j=0;j<w.length;j++)if(w[j].length===5&&/^[A-Z]+$/.test(w[j])&&(G[w[j]]||P[w[j].slice(2)]===w[j]))return w[j];
+    m=/(?:^|[^A-Z])([A-Z]{3})\s*(?:DEP|DEPARTURE|ARR|OUTBOUND|INBOUND|PRE|PREPLAN|PRE-PLAN|FINAL|LOADING)(?:[^A-Z]|$)/.exec(L[i]);
+    if(m&&P[m[1]]&&!WXSKIP[m[1]]&&!BODYSKIP[m[1]])return P[m[1]]}
+  return ""}
+function portOfPeers(names){   // 같은 사람이 보낸 다른 플랜들의 포트: 읽힌 것이 3개 이상이고 70% 이상이 한 곳일 때만 (부산 북항·신항은 한 곳으로 셈)
+  var c={},n=0,k,top="";(names||[]).forEach(function(x){var p=portOfName(x,"");if(p){if(p==="KRPNC")p="KRPUS";c[p]=(c[p]||0)+1;n++}});
+  for(k in c)if(!top||c[k]>c[top])top=k;return n>=3&&c[top]>=0.7*n?top:""}
+function mailHint(){
+  var nm=st.name;if(!nm||st.example)return null;var h=MH[nm];if(h)return h.busy?null:h;
+  MH[nm]={busy:true};var ref=MREF[nm]||null,ship=st.ship,peers=[];
+  if(ref)ML.items.forEach(function(m){if(m.from+"|"+m.fd===ref.key)m.files.forEach(function(f){peers.push(f.n)})});
+  function done(d){d=d||{};MH[nm]={sub:portOfName(d.sub||(ref?ref.sub:""),ship),body:portOfText(d.body),snd:portOfPeers((d.peers||[]).concat(peers))};
+    if(!$("v3").hidden&&st.name===nm){wxLoad(v3Port());v3Draw()}}
+  if(window.__MAILSRVJS__)mlGet("/mailhint?"+(ref&&ref.id?"id="+encodeURIComponent(ref.id):"name="+encodeURIComponent(nm))).then(done,function(){done(null)});
+  else setTimeout(function(){done(null)},0);
+  return null}
+// 포트를 정하는 차례: 파일 이름 → 보낸 사람이 평소 보내는 포트 → 파일 안 내용 → 메일 제목 → 메일 본문. 이름이 아닌 것으로 정했으면 화면에 무엇으로 추정했는지 같이 적음(V3.pwhy)
+function v3Port(){if(V3.port[st.name]!=null)return V3.port[st.name];var p=fnPort(),h;V3.pwhy="";if(p)return p;
+  h=mailHint();   // 차례는 실제 메일 한 주치를 이름에 포트가 있는 플랜과 견줘 본 결과대로: 보낸 사람 38건 중 38건 일치, 파일 내용 95%, 제목 87%, 본문 71% (2026-11-20)
+  if(h&&h.snd){V3.pwhy="보낸 사람이 평소 보내는 포트로 추정";return h.snd}
+  if((p=portInside())){V3.pwhy="파일 내용으로 추정";return p}
+  if(h&&h.sub){V3.pwhy="메일 제목으로 추정";return h.sub}
+  if(h&&h.body){V3.pwhy="메일 본문으로 추정";return h.body}
+  return ""}
 function wxLoad(code){
   var geo=(window.ASC_GEO||{})[code];if(!code||!geo||!window.fetch)return;
   var w=WX[code];if(w&&(w.busy||Date.now()-w.at<30*60000))return;
@@ -3106,8 +3175,8 @@ function v3Draw(){
   // 그 항의 지금 날씨 + 흘수 (둘째 줄), 바람 방향 나침반
   var pc=v3Port(),wl2="";
   if(pc){if(!(window.ASC_GEO||{})[pc])wl2=pc+"  좌표를 모르는 포트";else if(!wx||wx.busy)wl2=pc+"  날씨 불러오는 중…";else if(wx.fail)wl2=pc+"  날씨를 못 불러왔어요 (인터넷 확인)";
-    else wl2=pc+((window.ASC_GEO[pc]||[])[2]?" (위치 추정)":"")+"  "+(wx.wind!=null?compass(wx.dir)+"풍 "+wx.wind.toFixed(1)+" m/s"+(wx.gust!=null?" (돌풍 "+wx.gust.toFixed(1)+")":""):"바람 자료 없음")+"   "+(wx.wave!=null?"파고 "+wx.wave.toFixed(1)+" m"+(wx.per?" · 주기 "+Math.round(wx.per)+"초":""):"파고 자료 없음 (항 안쪽이라 파도 예보가 없는 곳)")}
-  else wl2="파일 이름에서 포트를 못 읽었어요";
+    else wl2=pc+((window.ASC_GEO[pc]||[])[2]?" (위치 추정)":"")+(V3.pwhy?" ("+V3.pwhy+")":"")+"  "+(wx.wind!=null?compass(wx.dir)+"풍 "+wx.wind.toFixed(1)+" m/s"+(wx.gust!=null?" (돌풍 "+wx.gust.toFixed(1)+")":""):"바람 자료 없음")+"   "+(wx.wave!=null?"파고 "+wx.wave.toFixed(1)+" m"+(wx.per?" · 주기 "+Math.round(wx.per)+"초":""):"파고 자료 없음 (항 안쪽이라 파도 예보가 없는 곳)")}
+  else wl2="파일 이름 · 내용 · 메일에서 포트를 못 읽었어요";
   lab(wl2,[14,40],"#0b1f47");
   // 화면에는 위 두 줄만 (사용자 요청). 롤링·피칭 어림값은 흔들림에만 쓰고, 날씨 기준 시각·출처는 제목에 마우스를 올리면 보임
   var wsrc=wx&&wx.time?"날씨 "+wxWhen(wx.time)+" 기준 · 출처 "+(wx.src||""):"";if($("v3T").title!==wsrc)$("v3T").title=wsrc;

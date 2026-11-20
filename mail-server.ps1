@@ -81,7 +81,7 @@ function Walk($f, $path, $since, $sentId) {
                     if (-not $files.Count) { continue }
                     $addr = ''; try { $addr = if ($m.SenderEmailType -eq 'EX') { $m.Sender.GetExchangeUser().PrimarySmtpAddress } else { $m.SenderEmailAddress } } catch { }
                     $when = if ($field -eq 'SentOn') { $m.SentOn } else { $m.ReceivedTime }
-                    $o = @{ id = $id; sub = [string]$m.Subject; from = [string]$m.SenderName; fd = ([string]$addr).Split('@')[-1].ToLower(); when = $when.ToString('yyyy-MM-dd HH:mm'); folder = $p; files = $files }
+                    $o = @{ id = $id; sub = [string]$m.Subject; from = [string]$m.SenderName; fd = ([string]$addr).Split('@')[-1].ToLower(); ad = ([string]$addr).ToLower(); when = $when.ToString('yyyy-MM-dd HH:mm'); folder = $p; files = $files }
                     $o.cat = CatOf $o
                     $script:cache[$id] = $o
                 } catch { }
@@ -113,6 +113,21 @@ function ListJson($days) {
         [void]$out.Add(@{ id = $o.id; sub = $o.sub; from = $o.from; fd = $o.fd; when = $o.when; cat = $o.cat; files = @($o.files) })
     }
     return (@{ at = (Get-Date).ToString('HH:mm'); days = $days; items = @($out) } | ConvertTo-Json -Depth 5 -Compress)
+}
+# ---- where a plan came from: the mail that carried a file of this name (or the given mail). The viewer uses it to guess the port when the file name does not say it.
+# Gives the subject, the first part of the text and the names of other plans from the same sender. The answer goes to the viewer page on this PC only; nothing is logged.
+function NameKey($n) { $k = ([string]$n).ToLower() -replace '\.(asc|edi)$', ''; $k = $k -replace '(\s*\(\d+\)|__\d+_)$', ''; return ($k -replace '[^a-z0-9]', '') }
+function MailHint($q) {
+    $d = [Math]::Max(7, $script:scanDays)
+    if (((Get-Date) - $script:lastScan).TotalSeconds -gt 45 -or $d -gt $script:scanDays) { Scan $d }
+    $o = $null
+    if ($q['id']) { if ($script:cache.ContainsKey($q['id'])) { $o = $script:cache[$q['id']] } }
+    elseif ($q['name']) { $k = NameKey $q['name']
+        foreach ($c in ($script:cache.Values | Sort-Object { $_.when } -Descending)) { foreach ($f in $c.files) { if ((NameKey $f.n) -eq $k) { $o = $c; break } }; if ($o) { break } } }
+    if (-not $o) { return '{"found":false}' }
+    $body = ''; try { $body = [string](Outlook).GetNamespace('MAPI').GetItemFromID($o.id).Body; if ($body.Length -gt 3000) { $body = $body.Substring(0, 3000) } } catch { }
+    $peers = @(); if ($o.ad) { foreach ($c in $script:cache.Values) { if ($c.ad -eq $o.ad) { foreach ($f in $c.files) { $peers += [string]$f.n } } } }
+    return (@{ found = $true; sub = $o.sub; from = $o.from; body = $body; peers = @($peers | Select-Object -Unique -First 150) } | ConvertTo-Json -Depth 4 -Compress)
 }
 function FileBytes($id, $i) {
     $ns = (Outlook).GetNamespace('MAPI'); $m = $ns.GetItemFromID($id); $a = $m.Attachments.Item([int]$i)
@@ -150,6 +165,7 @@ while ($true) {
         $lastReq = Get-Date
         if ($path -eq '/ping') { Send $st '200 OK' 'text/plain' ($utf8.GetBytes('ok')) }
         elseif ($path -eq '/list') { $d = 7; if ($q['days'] -match '^\d+$') { $d = [Math]::Min(30, [Math]::Max(1, [int]$q['days'])) }; Send $st '200 OK' 'application/json; charset=utf-8' ($utf8.GetBytes((ListJson $d))) }
+        elseif ($path -eq '/mailhint') { Send $st '200 OK' 'application/json; charset=utf-8' ($utf8.GetBytes((MailHint $q))) }
         elseif ($path -eq '/file') { Send $st '200 OK' 'application/octet-stream' (FileBytes $q['id'] $q['i']) }
         elseif ($verb -eq 'POST' -and $outOk -and ($path -eq '/outprep' -or $path -eq '/outopen')) {
             $j = [Text.Encoding]::UTF8.GetString($all, $hEnd, $all.Length - $hEnd) | ConvertFrom-Json
