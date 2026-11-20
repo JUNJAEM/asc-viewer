@@ -3748,9 +3748,11 @@ function escClose(e){   // Esc 한 번에 떠 있는 창 하나를 닫음 — �
   if(!$("outV").hidden){outOpen(false);return true}              // OUTBOUND 메일
   if(!$("cbfV").hidden){cbfOpen(false);return true}              // CBF 점검
   if(!$("mailV").hidden){mlOpen(false);return true}              // 메일함
-  if(typing){if(t.closest("#fbox")){findBox(false);return true}return false}   // 글자를 넣는 중이면 그 칸이 든 창만 닫음(다른 창은 그대로)
+  function modeOff(){if(PL.mode==="v")return false;PL.mode="v";plDraw();plSay("");return true}   // 로드리스트 · 팔레트 · Shift → 보기 (LOAD LIST 창 · 팔레트 줄이 닫힘. 로드리스트에 있던 것 · 고른 것은 그대로 남음)
+  if(typing){if(t.closest("#fbox")){findBox(false);return true}if(t.closest("#llBox,#plStrip")){t.blur();return modeOff()}return false}   // 글자를 넣는 중이면 그 칸이 든 창만 닫음(다른 창은 그대로)
   if(st.open){closeBay();return true}                            // Bay Plan
   if(!$("fbox").hidden){findBox(false);return true}              // SEARCH CNTR
+  if(modeOff())return true;                                      // 로드리스트 · 팔레트 · Shift 모드
   if(!$("v3").hidden){v3Open(false);return true}                 // VESSEL VIEW
   if(ES.on&&st.plan){$("edBtn").click();return true}             // EDITOR / PIVOT
   return false}
