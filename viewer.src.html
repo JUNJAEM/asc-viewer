@@ -3109,8 +3109,8 @@ function v3Draw(){
     else wl2=pc+((window.ASC_GEO[pc]||[])[2]?" (위치 추정)":"")+"  "+(wx.wind!=null?compass(wx.dir)+"풍 "+wx.wind.toFixed(1)+" m/s"+(wx.gust!=null?" (돌풍 "+wx.gust.toFixed(1)+")":""):"바람 자료 없음")+"   "+(wx.wave!=null?"파고 "+wx.wave.toFixed(1)+" m"+(wx.per?" · 주기 "+Math.round(wx.per)+"초":""):"파고 자료 없음 (항 안쪽이라 파도 예보가 없는 곳)")}
   else wl2="파일 이름에서 포트를 못 읽었어요";
   lab(wl2,[14,40],"#0b1f47");
-  if(wx&&wx.wave!=null)lab("롤링 ±"+rollA.toFixed(1)+"°  피칭 ±"+pitA.toFixed(1)+"°  (파고로 어림한 값)",[14,60],"#0b1f47");
-  if(wx&&wx.time){g.font="11px Arial";lab(wxWhen(wx.time)+" 기준 · "+(wx.src||""),[14,wx.wave!=null?77:57],"#33415c")}
+  // 화면에는 위 두 줄만 (사용자 요청). 롤링·피칭 어림값은 흔들림에만 쓰고, 날씨 기준 시각·출처는 제목에 마우스를 올리면 보임
+  var wsrc=wx&&wx.time?"날씨 "+wxWhen(wx.time)+" 기준 · 출처 "+(wx.src||""):"";if($("v3T").title!==wsrc)$("v3T").title=wsrc;
   if(wx&&wx.wind!=null){var cx=w-58,cy=64,rr=24,ang=(wx.dir+180)*Math.PI/180;   // 바람이 불어 가는 쪽으로 화살표 (위가 북)
     g.fillStyle="rgba(255,255,255,.82)";g.strokeStyle="#0b1f47";g.lineWidth=1.2;g.beginPath();g.arc(cx,cy,rr+7,0,7);g.fill();g.stroke();
     g.font="bold 10px Arial";g.textAlign="center";g.fillStyle="#b00000";g.fillText("N",cx,cy-rr+4);
