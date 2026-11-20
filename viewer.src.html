@@ -2893,9 +2893,11 @@ function mlDraw(){
   var side=$("mlC"),st0=side.scrollTop;side.innerHTML=h;side.scrollTop=st0;
   $("mlS").textContent=ML.busy?(grOn()?"회사 메일에서 읽는 중…":(ML.days>=14?"아웃룩에서 읽는 중… (기간이 길어서 몇 분 걸릴 수 있어요)":"아웃룩에서 읽는 중… (처음에는 20초쯤 걸려요)")):ML.err?"":(ML.at?ML.at+" 기준 · ":"")+"파일을 누르면 플랜으로 열려요";
   var B=$("mlB");
-  if(ML.err&&grOn()){B.innerHTML=ML.err==="setup"?'<div class="msgbox"><b>폰·웹에서 메일함을 쓰려면 회사 계정 연결 설정이 한 번 필요해요.</b><br>회사 Microsoft 365(Entra)에 이 앱을 등록하고 받은 <b>앱 ID</b>를 넣으면, 여기서 회사 계정으로 로그인해 팀 메일의 플랜을 바로 열 수 있어요.<br>등록 방법은 만든 사람(준재)에게 물어봐 주세요. PC 에 설치한 뷰어에서는 지금도 메일함이 돼요.</div>'
-      :ML.err==="login"?'<div class="msgbox"><b>회사 계정으로 로그인해 주세요.</b><br>아래에 <b>회사 메일 주소</b>를 적고 로그인을 누르면, 그 계정의 비밀번호를 묻는 화면으로 바로 가요. (폰에 로그인돼 있는 개인 Microsoft 계정은 쓰지 않아요)<br>로그인하면 내 메일함에서 ASC · EDI 가 붙은 메일만 골라 보여 줘요. 메일은 Microsoft 에서 이 기기로만 오가요.<br><br><input id="grMail" type="email" inputmode="email" autocomplete="username" placeholder="회사 메일 주소 (예: hong@heungaline.com)" value="'+esc(GR.mail())+'" style="font:inherit;font-size:15px;width:min(100%,340px);padding:9px 10px;border:1px solid #8a8a8a;border-radius:2px;margin-bottom:10px;display:block"><button type="button" class="fb" id="grIn" style="font-size:15px;padding:9px 18px">Microsoft 365 로그인</button></div>'
-      :'<div class="msgbox"><b>메일을 읽지 못했어요.</b><br>'+esc(ML.err)+'<br><br><button type="button" class="fb" id="grIn">다시 로그인</button></div>';return}
+  if(grOn()){B.innerHTML='<div class="msgbox"><b>이 기기를 회사 PC 에 연결해 주세요.</b><br>'
+    +'퇴근 후에도 폰에서 회사 PC 의 아웃룩 메일을 보려면, 회사 PC 에서 띄운 <b>연결 QR</b> 을 폰 카메라로 찍거나, 받은 <b>연결 코드</b> 를 아래에 붙여넣으세요.<br>회사 PC 와 이 폰 모두 Tailscale 에 <b>같은 계정</b> 으로 켜져 있어야 해요.<br><br>'
+    +'<input id="mlConnIn" type="text" autocomplete="off" spellcheck="false" placeholder="연결 코드 붙여넣기 (ascmail...)" style="font:inherit;font-size:15px;width:min(100%,360px);padding:9px 10px;border:1px solid #8a8a8a;border-radius:6px;margin-bottom:10px;display:block">'
+    +'<button type="button" class="fb" id="mlConnSave" style="font-size:15px;padding:9px 18px">연결</button>'
+    +'<p style="color:var(--fg2);font-size:12.5px;margin:12px 0 0">PC 설치판(아웃룩이 있는 회사 PC)에서는 이 연결 없이 바로 메일함이 돼요.</p></div>';return}
   if(ML.err){B.innerHTML='<div class="msgbox"><b>메일 도우미에 연결하지 못했어요.</b><br>아웃룩이 켜져 있는지 확인하고, 플랜 파일을 하나 더블클릭해서 뷰어를 다시 열어 주세요 (그때 도우미가 같이 켜져요).</div>';return}
   // 검색: 띄어 쓴 낱말이 모두 들어 있는 메일. 선박 코드(MJEP)를 치면 선박 이름(MOJI EXPRESS)으로 적힌 메일도, 이름을 치면 코드로 적힌 메일도 찾음
   var words=q.split(/\s+/).filter(Boolean).map(function(w){var alt=[w],k;
@@ -3317,8 +3319,10 @@ function outGo(send){
     if(sp){ML.ship=ML.ship===sp.dataset.ms?"":sp.dataset.ms;mlDraw();$("mlB").scrollTop=0}
     else if(b){ML.cat=b.dataset.mc;ML.ship="";mlDraw();$("mlB").scrollTop=0}});
   $("mlB").addEventListener("click",function(e){var b=e.target.closest(".fb");
+    if(b&&b.id==="mlConnSave"){var c=mcDecode(($("mlConnIn")||{}).value);if(!c){var i=$("mlConnIn");if(i)i.style.borderColor="#c50f1f";return}mcSet(c);location.reload();return}
     if(b&&b.id==="mlWide"){ML.days=30;$("mlD").value="30";mlLoad();return}
     if(b&&b.dataset.mid)mlPick(b.dataset.mid,b.dataset.mi,b)});
+  $("mlB").addEventListener("keydown",function(e){if(e.target.id==="mlConnIn"){e.stopPropagation();if(e.key==="Enter"){var c=mcDecode(e.target.value);if(c){mcSet(c);location.reload()}}}});
   $("mailV").addEventListener("click",function(e){if(e.target.id==="mailV")mlOpen(false)});
   if(!grOn())setInterval(function(){mlGet("/ping").catch(function(){})},5*60000);   // 뷰어가 떠 있는 동안 도우미가 꺼지지 않게
 })();
