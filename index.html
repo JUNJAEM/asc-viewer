@@ -760,7 +760,7 @@ header.win .body{background:#fff}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-20 16:12 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-20 16:19 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -2315,7 +2315,12 @@ function plMove(G,list,rob){   // rob = ROB(이 포트에서 싣지 않은 것)�
   // 고른 것부터 평소대로 옮기고(이때는 한 칸에 하나씩), 그다음 짝을 하나씩 따라 보냄 — 짝이 갈 자리가 규칙에 걸리면 그 짝만 제자리에 둠.
   var mir=PL.mir==="2FA",pr={},tw=new Map(),to=new Map(),O0=mir?occMap():null,me=planPort();
   if(mir){Object.keys(PANELS).forEach(function(k){var p=PANELS[k].p;if(p&&p.f!=null&&p.a!=null&&p.f!==p.a){pr[p.f]=p.a;pr[p.a]=p.f}});
-    mv.forEach(function(b){if(b.size!==20||pr[b.bay]==null)return;var o=O0[pr[b.bay]+"_"+b.row+"_"+b.tier];if(o&&o.size===20&&mv.indexOf(o)<0&&(rob||!me||thisPort(o)))tw.set(b,o)})}
+    // 짝이 둘 다 지정돼 있으면 한 쌍으로: 누른 칸의 베이 쪽(앞 f / 뒤 a)에 있던 것을 그 칸에, 나머지를 반대쪽 베이에 — 앞은 앞, 뒤는 뒤로 감
+    var kb={},k0=G[0]&&G[0].p?G[0].p.kind:"f",used=[],others=[];Object.keys(PANELS).forEach(function(k){var p=PANELS[k].p;if(p&&p.f!=null&&p.a!=null&&p.f!==p.a){kb[p.f]="f";kb[p.a]="a"}});
+    mv.forEach(function(b){if(used.indexOf(b)>=0||b.size!==20||pr[b.bay]==null)return;var o=O0[pr[b.bay]+"_"+b.row+"_"+b.tier];if(!o||o.size!==20)return;
+      if(mv.indexOf(o)>=0){var lead=kb[b.bay]===k0?b:o,oth=lead===b?o:b;tw.set(lead,oth);used.push(lead,oth);others.push(oth)}
+      else if(rob||!me||thisPort(o))tw.set(b,o)});
+    mv=mv.filter(function(b){return others.indexOf(b)<0})}
   PL.mir="S";var R;try{R=plRunMix(G,mv,function(b){return b.size},function(b,t){setPos(b,t);to.set(b,t)},mv)}finally{PL.mir=mir?"2FA":"S"}
   var moved=R.done,left=mv.length-moved.length;
   if(!moved.length)return plSay(R.no?"옮길 수 있는 자리가 없어요 ("+R.no+").":"빈 칸을 누르거나 끌어 주세요.",true);
@@ -2326,7 +2331,7 @@ function plMove(G,list,rob){   // rob = ROB(이 포트에서 싣지 않은 것)�
       var w=t2.bay==null?"짝 베이 없음":whyNot(false,t2.H,t2.bay,t2.row,t2.tier,O);
       if(w){twNo++;O[o.bay+"_"+o.row+"_"+o.tier]=o;return}
       setPos(o,t2);O[t2.bay+"_"+t2.row+"_"+t2.tier]={};twOk.push(o)})}
-  var rest=all.filter(function(b){return moved.indexOf(b)<0}).map(function(b){return st.lines?b.li:b}),allMoved=moved.concat(twOk);
+  var allMoved=moved.concat(twOk),rest=all.filter(function(b){return allMoved.indexOf(b)<0}).map(function(b){return st.lines?b.li:b});
   plDone("옮긴 컨테이너 "+allMoved.length+" VAN ("+vanSum(allMoved).join(", ")+")"+(twOk.length?" — 2F/A 짝 "+twOk.length+" VAN 포함":"")+"."+(twNo?" 짝 "+twNo+" VAN 은 반대쪽 자리가 안 돼서 그대로 뒀어요.":"")+(left?" 못 옮긴 "+left+" VAN 은 지정된 채로 있어요"+(R.skip.length?" (그중 "+R.skip.length+" VAN 은 놓으려던 칸이 규칙에 걸려 건너뜀)":"")+" — 빈 칸을 다시 끌어 주세요.":"")+(R.no?" 지나간 자리: "+R.no+".":"")+" Alt + 3 으로 되돌릴 수 있어요.");
   if(rest.length){st.pick=st.plan.boxes.filter(function(b){return rest.indexOf(st.lines?b.li:b)>=0}).map(function(b){return b.i});PL.cp=st.pick.length>0;render()}}
 function plSwap(hit){
@@ -2376,6 +2381,7 @@ function plCtrl(btn,alt,G,hit,shift,i0){
   function ok(b){return !me||thisPort(b)}
   function show(){st.sel=-1;$("sheet").hidden=true;PL.cp=st.pick.length>0;render();if(notes.length)plSay(notes.join("  "),true)}
   function rob(n){notes.push("이 포트("+me+")에서 싣지 않은 컨테이너(ROB) "+n+" VAN 은 Shift 를 같이 눌러야 지정 · 이동돼요 (Ctrl + Shift).")}
+  if(PL.mir==="2FA"&&hit.length)hit=plMirBoxes(hit);   // 2F/A: 20' 를 지정 · 해제하면 같은 해치 반대쪽 20' 베이의 짝도 같이 (사용자: "2F/A 로 20' 앞뒤로 지정 안 됨")
   if(btn===2){st.pick=alt?[]:st.pick.filter(function(i){return hit.indexOf(B[i])<0});return show()}
   var all=hit,no=0;if(!shift){hit=all.filter(ok);no=all.length-hit.length}
   if(hit.length){var b0=i0!=null?B[i0]:null,want=sel.length?sel[0].size:(b0&&hit.indexOf(b0)>=0?b0.size:(hit.filter(function(b){return b.size===40}).length>hit.length/2?40:20));
@@ -2594,7 +2600,7 @@ function rcMulti(kind){   // kind: pick(컨테이너 집기) · drop(집은 것 
   if(kind==="pick"){var bx=[];R.forEach(function(e){if(e.dataset.i==null)return;var b=B[+e.dataset.i];if(b&&bx.indexOf(b)<0)bx.push(b)});
     if(!bx.length)return plSay("고른 범위에 컨테이너가 없어요.",true);
     var want=ab?ab.size:(bx.filter(function(b){return b.size===40}).length>bx.length/2?40:20),same=bx.filter(function(b){return b.size===want}),other=bx.length-same.length;   // PC 와 같이 한 번에 한 크기
-    same.forEach(function(b){if(st.pick.indexOf(b.i)<0)st.pick.push(b.i)});PL.cp=st.pick.length>0;st.sel=-1;$("sheet").hidden=true;render();
+    same=plMirBoxes(same);same.forEach(function(b){if(st.pick.indexOf(b.i)<0)st.pick.push(b.i)});PL.cp=st.pick.length>0;st.sel=-1;$("sheet").hidden=true;render();
     return plSay(same.length+"개 집었어요"+(other?" ("+(want===40?"20'":"40'")+" "+other+"개는 뺐어요 — 한 번에 한 크기)":"")+". 옮길 곳으로 가서 놓기 또는 '여러 칸에 놓기'를 눌러 주세요.")}
   var G={},order=[];
   R.forEach(function(e){if(!e.dataset.s)return;var go=e.closest(".mini").dataset.go,q=e.dataset.s.split("_");if(!PANELS[go])return;if(!G[go]){G[go]={p:PANELS[go].p,cells:[]};order.push(go)}G[go].cells.push({row:+q[0],tier:+q[1]})});
@@ -2605,7 +2611,8 @@ function rcMulti(kind){   // kind: pick(컨테이너 집기) · drop(집은 것 
   if(kind==="load"){if(!(st.ll||[]).length)return plSay("LOAD LIST 가 비어 있어요.",true);PL.lsel=rcLlIds();return plLoad(L)}}
 // ----- CNTR MOVE
 function rcPick(){var b=rcBox();if(!b)return plSay("빈 칸이에요. 컨테이너가 있는 칸에서 집어 주세요.",true);
-  var k=st.pick.indexOf(b.i);if(k<0)st.pick.push(b.i);else st.pick.splice(k,1);st.sel=-1;$("sheet").hidden=true;PL.cp=st.pick.length>0;render();
+  var k=st.pick.indexOf(b.i),pair=plMirBoxes([b]).map(function(x){return x.i});   // 2F/A 면 짝도 같이 집고 같이 놓아줌
+  if(k<0)pair.forEach(function(i){if(st.pick.indexOf(i)<0)st.pick.push(i)});else st.pick=st.pick.filter(function(i){return pair.indexOf(i)<0});st.sel=-1;$("sheet").hidden=true;PL.cp=st.pick.length>0;render();
   plSay(k<0?"집었어요 ("+st.pick.length+"개). 옮길 빈 칸으로 가서 놓기를 눌러 주세요.":"내려놓았어요 (집은 것 "+st.pick.length+"개).")}
 function rcDrop(){   // 집은 것을 커서의 빈 칸으로
   if(!rcEmpty())return plSay(rcBox()?"이 칸에는 컨테이너가 있어요. 빈 칸으로 가거나 '바꾸기'를 눌러 주세요.":"커서를 빈 칸에 놓아 주세요.",true);
