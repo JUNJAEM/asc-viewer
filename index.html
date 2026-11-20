@@ -244,7 +244,7 @@ body.static #sumWin .rz{display:none}
 #rc{position:fixed;left:50%;bottom:0;transform:translateX(-50%);z-index:13;width:min(560px,100vw);box-sizing:border-box;background:var(--win);color:var(--fg);border:1px solid var(--edge);border-bottom:0;border-radius:12px 12px 0 0;box-shadow:0 -8px 28px rgba(0,20,60,.3);padding:0 0 max(6px,env(safe-area-inset-bottom,0px));font-size:13px;user-select:none;-webkit-user-select:none;touch-action:manipulation}
 #rc[hidden]{display:none}
 #rc .rct{display:flex;gap:8px;align-items:center;padding:6px 10px;background:#0b3f94;color:#fff;border-radius:11px 11px 0 0}#rc .rct .sp{flex:1}
-#rc .rct #rcPos{font-family:Consolas,monospace;font-weight:700}
+#rc .rct #rcPos{font-family:Consolas,monospace;font-weight:700;font-size:14px;width:122px;max-width:40vw;padding:3px 7px;border:1px solid rgba(255,255,255,.55);border-radius:6px;background:rgba(255,255,255,.12);color:#fff}#rc .rct #rcPos::placeholder{color:rgba(255,255,255,.7);font-family:inherit;font-weight:400;font-size:12px}
 #rc .rct button{font:inherit;font-weight:700;min-width:34px;min-height:30px;border:1px solid rgba(255,255,255,.6);border-radius:6px;background:transparent;color:#fff}
 #rcInfo{display:flex;flex-wrap:wrap;gap:2px 10px;align-items:baseline;padding:6px 10px 2px;min-height:22px;font-size:13.5px}#rcInfo b{font-family:Consolas,monospace;font-size:14.5px}
 #rcInfo .rcn{color:var(--fg2)}#rcInfo .rch1{background:#d8382e;color:#fff;border-radius:4px;padding:0 6px;font-weight:700}#rcInfo .rcs{background:#7a00c8;color:#fff;border-radius:4px;padding:0 5px;font-weight:700}
@@ -761,7 +761,7 @@ header.win .body{background:#fff}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-20 17:18 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-20 17:28 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -900,7 +900,7 @@ header.win .body{background:#fff}
   <div class="llw"><table id="llT"></table></div>
   <div class="llf" id="llF"></div></div>
 <div id="rc" hidden role="region" aria-label="플랜 리모컨">
-  <div class="rct"><b id="rcTtl">리모컨</b><span id="rcPos"></span><span class="sp"></span><button type="button" data-rc="bay" id="rcBayB" title="커서가 있는 베이의 Bay Plan 을 열어요 (POD 같은 내용은 거기서 고쳐요)">Bay Plan</button><button type="button" id="rcX" aria-label="리모컨 닫기">×</button></div>
+  <div class="rct"><b id="rcTtl">리모컨</b><input id="rcPos" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" title="베이-로우-단 을 입력하면 그 칸으로 가요 (예: 01-04-86). 컨테이너가 있으면 지정돼요" placeholder="베이-로우-단 입력"><span class="sp"></span><button type="button" data-rc="bay" id="rcBayB" title="커서가 있는 베이의 Bay Plan 을 열어요 (POD 같은 내용은 거기서 고쳐요)">Bay Plan</button><button type="button" id="rcX" aria-label="리모컨 닫기">×</button></div>
   <div id="rcInfo"></div><div id="rcHeld"></div><span class="plMsg"></span>
   <div class="rcx" id="rcPalT" hidden><span class="plBrush" hidden>POL<select data-b="pol" aria-label="팔레트 POL"></select><input data-b="pol" maxlength="5" list="palPolL" aria-label="팔레트 POL 직접 입력" hidden> POD<select data-b="pod" aria-label="팔레트 POD"></select><input data-b="pod" maxlength="5" list="palPodL" aria-label="팔레트 POD 직접 입력" hidden> SzTp<select data-b="type" aria-label="팔레트 SzTp"></select> <select data-b="fe" aria-label="팔레트 F/E"><option>F</option><option>E</option></select></span></div>
   <div class="rcx rcg" id="rcLlT" hidden></div>
@@ -2590,6 +2590,22 @@ function rcShow(e){   // 커서 칸이 보이게: General Plan 그림 칸 안에
 function rcKeep(fn){   // 동작 뒤에 그림이 화면에서 밀리지 않게: General Plan 의 화면 위치와 스크롤을 그대로 되돌림 (사용자: "집기 해 놓고 갑자기 화면이 올라감")
   var w=$("gpw"),y0=w.getBoundingClientRect().top,sT=w.scrollTop,sL=w.scrollLeft;fn();
   if(!RC.on)return;w.scrollTop=sT;w.scrollLeft=sL;var dy=w.getBoundingClientRect().top-y0;if(Math.abs(dy)>0.5)window.scrollBy(0,dy)}
+function rcGoForBay(bay){var g=null;Object.keys(PANELS).forEach(function(k){var p=PANELS[k].p;if(g==null&&p&&(p.f===bay||p.a===bay||p.h===bay)&&document.querySelector('#gp .mini[data-go="'+k+'"]'))g=k});return g}
+function rcParsePos(s){s=String(s||"").toUpperCase().replace(/BAY/g,"");var d=s.replace(/[^0-9]/g,"");
+  if(/^\d{6}$/.test(d)&&!/\d[ .\-_]\d/.test(s.trim()))return {bay:+d.slice(0,2),row:+d.slice(2,4),tier:+d.slice(4,6)};   // 010486 처럼 붙여 쓴 것
+  var n=s.match(/\d+/g);if(!n||!n.length)return null;return {bay:+n[0],row:n[1]!=null?+n[1]:null,tier:n[2]!=null?+n[2]:null}}
+function rcGoto(bay,row,tier){   // 입력한 자리로 커서를 보냄. 완전한 자리(베이·로우·단)에 컨테이너가 있으면 지정까지
+  var B=st.plan.boxes;
+  if(row!=null&&tier!=null){
+    var b=B.filter(function(x){return x.bay===bay&&x.row===row&&x.tier===tier})[0];
+    if(b){var e=document.querySelector('#gp .m[data-i="'+b.i+'"]');if(e){rcSet(e,true);if(st.pick.indexOf(b.i)<0){st.pick.push(b.i);PL.cp=true;st.sel=-1;$("sheet").hidden=true;render()}plSay("BAY "+pad(bay)+"-"+pad(row)+"-"+pad(tier)+" 컨테이너를 지정했어요 ("+esc(b.cntr||"번호 없음")+"). 옮길 곳으로 가거나 내리기/삭제를 누르세요.");return true}}
+    var go=rcGoForBay(bay);if(go){var mi=document.querySelector('#gp .mini[data-go="'+go+'"]'),c=mi&&mi.querySelector('.m[data-s="'+row+'_'+tier+'"]');if(c){rcSet(c,true);plSay("BAY "+pad(bay)+"-"+pad(row)+"-"+pad(tier)+" 는 빈 칸이에요.");return true}}
+    plSay("BAY "+pad(bay)+"-"+pad(row)+"-"+pad(tier)+" 자리를 찾지 못했어요. 베이·로우·단을 다시 확인해 주세요.",true);return false}
+  // 베이(+로우)만: 그 베이의 맨 위 컨테이너로 (없으면 첫 칸)
+  var cand=B.filter(function(x){return x.bay===bay&&(row==null||x.row===row)&&document.querySelector('#gp .m[data-i="'+x.i+'"]')}).sort(function(a,b){return b.tier-a.tier});
+  if(cand.length){rcSet(document.querySelector('#gp .m[data-i="'+cand[0].i+'"]'),true);plSay("BAY "+pad(bay)+" 로 갔어요. 화살표로 칸을 맞추거나 로우·단까지 입력해 보세요.");return true}
+  var go2=rcGoForBay(bay);if(go2){var any=document.querySelector('#gp .mini[data-go="'+go2+'"] .m[data-s]');if(any){rcSet(any,true);plSay("BAY "+pad(bay)+" 로 갔어요.");return true}}
+  plSay("BAY "+pad(bay)+" 를 찾지 못했어요.",true);return false}
 function rcG(){var c=RC.cur,P=c&&PANELS[c.go];return P?[{p:P.p,cells:[{row:c.row,tier:c.tier}]}]:[]}
 function rcEmpty(){var e=rcEl(RC.cur);return !!(e&&e.dataset.s)}
 function rcUp(c0){var up={go:c0.go,row:c0.row,tier:c0.tier+2},ue=rcEl(up);if(ue&&ue.dataset.s)RC.cur=up}   // 하나 놓은 뒤 커서를 바로 위 빈 칸으로 — 이어서 누르면 쌓임
@@ -2645,7 +2661,7 @@ function rcDraw(scroll){   // render() 뒤마다: 커서 표시 · 정보 줄 ·
   if(e){e.classList.add("rcc");if(scroll)rcShow(e)}
   if(RC.anc){var ae=rcEl(RC.anc);if(ae)ae.classList.add("rca");rcRange().forEach(function(x){if(RC.ancKind==="pick"?x.dataset.i!=null:!!x.dataset.s)x.classList.add("rcr")})}
   var b=e&&e.dataset.i!=null?B[+e.dataset.i]:null,p=P&&P.p,bay=b?b.bay:(p?(p.kind==="f"?p.f:p.kind==="a"?p.a:p.h):""),empty=!!(e&&e.dataset.s);
-  $("rcPos").textContent=e?"BAY "+pad(bay)+"-"+pad(c.row)+"-"+pad(c.tier):"칸을 눌러 주세요";$("rcPos").title="베이 - 로우 - 단";
+var pe=$("rcPos");if(document.activeElement!==pe)pe.value=e?pad(bay)+"-"+pad(c.row)+"-"+pad(c.tier):"";
   info.innerHTML=!e?'<span class="rcn">General Plan 에서 고칠 곳 근처를 누르면 커서가 가요. 화살표로 한 칸씩 맞출 수 있어요.</span>':
     b?'<b>'+esc(b.cntr||"(번호 없음)")+'</b> <span>'+esc(b.pol)+' → '+esc(b.pod)+'</span> <span>'+esc(b.type)+'</span> <span>'+ton(b.kg)+' t</span>'+(st.pick.indexOf(b.i)>=0?' <span class="rch1">집음</span>':'')+(fromOf(b)?' <span class="rcs">S</span>':''):
     '<span class="rcn">빈 칸</span>';
@@ -2693,7 +2709,10 @@ function rcOpen(on){if(on==null)on=!RC.on;if(on&&(!st.plan||st.example||window._
       else if(a==="clr"){st.pick=[];PL.cp=false;RC.anc=null;render();plSay("집은 것을 모두 놓아주었어요.")}else if(a==="bay")rcOpenBay()});
     rcDraw(true)});
   $("rc").addEventListener("change",function(){setTimeout(function(){rcDraw()},0)});
-  $("rc").addEventListener("keydown",function(e){e.stopPropagation();if(e.key==="Enter"&&e.target.blur)e.target.blur()});
+  function rcPosGo(){var pe=$("rcPos"),p=rcParsePos(pe.value);if(p){rcKeep(function(){rcGoto(p.bay,p.row,p.tier)});rcDraw(true)}else if(pe.value.trim())plSay("베이-로우-단 으로 입력해 주세요 (예: 01-04-86).",true)}
+  $("rcPos").addEventListener("keydown",function(e){e.stopPropagation();if(e.key==="Enter"){e.preventDefault();rcPosGo();e.target.blur()}});
+  $("rcPos").addEventListener("change",rcPosGo);
+  $("rc").addEventListener("keydown",function(e){if(e.target.id==="rcPos")return;e.stopPropagation();if(e.key==="Enter"&&e.target.blur)e.target.blur()});
   window.addEventListener("resize",function(){if(RC.on)rcDraw()});
 })();
 // ---------- 폰(터치)에서 플래닝 ----------
