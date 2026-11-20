@@ -2085,8 +2085,12 @@ function addBox(o,t,ent){   // 새 컨테이너를 자리 t 에. ent = 로드리
     else{li=insAt();st.lines.splice(li,0,ent&&ent.raw?putCol(ent.raw,0,6,pos):ascRow(Object.assign({},o,{bay:t.bay,row:t.row,tier:t.tier}),nextSerial(),""));st.orig.splice(li,0,undefined)}
     st.sft=st.sft||{};if(from)st.sft[li]=from;else delete st.sft[li]}
   else{var nb=Object.assign({},o,{bay:t.bay,row:t.row,tier:t.tier});delete nb.li;if(from)nb.from=from;else delete nb.from;st.plan.boxes.push(nb);st.mod=true}}
+// 이 포트에서 싣는 컨테이너인가 (cCASP 의 checkLoadInclusiveShift: POL 이 지금 포트이거나, 여기서 쉬프팅한 것). 여기서 새로 만든 것도 포함.
+// 지금 포트 = 이 플랜의 포트(파일 이름). 포트를 모르면 가릴 수 없어서: 지정·이동은 전부 허용하고, 옮긴 것은 예전처럼 모두 쉬프팅 내역으로 남김.
+function planPort(){return outInfo().port||""}
+function thisPort(b){var me=planPort();return !!me&&(b.pol===me||!!fromOf(b)||isNew(b))}
 function setPos(b,t){   // 실려 있는 컨테이너를 자리 t 로. 원래 자리를 쉬프팅 내역으로 남김(원래 자리로 돌아오면 지움)
-  var old=p6(b.bay,b.row,b.tier),pos=p6(t.bay,t.row,t.tier),from=fromOf(b)||old;if(from===pos)from=null;
+  var old=p6(b.bay,b.row,b.tier),pos=p6(t.bay,t.row,t.tier),from=fromOf(b)||(thisPort(b)?null:old);if(from===pos)from=null;   // cCASP: 이 포트에서 싣는 것을 옮기면 그냥 다시 놓는 것, ROB 를 옮기면 쉬프팅
   if(st.lines){st.lines[b.li]=putCol(st.lines[b.li],0,6,pos);st.sft=st.sft||{};if(from)st.sft[b.li]=from;else delete st.sft[b.li]}
   else{var B=st.plan.boxes,nb=Object.assign({},b,{bay:t.bay,row:t.row,tier:t.tier});if(from)nb.from=from;else delete nb.from;B[B.indexOf(b)]=nb;st.mod=true}}
 function dropBoxes(bx){if(st.lines)bx.forEach(function(b){st.lines[b.li]="";if(st.sft)delete st.sft[b.li]});
@@ -2119,12 +2123,12 @@ function plLoad(G){
   if(f604()&&sel.some(function(e){return !e.raw}))return plSay("옛 CASP($604) 파일에는 새로 만든 로드리스트를 실을 수 없어요.",true);
   plRun(G,is40,function(n){var e=sel[n];if(!e)return null;return function(t){addBox(e.b,t,e);st.ll=st.ll.filter(function(x){return x!==e});PL.lsel=PL.lsel.filter(function(i){return i!==e.id})}},null,"로드리스트에서 실은 컨테이너")}
 function plPicked(){var B=st.plan.boxes;return st.pick.map(function(i){return B[i]}).filter(Boolean).sort(function(a,b){return b.kg-a.kg})}
-function plMove(G){
-  var mv=plPicked();if(!mv.length)return;
+function plMove(G,list){
+  var all=plPicked(),mv=list?all.filter(function(b){return list.indexOf(b)>=0}):all;if(!mv.length)return;
   var is40=mv[0].size===40;if(mv.some(function(b){return (b.size===40)!==is40}))return plSay("20' 와 40' 를 같이 옮길 수는 없어요. 한 크기만 골라 주세요.",true);
   var moved=[];
   if(!plRun(G,is40,function(n){var b=mv[n];if(!b)return null;return function(t){moved.push(b);setPos(b,t)}},mv,"옮긴 컨테이너"))return;
-  var rest=mv.filter(function(b){return moved.indexOf(b)<0}).map(function(b){return st.lines?b.li:b});
+  var rest=all.filter(function(b){return moved.indexOf(b)<0}).map(function(b){return st.lines?b.li:b});
   if(rest.length){st.pick=st.plan.boxes.filter(function(b){return rest.indexOf(st.lines?b.li:b)>=0}).map(function(b){return b.i});PL.cp=st.pick.length>0;render()}}
 function plSwap(hit){
   var A=plPicked(),Bx=hit.filter(function(b){return A.indexOf(b)<0}).sort(function(a,b){return b.kg-a.kg});
@@ -2159,21 +2163,29 @@ function plBack(){   // 로드리스트에 있는 쉬프팅 컨테이너를 원�
   E.forEach(function(e){var fr=e.from,t={bay:+fr.slice(0,2),row:+fr.slice(2,4),tier:+fr.slice(4,6)},k=t.bay+"_"+t.row+"_"+t.tier;
     if(O[k]){no++;return}if(!pushed){pushUndo();pushed=true}O[k]={};addBox(e.b,t,e);st.ll=st.ll.filter(function(x){return x!==e})});
   if(pushed)plDone("원래 자리에 다시 놓은 컨테이너 "+(E.length-no)+" VAN."+(no?" 자리가 차 있어 못 놓은 것 "+no+" VAN.":""));else plSay("원래 자리가 다른 컨테이너로 차 있어요.",true)}
-// cCASP 의 Ctrl 동작 (General Plan · Bay Plan 공통):
-//  지정된 것이 없을 때  Ctrl+왼쪽(클릭·끌기) = 그 컨테이너들을 지정
-//  지정된 것이 있을 때  Ctrl+왼쪽 → 같은 개수·같은 크기의 다른 컨테이너를 눌렀으면 자리 교체(물어봄), 아니면 네모 안의 빈 칸으로 이동, 빈 칸도 없으면 아무 일 없음
-//                     Ctrl+Alt+왼쪽 = 지정에 더하기
-//  Ctrl+오른쪽 = 그 컨테이너 지정 해제, Ctrl+Alt+오른쪽 = 전부 해제
-function plCtrl(btn,alt,G,hit){
-  var B=st.plan.boxes,sel=PL.cp?st.pick.map(function(i){return B[i]}).filter(Boolean):[];
+// cCASP 의 Ctrl 동작 (General Plan · Bay Plan 공통) — cCASP VesselExplorerController.onMouseUpTask 의 'view' 갈래 그대로:
+//  Ctrl+왼쪽(클릭·끌기)   지정된 것이 없으면 그 컨테이너들을 지정.
+//                        지정된 것이 있으면 → 같은 개수·같은 크기의 다른 컨테이너를 눌렀을 때 자리 교체(물어봄), 아니면 네모 안의 빈 칸으로 이동(무거운 것부터), 빈 칸도 없으면 아무 일 없음
+//  Ctrl+Alt+왼쪽          지정에 더하기
+//  Ctrl+오른쪽             그 컨테이너 지정 해제,  Ctrl+Alt+오른쪽 = 전부 해제
+//  Shift 를 같이 누르면     이 포트에서 싣지 않은 컨테이너(ROB)까지 지정·이동. Shift 없이는 ROB 는 지정도 이동도 안 됨. Shift 를 누른 채로는 자리 교체를 하지 않고 이동만 함.
+//                        ROB 를 옮기면 쉬프팅으로 남음(cCASP 는 여기서 Account·Reason 창을 띄우지만 뷰어는 내역만 — 사용자 결정)
+function plCtrl(btn,alt,G,hit,shift){
+  var B=st.plan.boxes,sel=PL.cp?st.pick.map(function(i){return B[i]}).filter(Boolean):[],me=planPort();
+  function ok(b){return !me||thisPort(b)}
   function show(){st.sel=-1;$("sheet").hidden=true;PL.cp=st.pick.length>0;render()}
+  function rob(n){plSay("이 포트("+me+")에서 싣지 않은 컨테이너(ROB) "+n+" VAN 은 Shift 를 같이 눌러야 지정 · 이동돼요 (Ctrl + Shift).",true)}
   if(btn===2){st.pick=alt?[]:st.pick.filter(function(i){return hit.indexOf(B[i])<0});return show()}
-  if(!sel.length){if(!hit.length)return;st.pick=hit.map(function(b){return b.i});return show()}
-  if(alt){hit.forEach(function(b){if(st.pick.indexOf(b.i)<0)st.pick.push(b.i)});return show()}
-  if(hit.length&&hit.length===sel.length&&!hit.some(function(b){return sel.indexOf(b)>=0})&&sel.concat(hit).every(function(b){return b.size===sel[0].size}))
+  var all=hit,no=0;if(!shift){hit=all.filter(ok);no=all.length-hit.length}
+  if(alt){hit.forEach(function(b){if(st.pick.indexOf(b.i)<0)st.pick.push(b.i)});show();if(no)rob(no);return}
+  if(!sel.length){if(hit.length){st.pick=hit.map(function(b){return b.i});show()}if(no)rob(no);return}
+  if(!shift&&hit.length&&hit.length===sel.length&&sel.every(ok)&&!hit.some(function(b){return sel.indexOf(b)>=0})&&sel.concat(hit).every(function(b){return b.size===sel[0].size}))
     return askDo("자리 교체","지정한 컨테이너 "+sel.length+" VAN 과 누른 컨테이너 "+hit.length+" VAN 의 자리를 바꿀까요?\n\n"+vanSum(sel).join("\n")+"\n  ⇅\n"+vanSum(hit).join("\n"),"자리 교체",function(){plSwap(hit)});
-  if(G.length)plMove(G)}
-function plGesture(btn,x1,y1,x2,y2,area,md,alt){
+  var mv=shift?sel:sel.filter(ok);
+  if(!mv.length){if(G.length)rob(sel.length);return}
+  if(G.length){plMove(G,mv);if(mv.length<sel.length)rob(sel.length-mv.length)}
+  else if(no)rob(no)}
+function plGesture(btn,x1,y1,x2,y2,area,md,alt,shift){
   var G=[],boxes=[],B=st.plan.boxes,mode=md||PL.mode;
   function scan(root,sel,p){var cells=[];
     [].forEach.call(root.querySelectorAll(sel),function(c){var r=c.getBoundingClientRect();if(!(r.right>x1&&r.left<x2&&r.bottom>y1&&r.top<y2))return;
@@ -2183,7 +2195,7 @@ function plGesture(btn,x1,y1,x2,y2,area,md,alt){
   if(area&&area.id==="gp")[].forEach.call(area.querySelectorAll(".mini"),function(mi){var Q=PANELS[mi.dataset.go],r=mi.getBoundingClientRect();
     if(Q&&r.right>x1&&r.left<x2&&r.bottom>y1&&r.top<y2)scan(mi,".m",Q.p)});
   else{var Q0=PANELS[st.open];if(!Q0)return;scan($("bwB"),".c",Q0.p)}
-  if(mode==="sel")return plCtrl(btn,alt,G,boxes);
+  if(mode==="sel")return plCtrl(btn,alt,G,boxes,shift);
   if(btn===0){if(mode==="pal")plPaint(G);else if(mode==="ll")plLoad(G);
     else if(mode==="sft"){if(boxes.length)plUnplan(boxes,"쉬프팅으로 빼낸 컨테이너");else plLoad(G)}}   // Shift: 컨테이너를 누르면 빼냄(원래 자리 기억) → 빈 칸을 누르면 다시 실림
   else{if(mode==="pal")plErase(boxes);else if(mode==="ll")plUnplan(boxes);else if(mode==="sft")plUnshift(boxes)}}
@@ -2242,13 +2254,14 @@ function plDraw(){
   document.addEventListener("pointerdown",function(e){
     var ar=zone(e);if(!ar||(e.button!==0&&e.button!==2)||e.target.closest("input,select"))return;
     var box=e.target.closest(".c.b,.m.b"),md="";
-    if(e.ctrlKey||e.metaKey)md="sel";                                          // Ctrl = 지정 · 이동 · 교체 (plCtrl)
+    if((e.ctrlKey||e.metaKey)&&PL.mode!=="sft")md="sel";                       // Ctrl = 지정 · 이동 · 교체 (plCtrl). Shift 모드에서는 cCASP 처럼 Ctrl 을 눌러도 쉬프팅 동작 그대로
+    else if((e.ctrlKey||e.metaKey)&&PL.mode==="sft")md="sft";
     else if(e.button===0){
       if(PL.mode==="sft")md="sft";                                             // Shift 모드: 컨테이너 = 빼내기, 빈 칸 = 다시 싣기
       else if(PL.mode!=="v"&&!box)md=PL.mode;                                  // 싣기 모드: 빈 칸을 누르거나 끌기
       else{if(box){PL.cp=false}return}}                                        // 그 밖은 평소처럼 (컨테이너를 누르면 Container Editor)
     else{if(PL.mode==="v")return;md=PL.mode}                                    // 오른쪽 버튼: 모드가 켜져 있을 때만 가로챔 (보기에서는 평소처럼 삭제)
-    e.stopPropagation();d={x:e.clientX,y:e.clientY,btn:e.button,on:false,a:ar,md:md,alt:e.altKey}},true);
+    e.stopPropagation();d={x:e.clientX,y:e.clientY,btn:e.button,on:false,a:ar,md:md,alt:e.altKey,sh:e.shiftKey}},true);
   document.addEventListener("pointermove",function(e){if(!d)return;e.stopPropagation();
     if(!d.on){if(Math.abs(e.clientX-d.x)<6&&Math.abs(e.clientY-d.y)<6)return;d.on=true;band=document.createElement("div");band.id="band";band.className=d.md==="sel"?(d.btn===0?"add":"off"):(d.btn===0?"add":"del");document.body.appendChild(band);document.body.classList.add("banding")}
     band.style.left=Math.min(d.x,e.clientX)+"px";band.style.top=Math.min(d.y,e.clientY)+"px";band.style.width=Math.abs(e.clientX-d.x)+"px";band.style.height=Math.abs(e.clientY-d.y)+"px";e.preventDefault()},true);
@@ -2257,7 +2270,7 @@ function plDraw(){
     var stop=function(ev){ev.stopPropagation();ev.preventDefault()};
     document.addEventListener("click",stop,true);document.addEventListener("contextmenu",stop,true);
     setTimeout(function(){document.removeEventListener("click",stop,true);document.removeEventListener("contextmenu",stop,true)},350);
-    plGesture(D.btn,Math.min(D.x,e.clientX),Math.min(D.y,e.clientY),Math.max(D.x,e.clientX),Math.max(D.y,e.clientY),D.a,D.md,D.alt)},true);
+    plGesture(D.btn,Math.min(D.x,e.clientX),Math.min(D.y,e.clientY),Math.max(D.x,e.clientX),Math.max(D.y,e.clientY),D.a,D.md,D.alt,D.sh)},true);
   document.addEventListener("pointercancel",function(){if(band){band.remove();band=null}d=null});
 })();
 // ---------- 폰(터치)에서 플래닝 ----------
@@ -3362,6 +3375,7 @@ var KEYS=[
   {keys:["Alt","M"],d:"메일함 열기 · 닫기 — 팀 메일로 온 플랜을 아웃룩에서 바로 열기 (PC 설치판)",code:"KeyM",alt:1,fn:function(){if(window.__MAILSRVJS__&&!window.__STATIC__)mlOpen()}},
   {keys:["Ctrl","클릭"],or:["Ctrl","드래그"],d:"컨테이너 지정 (지정된 것이 없을 때). 지정된 것이 있으면 → 빈 칸 = 그 자리로 이동, 같은 개수의 다른 컨테이너 = 자리 교체(확인 창)"},
   {keys:["Ctrl","Alt","클릭"],or:["Ctrl","Alt","드래그"],d:"지정에 더하기 (여러 개 지정)"},
+  {keys:["Ctrl","Shift","클릭"],or:["Ctrl","Shift","드래그"],d:"이 포트에서 싣지 않은 컨테이너(ROB)까지 지정 · 이동 — Shift 없이는 ROB 는 지정되지 않음. ROB 를 옮기면 쉬프팅(S)으로 남음"},
   {keys:["Ctrl","오른쪽 버튼 클릭"],or:["Ctrl","오른쪽 버튼 드래그"],d:"그 컨테이너 지정 해제"},
   {keys:["Ctrl","Alt","오른쪽 버튼 클릭"],d:"지정 전부 해제"},
   {keys:["오른쪽 버튼 클릭"],d:"그 컨테이너 하나 삭제 (확인 창에서 Enter = 삭제, Esc = 취소)"},
