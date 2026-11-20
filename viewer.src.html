@@ -3011,7 +3011,13 @@ function mlPick(id,i,btn){
 //  · 마감: 전산 화면의 BK/Recalculation 버튼 자체는 읽을 수 없어서(화면 프로그램 안의 것) CBF 확정(Fix) 기록 · 카고 마감 시각 · 메일함의 마감 메일로 판단.
 //    마감으로 보이면 전산의 박스별 로딩리스트(CLL)와 플랜의 컨테이너 번호를 대조해 차이를 알려 줌.
 var CB={},CBK=[["f20","20","F","22GP"],["f40","40","F","42GP"],["fhq","HQ","F","45GP"],["e20","20","E","22GP"],["e40","40","E","42GP"],["ehq","HQ","E","45GP"]],CBTARE={"20":2200,"40":3800,"HQ":3900},CBNAME={"20":"20'","40":"40'","HQ":"HQ"};
-function cbfId(){if(!mlOn()||window.__STATIC__||!st.plan||st.example)return null;var I=outInfo();
+// 입항(W/B) 플랜인지: 한국에서 실은 컨테이너가 하나도 없고, 한국에서 내릴 컨테이너만 있음 (예: 일본 → PUS · PNC).
+// 이런 플랜은 한국 선적 부킹(CBF)과 견줄 것이 없으므로 CBF 조회 · LOAD LIST 맞춤 · 마감 대조를 하지 않음.
+function cbfInbound(){if(!st.plan)return false;var B=st.plan.boxes,memo={},n=0,i;
+  var kr=function(p){p=String(p||"");if(memo[p]===undefined)memo[p]=/^KR/.test(port5(p)||"");return memo[p]};
+  for(i=0;i<B.length;i++){if(kr(B[i].pol))return false;if(kr(B[i].pod))n++}
+  return n>0}
+function cbfId(){if(!mlOn()||window.__STATIC__||!st.plan||st.example||cbfInbound())return null;var I=outInfo();
   if(!I.vsl||!/^\d{3,4}[A-Z]$/.test(I.voy)||!I.port)return null;var p5=port5(I.port);if(!/^[A-Z]{5}$/.test(p5||""))return null;
   return {vsl:I.vsl,voy:I.voy,port:I.port,p5:p5,k:I.vsl+"|"+I.voy+"|"+p5}}
 function cbfSt(){var id=cbfId();if(!id)return null;return CB[id.k]||(CB[id.k]={id:id,d:null,at:0,hist:[],busy:false,err:"",cll:null,cmp:null,mails:null,sync:null})}
@@ -3188,9 +3194,10 @@ function cbfHtml(S){
   if((d.dg||[]).length)h+='<div class="owr"><b>위험물</b><div class="ro">CBF 의 DG '+d.dg.length+'개 : '+d.dg.slice(0,40).map(function(x){return esc(String(x.pod).slice(-3)+" "+x.cls+"/"+x.un+(x.no?" "+x.no:""))}).join(", ")+'</div></div>';
   if(S.err)h+='<div class="own">마지막으로 다시 읽을 때 오류가 있었어요: '+esc(S.err)+'</div>';
   return h}
-function cbfDraw(){var S=cbfSt(),row=$("llC");if(row){row.hidden=!S;if(S){$("cbfS").innerHTML=cbfLine(S)||"CBF 를 아직 안 불러왔어요";$("llChg").checked=!!PL.onlyChg}
+function cbfDraw(){var S=cbfSt(),row=$("llC");if(row){var inb=!S&&mlOn()&&!window.__STATIC__&&cbfInbound(),lb=row.querySelector("label");row.hidden=!S&&!inb;if(lb)lb.hidden=!S;
+    if(inb)$("cbfS").textContent="입항(W/B) 플랜이라 전산 CBF 와 비교하지 않아요";if(S){$("cbfS").innerHTML=cbfLine(S)||"CBF 를 아직 안 불러왔어요";$("llChg").checked=!!PL.onlyChg}
     var P=$("cbfP"),el=S&&PL.cbp?$("cbfS").querySelector('.cbtip[data-k="'+PL.cbp+'"]'):null;if(!el)PL.cbp=null;P.hidden=!el;if(el)P.textContent=el.title}   // 문구를 눌러 펼친 간단 안내 (그리는 동안 숫자가 따라 바뀜)
-  if(!$("cbfV").hidden)$("cbfB").innerHTML=S?cbfHtml(S):'<div class="msgbox">이 플랜은 전산 CBF 를 조회할 수 없어요.<br>PC 설치판에서, 파일 이름으로 선박 · 항차 · 포트를 알 수 있는 플랜만 돼요.</div>'}
+  if(!$("cbfV").hidden)$("cbfB").innerHTML=S?cbfHtml(S):cbfInbound()?'<div class="msgbox"><b>입항(W/B) 플랜이에요.</b><br>한국에서 실은 컨테이너가 없고 한국에서 내릴 컨테이너만 있어서, 한국 선적 부킹(CBF)과는 비교하지 않아요.</div>':'<div class="msgbox">이 플랜은 전산 CBF 를 조회할 수 없어요.<br>PC 설치판에서, 파일 이름으로 선박 · 항차 · 포트를 알 수 있는 플랜만 돼요.</div>'}
 function cbfOpen(on){if(on==null)on=$("cbfV").hidden;$("cbfV").hidden=!on;if(on){var S=cbfSt();if(S&&!S.d&&!S.busy)cbfLoad();cbfDraw()}}
 (function(){
   if(window.__STATIC__||!mlOn())return;
