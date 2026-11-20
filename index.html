@@ -416,7 +416,7 @@ body.planning #gp .m[data-s]{cursor:crosshair}body.planning #gp .m[data-s]:hover
 #llBox .llw{overflow:auto;flex:1 1 auto;min-height:40px}#llT{border-collapse:collapse;width:100%}
 #llT td,#llT th{padding:2px 6px;border-bottom:1px solid #e3e8f0;text-align:left;white-space:nowrap}#llT th{position:sticky;top:0;background:#eef3fa}
 #llT td.n{text-align:right}.lls{display:inline-block;margin-right:4px;padding:0 4px;border-radius:3px;background:#7a00c8;color:#fff;font-size:10px;font-weight:700;line-height:14px;vertical-align:1px}
-.et.pv td.sfc,.et.pv th.sfc{color:#7a00c8;font-weight:700;background:#f7f0ff}.et.pv td.sfc.z{color:#bbb;font-weight:400;cursor:default}.et.sft td.arr{color:#7a00c8;font-weight:700;text-align:center}.et.sft small{color:var(--fg2)}.et.pv td.sfc,.et.pv th.sfc{border-left:3px double #7a00c8}[data-theme="dark"] .et.pv td.sfc,[data-theme="dark"] .et.pv th.sfc{background:#2d2140;color:#cfa6ff}#llT tbody tr{cursor:pointer}#llT tr.on td{background:#ffd9d9}#llT td.msgbox{color:#667;white-space:normal;cursor:default}
+.et.pv td.sfc,.et.pv th.sfc{color:#7a00c8;font-weight:700;background:#f7f0ff}.et.pv td.sfc.z{color:#bbb;font-weight:400;cursor:default}.et.sft td.arr{color:#7a00c8;font-weight:700;text-align:center}.et.sft small{color:var(--fg2)}.et.pv td.sfc,.et.pv th.sfc{border-left:3px double #7a00c8}[data-theme="dark"] .et.pv td.sfc,[data-theme="dark"] .et.pv th.sfc{background:#2d2140;color:#cfa6ff}#cbfPo{font:inherit;font-size:12px;font-weight:700;padding:1px 4px;margin-right:6px;border:1px solid #8a8a8a;border-radius:3px}#llT tbody tr{cursor:pointer}#llT tr.on td{background:#ffd9d9}#llT td.msgbox{color:#667;white-space:normal;cursor:default}
 #llBox .llf{padding:5px 8px;border-top:1px solid var(--edge);color:#445;font-size:11px;line-height:1.35}
 .llp{display:flex;gap:4px 8px;align-items:center;flex-wrap:wrap;padding:4px 8px;border-bottom:1px solid var(--edge);font-size:11.5px}
 .llp #llPv{display:inline-flex;gap:4px 6px;align-items:center;flex-wrap:wrap}.llp #llPv[hidden]{display:none}
@@ -763,7 +763,7 @@ header.win .body{background:#fff}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-20 17:55 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-20 18:01 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -893,7 +893,7 @@ header.win .body{background:#fff}
 <div id="pkTip" hidden role="tooltip"></div>
 <div id="llBox" hidden><div class="llh" title="끌어서 창을 옮길 수 있어요 (두 번 누르면 처음 자리로)"><b id="llTtl">LOAD LIST</b> <span id="llN"></span><span class="sp"></span>
     <button type="button" id="llBack" title="고른 것 중 쉬프팅으로 내린 컨테이너를 원래 자리에 다시 놓아요">원래 자리로</button><button type="button" id="llAll" title="전부 고르기 · 다시 누르면 전부 해제">전체</button><button type="button" id="llAdd" title="조건과 수량으로 로드리스트 만들기">＋ 추가</button></div>
-  <div class="llc" id="llC" hidden><span id="cbfS"></span><label title="CBF 가 바뀌어서 새로 생긴 것만 보기"><input type="checkbox" id="llChg"> 변동분만</label></div>
+  <div class="llc" id="llC" hidden><select id="cbfPo" hidden title="전산 CBF 와 견줄 선적 포트. 이 플랜에 실린 컨테이너의 선적항들이에요 (숫자 = 플랜에 그려진 수)" aria-label="CBF 와 견줄 포트"></select><span id="cbfS"></span><label title="CBF 가 바뀌어서 새로 생긴 것만 보기"><input type="checkbox" id="llChg"> 변동분만</label></div>
   <div id="cbfP" hidden title="누르면 닫혀요"></div>
   <div class="llp" id="llP"><span class="seg"><button type="button" data-lv="p" title="행 × 열 로 묶어서 보기 — 칸을 누르면 그 묶음이 골라져요">피벗</button><button type="button" data-lv="l" title="컨테이너를 한 줄에 하나씩 보기">목록</button></span>
     <span id="llPv">행 <select id="llR"></select> 열 <select id="llK"></select> 값 <select id="llV"><option value="van">Unit</option><option value="teu">TEU</option><option value="kg">무게(t)</option></select> <button type="button" id="llX" title="행과 열 바꾸기">↔</button></span></div>
@@ -3019,14 +3019,31 @@ function cbfInbound(){if(!st.plan)return false;var B=st.plan.boxes,memo={},n=0,i
   var kr=function(p){p=String(p||"");if(memo[p]===undefined)memo[p]=/^KR/.test(port5(p)||"");return memo[p]};
   for(i=0;i<B.length;i++){if(kr(B[i].pol))return false;if(kr(B[i].pod))n++}
   return n>0}
-function cbfId(){if(!mlOn()||window.__STATIC__||!st.plan||st.example||cbfInbound())return null;var I=outInfo();
-  if(!I.vsl||!/^\d{3,4}[A-Z]$/.test(I.voy)||!I.port)return null;var p5=port5(I.port);if(!/^[A-Z]{5}$/.test(p5||""))return null;
-  return {vsl:I.vsl,voy:I.voy,port:I.port,p5:p5,k:I.vsl+"|"+I.voy+"|"+p5}}
+// CBF 와 견줄 포트 = 이 플랜이 싣는 포트. 전산은 어느 포트(일본 등)든 CBF · 부킹 · 로딩리스트를 주므로 한국 포트로 한정하지 않음.
+//  · 파일 이름의 포트에서 실은 컨테이너가 있거나 한국 선적 플랜이면 → 파일 이름의 포트 (지금까지와 같음)
+//  · 입항(W/B) 플랜이면 → 실려 있는 컨테이너의 선적항 가운데 로테이션에서 가장 나중 포트(그 플랜이 떠나는 포트)
+//  · LOAD LIST 창의 포트 칸에서 다른 선적항으로 바꿀 수 있음 (PL.cbPort[파일 이름])
+var CBFRN=false;   // 지금 견주는 포트가 한국 밖인지. 해외 선적분은 전산이 부산을 KRPUS 하나로만 주므로 PNC 를 PUS 로 합쳐 셈
+function cbPod(p){p=String(p||"").slice(-3);return CBFRN&&p==="PNC"?"PUS":p}
+function cbfPorts(){var I=outInfo(),ro=(st.plan.rotation||[]).map(function(x){return String(x).slice(-3)}),c={},L;
+  st.plan.boxes.forEach(function(b){var p=String(b.pol||"").slice(-3);if(p)c[p]=(c[p]||0)+1});
+  if(I.port&&!c[I.port])c[I.port]=0;
+  L=Object.keys(c).sort(function(a,b){var x=ro.indexOf(a),y=ro.indexOf(b);return (x<0?99:x)-(y<0?99:y)||(a<b?-1:1)});
+  return {list:L,n:c,name:I.port,ro:ro}}
+function cbfPort(){var P=cbfPorts(),o=PL.cbPort&&PL.cbPort[st.name];if(o&&P.list.indexOf(o)>=0)return o;
+  var N=P.name;if(N&&(P.n[N]>0||!cbfInbound()))return N;
+  var L=P.list.filter(function(p){return P.n[p]>0});if(!L.length)return N;
+  if(L.some(function(p){return P.ro.indexOf(p)>=0}))return L.filter(function(p){return P.ro.indexOf(p)>=0}).pop();
+  return L.slice().sort(function(a,b){return P.n[b]-P.n[a]})[0]}       // 로테이션을 모르면 가장 많이 실은 포트
+function cbfId(){if(!mlOn()||window.__STATIC__||!st.plan||st.example)return null;var I=outInfo(),port=cbfPort();
+  if(!I.vsl||!/^\d{3,4}[A-Z]$/.test(I.voy)||!port)return null;var p5=port5(port);if(!/^[A-Z]{5}$/.test(p5||""))return null;
+  CBFRN=!/^KR/.test(p5);
+  return {vsl:I.vsl,voy:I.voy,port:port,p5:p5,k:I.vsl+"|"+I.voy+"|"+p5}}
 function cbfSt(){var id=cbfId();if(!id)return null;return CB[id.k]||(CB[id.k]={id:id,d:null,at:0,hist:[],busy:false,err:"",cll:null,cmp:null,mails:null,sync:null})}
 function kindOf(b){return b.size===20?"20":(b.hc||b.len===45?"HQ":"40")}
 function cllKind(t){t=String(t||"");if(!/^[0-9L]/.test(t))return "";return t[0]==="2"?"20":(/^.[56]/.test(t)||t[0]==="L"?"HQ":"40")}
-function cbfKeyOf(b){return String(b.pod).slice(-3)+"|"+kindOf(b)+"|"+(b.fe==="E"?"E":"F")}
-function cbfMap(d){var m={};(d&&d.rows||[]).forEach(function(r){var pod=String(r.pod).slice(-3),emp=0,full=0;
+function cbfKeyOf(b){return cbPod(b.pod)+"|"+kindOf(b)+"|"+(b.fe==="E"?"E":"F")}
+function cbfMap(d){var m={};(d&&d.rows||[]).forEach(function(r){var pod=cbPod(r.pod),emp=0,full=0;
     CBK.forEach(function(k){var n=+r[k[0]]||0;if(k[2]==="E")emp+=n*CBTARE[k[1]];else full+=n});
     var avg=full&&r.gw>emp?(r.gw-emp)/full:0;                                  // 그 줄의 풀 컨테이너 평균 무게(공컨은 자체 무게로 빼고)
     CBK.forEach(function(k){var n=+r[k[0]]||0;if(!n)return;var key=pod+"|"+k[1]+"|"+k[2],o=m[key]||(m[key]={pod:pod,kind:k[1],fe:k[2],type:k[3],n:0,kg:0,lines:{}});
@@ -3057,7 +3074,7 @@ function cllCmp(S){   // 전산 로딩리스트(박스별)와 플랜의 번호 �
   var bx=S.cll&&S.cll.boxes||[],port=S.id.port,B=st.plan.boxes.filter(function(b){return String(b.pol).slice(-3)===port}),by={},seen={},cov={},R={n:bx.length,plan:B.length,noNum:0,ll:0,onlyCll:[],onlyPlan:[],pod:[],type:[],kg:[],other:{}};
   B.forEach(function(b){var n=String(b.cntr||"").replace(/\s/g,"");if(!n){R.noNum++;return}by[n]=b});
   bx.forEach(function(c){var b=by[c.no];if(!b){R.onlyCll.push(c);return}seen[c.no]=1;cov[String(b.line||"").trim()]=1;
-    if(String(b.pod).slice(-3)!==String(c.pod).slice(-3))R.pod.push({no:c.no,a:String(b.pod).slice(-3),b:String(c.pod).slice(-3),i:b.i});
+    if(cbPod(b.pod)!==cbPod(c.pod))R.pod.push({no:c.no,a:String(b.pod).slice(-3),b:String(c.pod).slice(-3),i:b.i});
     var ck=cllKind(c.type);if(ck&&ck!==kindOf(b))R.type.push({no:c.no,a:b.type,b:c.type,i:b.i});
     if(c.kg&&Math.abs(c.kg-b.kg)>=1000)R.kg.push({no:c.no,a:b.kg,b:c.kg,i:b.i})});
   R.numOk=B.length>0&&R.noNum<B.length*0.5;                    // 플랜에 번호가 절반도 안 적혀 있으면(프리 플랜) 번호 대조는 뜻이 없음 → 수량으로만 봄
@@ -3070,7 +3087,7 @@ function cllCmp(S){   // 전산 로딩리스트(박스별)와 플랜의 번호 �
     mine=B.filter(function(b){var l=String(b.line||"").trim();if(l&&!own[l]){R.other[l]=(R.other[l]||0)+1;return false}return true})}
   R.plan=mine.length;
   // 수량 대조(번호가 없어도 되는 것): 양하지 × 크기 × F/E 별로 전산 로딩리스트 수 ↔ 플랜에 그려진 수. 아직 LOAD LIST 에 있는 것은 안 그린 것이므로 없는 것으로 봄(사용자 지시)
-  var ca={},pa={},ks={};bx.forEach(function(c){var k=String(c.pod).slice(-3)+"|"+(cllKind(c.type)||"?")+"|"+c.fe;ca[k]=(ca[k]||0)+1;ks[k]=1});mine.forEach(function(b){var k=cbfKeyOf(b);pa[k]=(pa[k]||0)+1;ks[k]=1});
+  var ca={},pa={},ks={};bx.forEach(function(c){var k=cbPod(c.pod)+"|"+(cllKind(c.type)||"?")+"|"+c.fe;ca[k]=(ca[k]||0)+1;ks[k]=1});mine.forEach(function(b){var k=cbfKeyOf(b);pa[k]=(pa[k]||0)+1;ks[k]=1});
   R.cnt=Object.keys(ks).sort().filter(function(k){return (ca[k]||0)!==(pa[k]||0)}).map(function(k){return {k:k,a:pa[k]||0,b:ca[k]||0}});
   R.diff=R.numOk?R.onlyCll.length+R.onlyPlan.length+R.pod.length+R.type.length:R.cnt.length;return R}
 function cbfFresh(S){if(S.cll&&S.cmp&&st.plan)S.cmp=cllCmp(S);return S.cmp}   // 플랜 · LOAD LIST 가 바뀌었을 수 있으니 대조를 다시
@@ -3089,7 +3106,7 @@ function cbfLive(d,b,c){   // 수량을 실시간 부킹 기준으로 바꿈. b 
   Object.keys(g).forEach(function(k){if(src[g[k].line]==="live")rows.push(g[k])});
   // 저장된 CBF(조회)와 실시간이 다른 곳 = 전산에서 아직 B/K Recalculation 이 안 된 변동분
   var a={},e={},ks={};
-  function add(m,r){K.forEach(function(k,i){var n=+r[k]||0;if(!n)return;var key=r.line+"|"+String(r.pod).slice(-3)+"|"+CBK[i][1]+"|"+CBK[i][2];m[key]=(m[key]||0)+n})}
+  function add(m,r){K.forEach(function(k,i){var n=+r[k]||0;if(!n)return;var key=r.line+"|"+cbPod(r.pod)+"|"+CBK[i][1]+"|"+CBK[i][2];m[key]=(m[key]||0)+n})}
   saved.forEach(function(r){if(src[r.line]==="live")add(a,r)});Object.keys(g).forEach(function(k){if(src[g[k].line]==="live")add(e,g[k])});
   Object.keys(a).concat(Object.keys(e)).forEach(function(k){ks[k]=1});
   Object.keys(ks).sort().forEach(function(k){if((a[k]||0)!==(e[k]||0)){var p=k.split("|");stale.push({line:p[0],pod:p[1],kind:p[2],fe:p[3],a:a[k]||0,b:e[k]||0})}});
@@ -3118,7 +3135,7 @@ function needTxt(key,n){var p=key.split("|");   // "SDJ 40HQ 풀 4대 더 로딩
 function cmpTip(R){   // '로딩리스트와 차이 n건' 에 커서를 올렸을 때: 어느 포트 · 어떤 컨테이너 · 몇 대 더 실어야 하는지만 (사용자 지시)
   var L=[];
   if(R.numOk){var g={},ks=[];
-    R.onlyCll.forEach(function(c){var k=String(c.pod).slice(-3)+"|"+(cllKind(c.type)||"?")+"|"+c.fe;g[k]=(g[k]||0)+1});
+    R.onlyCll.forEach(function(c){var k=cbPod(c.pod)+"|"+(cllKind(c.type)||"?")+"|"+c.fe;g[k]=(g[k]||0)+1});
     R.onlyPlan.forEach(function(b){var k=cbfKeyOf(b);g[k]=(g[k]||0)-1});
     Object.keys(g).sort().forEach(function(k){if(g[k])L.push(needTxt(k,g[k]))});
     if(R.pod.length)L.push("양하지가 전산과 다른 컨테이너 "+R.pod.length+"대");
@@ -3196,10 +3213,12 @@ function cbfHtml(S){
   if((d.dg||[]).length)h+='<div class="owr"><b>위험물</b><div class="ro">CBF 의 DG '+d.dg.length+'개 : '+d.dg.slice(0,40).map(function(x){return esc(String(x.pod).slice(-3)+" "+x.cls+"/"+x.un+(x.no?" "+x.no:""))}).join(", ")+'</div></div>';
   if(S.err)h+='<div class="own">마지막으로 다시 읽을 때 오류가 있었어요: '+esc(S.err)+'</div>';
   return h}
-function cbfDraw(){var S=cbfSt(),row=$("llC");if(row){var inb=!S&&mlOn()&&!window.__STATIC__&&cbfInbound(),lb=row.querySelector("label");row.hidden=!S&&!inb;if(lb)lb.hidden=!S;
-    if(inb)$("cbfS").textContent="입항(W/B) 플랜이라 전산 CBF 와 비교하지 않아요";if(S){$("cbfS").innerHTML=cbfLine(S)||"CBF 를 아직 안 불러왔어요";$("llChg").checked=!!PL.onlyChg}
+function cbfDraw(){var S=cbfSt(),row=$("llC");if(row){row.hidden=!S;
+    if(S){var P=cbfPorts(),po=$("cbfPo");po.hidden=P.list.length<2;
+      if(!po.hidden){var oh=P.list.map(function(p){return '<option value="'+esc(p)+'"'+(p===S.id.port?" selected":"")+'>'+esc(p)+(P.n[p]?" · "+P.n[p]+"대":"")+'</option>'}).join("");if(po.dataset.h!==oh){po.innerHTML=oh;po.dataset.h=oh}po.value=S.id.port}}
+    if(S){$("cbfS").innerHTML=cbfLine(S)||"CBF 를 아직 안 불러왔어요";$("llChg").checked=!!PL.onlyChg}
     var P=$("cbfP"),el=S&&PL.cbp?$("cbfS").querySelector('.cbtip[data-k="'+PL.cbp+'"]'):null;if(!el)PL.cbp=null;P.hidden=!el;if(el)P.textContent=el.title}   // 문구를 눌러 펼친 간단 안내 (그리는 동안 숫자가 따라 바뀜)
-  if(!$("cbfV").hidden)$("cbfB").innerHTML=S?cbfHtml(S):cbfInbound()?'<div class="msgbox"><b>입항(W/B) 플랜이에요.</b><br>한국에서 실은 컨테이너가 없고 한국에서 내릴 컨테이너만 있어서, 한국 선적 부킹(CBF)과는 비교하지 않아요.</div>':'<div class="msgbox">이 플랜은 전산 CBF 를 조회할 수 없어요.<br>PC 설치판에서, 파일 이름으로 선박 · 항차 · 포트를 알 수 있는 플랜만 돼요.</div>'}
+  if(!$("cbfV").hidden)$("cbfB").innerHTML=S?cbfHtml(S):'<div class="msgbox">이 플랜은 전산 CBF 를 조회할 수 없어요.<br>PC 설치판에서, 파일 이름으로 선박 · 항차 · 포트를 알 수 있는 플랜만 돼요.</div>'}
 function cbfOpen(on){if(on==null)on=$("cbfV").hidden;$("cbfV").hidden=!on;if(on){var S=cbfSt();if(S&&!S.d&&!S.busy)cbfLoad();cbfDraw()}}
 (function(){
   if(window.__STATIC__||!mlOn())return;
@@ -3212,6 +3231,8 @@ function cbfOpen(on){if(on==null)on=$("cbfV").hidden;$("cbfV").hidden=!on;if(on)
   $("llChg").onchange=function(){PL.onlyChg=this.checked;plDraw()};
   $("cbfS").addEventListener("click",function(e){var x=e.target.closest(".cbtip");if(x){PL.cbp=PL.cbp===x.dataset.k?null:x.dataset.k;cbfDraw()}});   // 문구를 누르면 그 내용만 간단히 (전체 점검 창은 도구 메뉴의 CBF · 마감 점검)
   $("cbfP").onclick=function(){PL.cbp=null;cbfDraw()};
+  $("cbfPo").addEventListener("change",function(){PL.cbPort=PL.cbPort||{};PL.cbPort[st.name]=this.value;PL.cbp=null;var S=cbfSt();cbfDraw();plDraw();if(S&&!S.d&&!S.busy)cbfLoad()});
+  $("cbfPo").addEventListener("keydown",function(e){e.stopPropagation()});
   setInterval(function(){var S=cbfSt();if(S&&S.d&&!S.busy&&Date.now()-S.at>=600000&&(PL.mode==="ll"||!$("cbfV").hidden))cbfLoad()},30000);   // 10분마다 (로드리스트 모드이거나 점검 창이 열려 있을 때)
 })();
 // ---------- OUTBOUND 메일 작성 (PC 설치판) ----------
