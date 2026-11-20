@@ -268,7 +268,7 @@ body.rcOn .gpw{max-height:max(160px,calc(100vh - 300px));max-height:max(160px,ca
 #rc .rcbig{grid-template-columns:1fr}#rc .rcbig button{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:1px;padding:0 12px;font-size:15px;text-align:left;background:#0b3f94;color:#fff;border-color:#0b3f94}
 #rc .rcbig button small{font-weight:400;font-size:11px;opacity:.9}#rc .rcbig button:nth-child(2){background:#0a7a2f;border-color:#0a7a2f}#rc .rcbig button:nth-child(3){background:#7a4b00;border-color:#7a4b00}
 #rc .rcb button.rcm{background:#e9edf3;color:#111;font-size:13px}#rc #rcDelB{color:#c50f1f;border-color:#c50f1f}#rc #rcPaintB,#rc #rcLoadB{background:#0b3f94;color:#fff;border-color:#0b3f94}
-#rc #rcMirB[aria-pressed="true"]{background:#0b3f94;color:#fff}
+#rc #rcMirB[aria-pressed="true"],#rc #rcMirB2[aria-pressed="true"]{background:#0b3f94;color:#fff}
 #rc .rcx{padding:2px 10px 4px;font-size:12.5px;line-height:30px}#rc .rcx select,#rc .rcx input{font:inherit;font-size:14px;height:30px;border:1px solid var(--edge);border-radius:6px;background:#fff;color:#000;margin:0 5px 0 2px;vertical-align:middle;padding:0 3px}#rc .rcx input{width:52px;font-size:13px}#rc .rcx select{font-size:13px}#rc .rcx input.w{width:40px}#rc .rcx .plBrush{font-size:11.5px;display:inline-flex;flex-wrap:nowrap;align-items:center;white-space:nowrap}#rc .rcx .plBrush[hidden]{display:none}
 #rc .rcg{display:flex;gap:6px;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch}#rc .rcg button{flex:none;font:inherit;font-size:12.5px;height:32px;padding:0 10px;border:1px solid var(--edge);border-radius:16px;background:#fff;color:#111}#rc .rcg button.on{background:#7a4b00;color:#fff;border-color:#7a4b00}
 #rc .rcg .rcn{color:var(--fg2);white-space:normal;line-height:1.4}
@@ -776,7 +776,7 @@ header.win .body{background:#fff}
         <button class="btn" id="edBtn" type="button" aria-pressed="false" title="컨테이너 목록(Editor)과 집계표(Pivot) 창을 켜고 꺼요 (Alt + E)">EDITOR / PIVOT</button>
         <button class="btn" id="cbfBtn" type="button" hidden title="전산 부킹(B/K) · CBF 와 플랜 대조, 변동분, 마감 점검을 한 창에서 봐요">CBF · 마감 점검</button></div></span>
       <span class="pltop" id="plTop"><span class="seg plModes"><button type="button" data-pm="v" title="보기만 (플래닝 끔)">보기</button><button type="button" data-pm="ll" title="Planning by Load List (Alt + S)">로드리스트</button><button type="button" data-pm="pal" title="Planning by Palette (Alt + Q)">팔레트</button><button type="button" data-pm="sft" title="Shift Mode (Alt + W) — 컨테이너를 눌러 빼낸 뒤 다른 자리에 다시 싣기">Shift</button></span>
-    <span class="seg plMir"><button type="button" data-mir="S" title="Single — 누른 칸에만 (Alt + Z)">S</button><button type="button" data-mir="2FA" title="Mirror for Fore and Aft — 같은 해치의 앞·뒤 20' 베이에 같이 싣고, 지울 때도 같이 지워요 (Alt + C)">2F/A</button></span></span>
+    <span class="seg plMir"><button type="button" data-mir="S" title="Single — 누른 칸에만 (Alt + Z)">S</button><button type="button" data-mir="2FA" title="Mirror for Fore and Aft — 같은 해치의 앞·뒤 20' 베이에 같이 싣고, 옮기거나 지울 때도 같이 해요 (Alt + C)">2F/A</button></span></span>
       <span class="mn" data-mn="etc"><button class="btn mnb" type="button" aria-haspopup="true" aria-expanded="false" title="단축키 모음 · 화면 설정">도움말 · 설정</button><div class="mnp" hidden role="menu">
         <button class="btn" id="helpBtn" type="button" title="단축키 모음 (F1)">도움말</button>
         <button class="btn" id="setBtn" type="button" title="화면 밝게 · 어둡게 등">설정</button>
@@ -908,7 +908,7 @@ header.win .body{background:#fff}
       <button type="button" data-rc="m-ll">LOAD LIST MODE<small>로드리스트에서 싣기</small></button></div>
     <div class="rcact" id="rcMv" hidden><button type="button" data-rc="pick" id="rcPickB">집기</button><button type="button" data-rc="drop" id="rcDropB">놓기</button><button type="button" data-rc="swap" id="rcSwapB" title="집은 컨테이너와 커서의 컨테이너 자리를 바꿔요">바꾸기</button>
       <button type="button" data-rc="down" id="rcDownB" title="로드리스트로 내려요">내리기</button><button type="button" data-rc="clr" id="rcClrB" title="집은 것을 모두 놓아줘요">집은 것 해제</button><button type="button" data-rc="multi" id="rcMulB" title="한 번 누르면 시작 칸, 커서를 옮기고 한 번 더 누르면 그 사이 네모 전체">여러 개 집기</button>
-      <button type="button" data-rc="del" id="rcDelB" title="커서의 컨테이너(집은 것이 있으면 집은 것 전부)를 지워요. 지우기 전에 한 번 물어봐요">삭제</button><span></span><button type="button" data-rc="menu" class="rcm">‹ 메뉴</button></div>
+      <button type="button" data-rc="del" id="rcDelB" title="커서의 컨테이너(집은 것이 있으면 집은 것 전부)를 지워요. 지우기 전에 한 번 물어봐요">삭제</button><button type="button" data-rc="mir" id="rcMirB2" aria-pressed="false" title="20' 를 옮기거나 내릴 때 같은 해치 반대쪽 20' 베이의 같은 자리 컨테이너도 같이">2F/A</button><button type="button" data-rc="menu" class="rcm">‹ 메뉴</button></div>
     <div class="rcact" id="rcPal" hidden><button type="button" data-rc="paint" id="rcPaintB" title="위 조건으로 커서의 빈 칸에 새 컨테이너를 만들어요">만들기</button><button type="button" data-rc="multi" id="rcPalMulB">여러 칸에 만들기</button><button type="button" data-rc="erase" id="rcEraseB" title="여기서 새로 만든 컨테이너만 지워요">지우기</button>
       <button type="button" data-rc="mir" id="rcMirB" aria-pressed="false" title="20' 를 만들거나 지울 때 같은 해치 반대쪽 20' 베이에도 같이">2F/A</button><span></span><button type="button" data-rc="menu" class="rcm">‹ 메뉴</button></div>
     <div class="rcact" id="rcLl" hidden><button type="button" data-rc="load" id="rcLoadB" title="고른 묶음에서 무거운 것부터 커서의 빈 칸에 실어요">싣기</button><button type="button" data-rc="multi" id="rcLlMulB">여러 칸에 싣기</button><button type="button" data-rc="lldown" id="rcLlDownB" title="커서의 컨테이너를 로드리스트로 내려요">내리기</button>
@@ -2307,12 +2307,25 @@ function plLoad(G){
   if(R.done.length)plDone("로드리스트에서 실은 컨테이너 "+R.done.length+" VAN."+(left?" 못 실은 "+left+" VAN 은 LOAD LIST 에 고른 채로 있어요"+(R.skip.length?" (그중 "+R.skip.length+" VAN 은 놓으려던 칸이 규칙에 걸려 건너뜀)":"")+".":"")+(R.no?" 지나간 자리: "+R.no+".":"")+" Alt + 3 으로 되돌릴 수 있어요.");
   else plSay(R.no?"실을 수 있는 자리가 없어요 ("+R.no+").":"빈 칸을 누르거나 끌어 주세요.",true)}
 function plPicked(){var B=st.plan.boxes;return st.pick.map(function(i){return B[i]}).filter(Boolean).sort(function(a,b){return b.kg-a.kg})}
-function plMove(G,list){
+function plMove(G,list,rob){   // rob = ROB(이 포트에서 싣지 않은 것)도 짝으로 같이 옮겨도 되는지 (PC 는 Shift 를 눌렀을 때, 리모컨은 늘)
   var all=plPicked(),mv=list?all.filter(function(b){return list.indexOf(b)>=0}):all;if(!mv.length)return;
-  var R=plRunMix(G,mv,function(b){return b.size},function(b,t){setPos(b,t)},mv),moved=R.done,left=mv.length-moved.length;
+  // 2F/A 로 옮기기(사용자 지시): 20' 를 옮기면 같은 해치 반대쪽 20' 베이 · 같은 로우 · 같은 단의 20'(짝)도, 옮겨 간 자리의 반대쪽 베이 같은 자리로 같이 옮김.
+  // 고른 것부터 평소대로 옮기고(이때는 한 칸에 하나씩), 그다음 짝을 하나씩 따라 보냄 — 짝이 갈 자리가 규칙에 걸리면 그 짝만 제자리에 둠.
+  var mir=PL.mir==="2FA",pr={},tw=new Map(),to=new Map(),O0=mir?occMap():null,me=planPort();
+  if(mir){Object.keys(PANELS).forEach(function(k){var p=PANELS[k].p;if(p&&p.f!=null&&p.a!=null&&p.f!==p.a){pr[p.f]=p.a;pr[p.a]=p.f}});
+    mv.forEach(function(b){if(b.size!==20||pr[b.bay]==null)return;var o=O0[pr[b.bay]+"_"+b.row+"_"+b.tier];if(o&&o.size===20&&mv.indexOf(o)<0&&(rob||!me||thisPort(o)))tw.set(b,o)})}
+  PL.mir="S";var R;try{R=plRunMix(G,mv,function(b){return b.size},function(b,t){setPos(b,t);to.set(b,t)},mv)}finally{PL.mir=mir?"2FA":"S"}
+  var moved=R.done,left=mv.length-moved.length;
   if(!moved.length)return plSay(R.no?"옮길 수 있는 자리가 없어요 ("+R.no+").":"빈 칸을 누르거나 끌어 주세요.",true);
-  var rest=all.filter(function(b){return moved.indexOf(b)<0}).map(function(b){return st.lines?b.li:b});
-  plDone("옮긴 컨테이너 "+moved.length+" VAN ("+vanSum(moved).join(", ")+")."+(left?" 못 옮긴 "+left+" VAN 은 지정된 채로 있어요"+(R.skip.length?" (그중 "+R.skip.length+" VAN 은 놓으려던 칸이 규칙에 걸려 건너뜀)":"")+" — 빈 칸을 다시 끌어 주세요.":"")+(R.no?" 지나간 자리: "+R.no+".":"")+" Alt + 3 으로 되돌릴 수 있어요.");
+  var twOk=[],twNo=0;
+  if(mir&&tw.size){var going=[];moved.forEach(function(b){if(tw.has(b))going.push(tw.get(b))});
+    var O=occMap(mv.concat(going));mv.forEach(function(b){var t=to.get(b);if(t)O[t.bay+"_"+t.row+"_"+t.tier]={};else O[b.bay+"_"+b.row+"_"+b.tier]=b});   // 고른 것들이 옮겨 간 뒤의 모습
+    moved.slice().sort(function(x,y){return to.get(x).tier-to.get(y).tier}).forEach(function(b){var o=tw.get(b);if(!o)return;var t=to.get(b),t2={H:t.H,bay:pr[t.bay],row:t.row,tier:t.tier};
+      var w=t2.bay==null?"짝 베이 없음":whyNot(false,t2.H,t2.bay,t2.row,t2.tier,O);
+      if(w){twNo++;O[o.bay+"_"+o.row+"_"+o.tier]=o;return}
+      setPos(o,t2);O[t2.bay+"_"+t2.row+"_"+t2.tier]={};twOk.push(o)})}
+  var rest=all.filter(function(b){return moved.indexOf(b)<0}).map(function(b){return st.lines?b.li:b}),allMoved=moved.concat(twOk);
+  plDone("옮긴 컨테이너 "+allMoved.length+" VAN ("+vanSum(allMoved).join(", ")+")"+(twOk.length?" — 2F/A 짝 "+twOk.length+" VAN 포함":"")+"."+(twNo?" 짝 "+twNo+" VAN 은 반대쪽 자리가 안 돼서 그대로 뒀어요.":"")+(left?" 못 옮긴 "+left+" VAN 은 지정된 채로 있어요"+(R.skip.length?" (그중 "+R.skip.length+" VAN 은 놓으려던 칸이 규칙에 걸려 건너뜀)":"")+" — 빈 칸을 다시 끌어 주세요.":"")+(R.no?" 지나간 자리: "+R.no+".":"")+" Alt + 3 으로 되돌릴 수 있어요.");
   if(rest.length){st.pick=st.plan.boxes.filter(function(b){return rest.indexOf(st.lines?b.li:b)>=0}).map(function(b){return b.i});PL.cp=st.pick.length>0;render()}}
 function plSwap(hit){
   var A=plPicked(),Bx=hit.filter(function(b){return A.indexOf(b)<0}).sort(function(a,b){return b.kg-a.kg});
@@ -2372,7 +2385,7 @@ function plCtrl(btn,alt,G,hit,shift,i0){
     return askDo("자리 교체","지정한 컨테이너 "+sel.length+" VAN 과 누른 컨테이너 "+hit.length+" VAN 의 자리를 바꿀까요?\n\n"+vanSum(sel).join("\n")+"\n  ⇅\n"+vanSum(hit).join("\n"),"자리 교체",function(){plSwap(hit)});
   var mv=shift?sel:sel.filter(ok);
   if(!mv.length){if(G.length){rob(sel.length);plSay(notes.join("  "),true)}return}
-  if(G.length){plMove(G,mv);if(mv.length<sel.length){notes=[];rob(sel.length-mv.length);plSay(notes.join("  "),true)}}
+  if(G.length){plMove(G,mv,shift);if(mv.length<sel.length){notes=[];rob(sel.length-mv.length);plSay(notes.join("  "),true)}}
   else if(no){notes=[];rob(no);plSay(notes.join("  "),true)}}
 function plMirBoxes(bx){   // 2F/A 로 지우기(사용자 지시): 고른 20' 컨테이너와 같은 해치의 반대쪽 20' 베이 · 같은 로우 · 같은 단에 있는 20' 도 같이. 싣기의 2F/A 와 같은 짝(p.f ↔ p.a)
   if(PL.mir!=="2FA"||!bx.length)return bx;var pair={},O=occMap(),out=bx.slice();
@@ -2581,7 +2594,7 @@ function rcMulti(kind){   // kind: pick(컨테이너 집기) · drop(집은 것 
   R.forEach(function(e){if(!e.dataset.s)return;var go=e.closest(".mini").dataset.go,q=e.dataset.s.split("_");if(!PANELS[go])return;if(!G[go]){G[go]={p:PANELS[go].p,cells:[]};order.push(go)}G[go].cells.push({row:+q[0],tier:+q[1]})});
   var L=order.map(function(g){G[g].cells.sort(function(a,b){return a.tier-b.tier||a.row-b.row});return G[g]});
   if(!L.length)return plSay("고른 범위에 빈 칸이 없어요.",true);
-  if(kind==="drop"){if(!st.pick.length)return plSay("집은 컨테이너가 없어요.",true);return plMove(L)}
+  if(kind==="drop"){if(!st.pick.length)return plSay("집은 컨테이너가 없어요.",true);return plMove(L,null,true)}
   if(kind==="paint")return plPaint(L);
   if(kind==="load"){if(!(st.ll||[]).length)return plSay("LOAD LIST 가 비어 있어요.",true);PL.lsel=rcLlIds();return plLoad(L)}}
 // ----- CNTR MOVE
@@ -2591,13 +2604,13 @@ function rcPick(){var b=rcBox();if(!b)return plSay("빈 칸이에요. 컨테이�
 function rcDrop(){   // 집은 것을 커서의 빈 칸으로
   if(!rcEmpty())return plSay(rcBox()?"이 칸에는 컨테이너가 있어요. 빈 칸으로 가거나 '바꾸기'를 눌러 주세요.":"커서를 빈 칸에 놓아 주세요.",true);
   if(!st.pick.length)return plSay("먼저 옮길 컨테이너를 집어 주세요.",true);
-  var n0=st.pick.length,c0=RC.cur;plMove(rcG());if(st.pick.length&&st.pick.length<n0)rcUp(c0)}
+  var n0=st.pick.length,c0=RC.cur;plMove(rcG(),null,true);if(st.pick.length&&st.pick.length<n0)rcUp(c0)}
 function rcSwap(){var b=rcBox(),A=plPicked();if(!b)return plSay("바꿀 상대 컨테이너가 있는 칸으로 가 주세요.",true);
   if(!A.length)return plSay("먼저 컨테이너 하나를 집고, 바꿀 컨테이너로 가서 눌러 주세요.",true);
   if(A.indexOf(b)>=0)return plSay("집은 컨테이너예요. 다른 컨테이너로 가 주세요.",true);
   if(A.length!==1)return plSay("바꾸기는 하나를 집었을 때만 돼요 (지금 "+A.length+"개).",true);
   plSwap([b])}
-function rcDown(){var b=rcBox(),A=plPicked();if(A.length)return plUnplan(A);if(b)return plUnplan([b]);plSay("내릴 컨테이너가 없어요.",true)}
+function rcDown(){var b=rcBox(),A=plPicked();if(A.length)return plUnplan(plMirBoxes(A));if(b)return plUnplan(plMirBoxes([b]));plSay("내릴 컨테이너가 없어요.",true)}
 function rcDel(){var b=rcBox(),ids=st.pick.length?st.pick.slice():(b?[b.i]:[]);if(!ids.length)return plSay("지울 컨테이너가 없어요. 컨테이너가 있는 칸으로 가거나 먼저 집어 주세요.",true);askDel(ids)}   // 물어본 뒤 지움 (되돌리기 가능)
 // ----- PALETTE MODE · LOAD LIST MODE
 function rcPaint(){if(!rcEmpty())return plSay("커서를 빈 칸에 놓아 주세요.",true);var c0=RC.cur,n0=st.plan.boxes.length;plPaint(rcG());if(st.plan.boxes.length>n0)rcUp(c0)}
@@ -2626,7 +2639,7 @@ function rcDraw(scroll){   // render() 뒤마다: 커서 표시 · 정보 줄 ·
   var anc=!!RC.anc,k=RC.ancKind;
   if(m==="mv"){$("rcPickB").textContent=b&&st.pick.indexOf(b.i)>=0?"놓아주기":"집기";$("rcPickB").disabled=!b;$("rcDropB").disabled=!(empty&&held.length);$("rcSwapB").disabled=!(b&&held.length===1&&held[0]!==b);
     $("rcDownB").disabled=!(b||held.length);$("rcClrB").disabled=!(held.length||anc);$("rcDelB").disabled=!(b||held.length);
-    $("rcMulB").textContent=anc?(k==="drop"?"여기까지 놓기":"여기까지 집기"):(held.length?"여러 칸에 놓기":"여러 개 집기");$("rcMulB").classList.toggle("on",anc);$("rcMulB").disabled=!e}
+    $("rcMulB").textContent=anc?(k==="drop"?"여기까지 놓기":"여기까지 집기"):(held.length?"여러 칸에 놓기":"여러 개 집기");$("rcMulB").classList.toggle("on",anc);$("rcMulB").disabled=!e;$("rcMirB2").setAttribute("aria-pressed",PL.mir==="2FA")}
   if(m==="pal"){$("rcPaintB").disabled=!empty;$("rcEraseB").disabled=!b;$("rcPalMulB").textContent=anc?"여기까지 만들기":"여러 칸에 만들기";$("rcPalMulB").classList.toggle("on",anc);$("rcPalMulB").disabled=!e;$("rcMirB").setAttribute("aria-pressed",PL.mir==="2FA")}
   if(m==="ll"){var G=tGroups();if(RC.grp&&!G.some(function(g){return g.k===RC.grp}))RC.grp="";
     $("rcLlT").innerHTML=G.length?'<button type="button" data-g=""'+(RC.grp?'':' class="on"')+'>전체 '+LL.length+'</button>'+G.map(function(g){return '<button type="button" data-g="'+esc(g.k)+'"'+(g.k===RC.grp?' class="on"':'')+'>'+esc(g.pol+"→"+g.pod+" "+g.type)+' <b>'+g.ids.length+'</b></button>'}).join(""):'<span class="rcn">LOAD LIST 가 비어 있어요. 아래 ‘내리기’로 컨테이너를 내리면 여기에 묶음으로 나와요.</span>';
@@ -2657,7 +2670,7 @@ function rcOpen(on){if(on==null)on=!RC.on;if(on&&(!st.plan||st.example||window._
       else if(a==="m-mv"||a==="m-pal"||a==="m-ll")rcMode(a.slice(2));else if(a==="menu")rcMode("");
       else if(a==="pick")rcPick();else if(a==="drop")rcDrop();else if(a==="swap")rcSwap();else if(a==="down")rcDown();else if(a==="del")rcDel();
       else if(a==="multi")rcMulti(RC.m==="pal"?"paint":RC.m==="ll"?"load":(st.pick.length?"drop":"pick"));
-      else if(a==="paint")rcPaint();else if(a==="erase")rcErase();else if(a==="mir"){PL.mir=PL.mir==="2FA"?"S":"2FA";plDraw();plSay(PL.mir==="2FA"?"2F/A 켬: 20' 를 만들거나 지우면 같은 해치 반대쪽 20' 베이에도 같이 돼요.":"2F/A 끔 (누른 칸에만).")}
+      else if(a==="paint")rcPaint();else if(a==="erase")rcErase();else if(a==="mir"){PL.mir=PL.mir==="2FA"?"S":"2FA";plDraw();plSay(PL.mir==="2FA"?"2F/A 켬: 20' 를 옮기거나 만들거나 내리면 같은 해치 반대쪽 20' 베이에도 같이 돼요.":"2F/A 끔 (누른 칸에만).")}
       else if(a==="load")rcLoad();else if(a==="lldown"){var bb=rcBox();if(bb)plUnplan([bb])}
       else if(a==="undo"){var nU=st.undo?st.undo.length:0;RC.anc=null;undo();plSay(nU?"한 단계 되돌렸어요.":"되돌릴 것이 없어요.",!nU)}
       else if(a==="clr"){st.pick=[];PL.cp=false;RC.anc=null;render();plSay("집은 것을 모두 놓아주었어요.")}else if(a==="bay")rcOpenBay()});
@@ -3996,7 +4009,7 @@ var KEYS=[
   {keys:["Alt","Q"],d:"팔레트로 싣기 (Planning by Palette) 켜기 · 끄기 — General Plan · Bay Plan",code:"KeyQ",alt:1,plan:1,fn:function(){plMode("pal")}},
   {keys:["Alt","W"],d:"Shift 모드 켜기 · 끄기 — 컨테이너를 눌러 빼내고 빈 칸에 다시 싣기, 오른쪽 버튼 = 쉬프팅 취소",code:"KeyW",alt:1,plan:1,fn:function(){plMode("sft")}},
   {keys:["Alt","Z"],d:"미러 끄기 (Single)",code:"KeyZ",alt:1,plan:1,fn:function(){plMir("S")}},
-  {keys:["Alt","C"],d:"미러 2F/A — 같은 해치의 앞·뒤 20' 베이에 같이 싣기 · 지우기",code:"KeyC",alt:1,plan:1,fn:function(){plMir("2FA")}},
+  {keys:["Alt","C"],d:"미러 2F/A — 같은 해치의 앞·뒤 20' 베이에 같이 싣기 · 옮기기 · 지우기",code:"KeyC",alt:1,plan:1,fn:function(){plMir("2FA")}},
   {keys:["Shift","클릭"],d:"Editor 목록에서 범위로 고르기 · 열 제목은 여러 열 정렬"},
   {keys:["Alt","휠"],d:"General Plan 확대 · 축소"},
   {keys:["더블클릭"],d:"베이를 Bay Plan 창으로 열기"},
