@@ -739,7 +739,7 @@ header.win .body{background:#fff}
         <button class="btn" id="edBtn" type="button" aria-pressed="false" title="컨테이너 목록(Editor)과 집계표(Pivot) 창을 켜고 꺼요 (Alt + E)">EDITOR / PIVOT</button>
         <button class="btn" id="cbfBtn" type="button" hidden title="전산 부킹(B/K) · CBF 와 플랜 대조, 변동분, 마감 점검을 한 창에서 봐요">CBF · 마감 점검</button></div></span>
       <span class="pltop" id="plTop"><span class="seg plModes"><button type="button" data-pm="v" title="보기만 (플래닝 끔)">보기</button><button type="button" data-pm="ll" title="Planning by Load List (Alt + S)">로드리스트</button><button type="button" data-pm="pal" title="Planning by Palette (Alt + Q)">팔레트</button><button type="button" data-pm="sft" title="Shift Mode (Alt + W) — 컨테이너를 눌러 빼낸 뒤 다른 자리에 다시 싣기">Shift</button></span>
-    <span class="seg plMir"><button type="button" data-mir="S" title="Single — 누른 칸에만 (Alt + Z)">S</button><button type="button" data-mir="2FA" title="Mirror for Fore and Aft — 같은 해치의 앞·뒤 20' 베이에 같이 (Alt + C)">2F/A</button></span></span>
+    <span class="seg plMir"><button type="button" data-mir="S" title="Single — 누른 칸에만 (Alt + Z)">S</button><button type="button" data-mir="2FA" title="Mirror for Fore and Aft — 같은 해치의 앞·뒤 20' 베이에 같이 싣고, 지울 때도 같이 지워요 (Alt + C)">2F/A</button></span></span>
       <span class="mn" data-mn="etc"><button class="btn mnb" type="button" aria-haspopup="true" aria-expanded="false" title="단축키 모음 · 화면 설정">도움말 · 설정</button><div class="mnp" hidden role="menu">
         <button class="btn" id="helpBtn" type="button" title="단축키 모음 (F1)">도움말</button>
         <button class="btn" id="setBtn" type="button" title="화면 밝게 · 어둡게 등">설정</button>
@@ -2312,6 +2312,11 @@ function plCtrl(btn,alt,G,hit,shift,i0){
   if(!mv.length){if(G.length){rob(sel.length);plSay(notes.join("  "),true)}return}
   if(G.length){plMove(G,mv);if(mv.length<sel.length){notes=[];rob(sel.length-mv.length);plSay(notes.join("  "),true)}}
   else if(no){notes=[];rob(no);plSay(notes.join("  "),true)}}
+function plMirBoxes(bx){   // 2F/A 로 지우기(사용자 지시): 고른 20' 컨테이너와 같은 해치의 반대쪽 20' 베이 · 같은 로우 · 같은 단에 있는 20' 도 같이. 싣기의 2F/A 와 같은 짝(p.f ↔ p.a)
+  if(PL.mir!=="2FA"||!bx.length)return bx;var pair={},O=occMap(),out=bx.slice();
+  Object.keys(PANELS).forEach(function(k){var p=PANELS[k].p;if(p&&p.f!=null&&p.a!=null&&p.f!==p.a){pair[p.f]=p.a;pair[p.a]=p.f}});
+  bx.forEach(function(b){if(b.size!==20||pair[b.bay]==null)return;var o=O[pair[b.bay]+"_"+b.row+"_"+b.tier];if(o&&o.size===20&&out.indexOf(o)<0)out.push(o)});
+  return out}
 function plGesture(btn,x1,y1,x2,y2,area,md,alt,shift,i0){
   var G=[],boxes=[],B=st.plan.boxes,mode=md||PL.mode;
   function scan(root,sel,p){var cells=[];
@@ -2324,8 +2329,8 @@ function plGesture(btn,x1,y1,x2,y2,area,md,alt,shift,i0){
   else{var Q0=PANELS[st.open];if(!Q0)return;scan($("bwB"),".c",Q0.p)}
   if(mode==="sel")return plCtrl(btn,alt,G,boxes,shift,i0);
   if(btn===0){if(mode==="pal")plPaint(G);else if(mode==="ll")plLoad(G);
-    else if(mode==="sft"){if(boxes.length)plUnplan(boxes,"쉬프팅으로 빼낸 컨테이너",true);else plLoad(G)}}   // Shift: 컨테이너를 누르면 빼냄(원래 자리 기억) → 빈 칸을 누르면 다시 실림
-  else{if(mode==="pal")plErase(boxes);else if(mode==="ll")plUnplan(boxes);else if(mode==="sft")plUnshift(boxes)}}
+    else if(mode==="sft"){if(boxes.length)plUnplan(plMirBoxes(boxes),"쉬프팅으로 빼낸 컨테이너",true);else plLoad(G)}}   // Shift: 컨테이너를 누르면 빼냄(원래 자리 기억) → 빈 칸을 누르면 다시 실림
+  else{if(mode==="pal")plErase(plMirBoxes(boxes));else if(mode==="ll")plUnplan(plMirBoxes(boxes));else if(mode==="sft")plUnshift(boxes)}}   // 지우기 · 내리기도 2F/A 를 따름. 쉬프팅 취소는 누른 것만
 function plMode(m){if(window.__STATIC__||!st.plan||st.example)return;PL.mode=PL.mode===m?"v":m;
   if(PL.mode==="pal")palFill();
   plDraw();
@@ -2496,7 +2501,7 @@ function tDraw(){
     if(T.tool==="load")palFill();
     if(T.tool==="load"&&!(st.ll||[]).length)T.src="pal";
     render()});
-  $("tpMir").onclick=function(){PL.mir=PL.mir==="2FA"?"S":"2FA";plDraw();plSay(PL.mir==="2FA"?"2F/A 켬: 20' 를 실으면 같은 해치 반대쪽 20' 베이에도 같이 실려요.":"미러 끔 (Single).")};
+  $("tpMir").onclick=function(){PL.mir=PL.mir==="2FA"?"S":"2FA";plDraw();plSay(PL.mir==="2FA"?"2F/A 켬: 20' 를 싣거나 내리면 같은 해치 반대쪽 20' 베이에도 같이 돼요.":"미러 끔 (Single).")};
   $("tpU").onclick=function(){PL.t.marks=[];undo();var n=$("note");plSayKeep(n&&!n.hidden?n.textContent:"")};
   function plSayKeep(m){var t=$("tpM");t.textContent=m;t.className="tpm";t.hidden=!m;clearTimeout(PL.tm);if(m)PL.tm=setTimeout(function(){t.hidden=true},4000)}
   $("tpS").onclick=function(){if(PL.t.tool==="load"){PL.t.open=!PL.t.open;tDraw()}};
@@ -2507,7 +2512,7 @@ function tDraw(){
       if(T.src==="ll"){var g=tGroups().filter(function(x){return x.k===T.grp})[0];if(!g){T.open=true;tDraw();return plSay("위 서랍에서 실을 묶음을 먼저 골라 주세요.",true)}PL.lsel=g.ids.slice();T.marks=[];plLoad([{p:Q.p,cells:cells}])}
       else{T.marks=[];plPaint([{p:Q.p,cells:cells}])}
       if(!$("tpl").hidden)tDraw()}
-    else if(T.tool==="unload"){var B=st.plan.boxes;plUnplan(st.pick.map(function(i){return B[i]}).filter(Boolean))}
+    else if(T.tool==="unload"){var B=st.plan.boxes;plUnplan(plMirBoxes(st.pick.map(function(i){return B[i]}).filter(Boolean)))}
     else if(T.tool==="move"){T.marks=[];plMove([{p:Q.p,cells:cells}])}};
   $("tpD").addEventListener("click",function(e){var T=PL.t,a=e.target.closest("[data-ts]"),g=e.target.closest("[data-tg]"),c=e.target.closest("[data-tb]");
     if(a){T.src=a.dataset.ts;tDraw()}else if(g){T.grp=T.grp===g.dataset.tg?"":g.dataset.tg;if(T.grp)T.open=false;tDraw()}
@@ -3785,7 +3790,7 @@ var KEYS=[
   {keys:["Alt","Q"],d:"팔레트로 싣기 (Planning by Palette) 켜기 · 끄기 — General Plan · Bay Plan",code:"KeyQ",alt:1,plan:1,fn:function(){plMode("pal")}},
   {keys:["Alt","W"],d:"Shift 모드 켜기 · 끄기 — 컨테이너를 눌러 빼내고 빈 칸에 다시 싣기, 오른쪽 버튼 = 쉬프팅 취소",code:"KeyW",alt:1,plan:1,fn:function(){plMode("sft")}},
   {keys:["Alt","Z"],d:"미러 끄기 (Single)",code:"KeyZ",alt:1,plan:1,fn:function(){plMir("S")}},
-  {keys:["Alt","C"],d:"미러 2F/A — 같은 해치의 앞·뒤 20' 베이에 같이 싣기",code:"KeyC",alt:1,plan:1,fn:function(){plMir("2FA")}},
+  {keys:["Alt","C"],d:"미러 2F/A — 같은 해치의 앞·뒤 20' 베이에 같이 싣기 · 지우기",code:"KeyC",alt:1,plan:1,fn:function(){plMir("2FA")}},
   {keys:["Shift","클릭"],d:"Editor 목록에서 범위로 고르기 · 열 제목은 여러 열 정렬"},
   {keys:["Alt","휠"],d:"General Plan 확대 · 축소"},
   {keys:["더블클릭"],d:"베이를 Bay Plan 창으로 열기"},
