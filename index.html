@@ -348,7 +348,7 @@ body.empty #plTop{display:none}body.empty #mailBtn{order:-1}
 .seg button[aria-pressed="true"]{background:#0b3f94;color:#fff;border-color:#0b3f94}
 .plBrush,#llForm{display:flex;flex-wrap:wrap;gap:3px 5px;align-items:center;font-weight:700}.plBrush[hidden],#llForm[hidden]{display:none}
 .plBrush input,#llForm input{font:inherit;font-weight:700;width:46px;padding:0 3px;border:1px solid var(--edge);border-radius:3px;text-transform:uppercase}.plBrush input.w,#llForm input.w{width:54px}
-.plBrush select,#llForm select{font:inherit;font-weight:700}
+.plBrush select,#llForm select{font:inherit;font-weight:700;max-width:92px}
 .plMsg{flex:1 1 160px;min-width:0;font-weight:700;color:#0b3f94}.plMsg.err{color:#b00000}
 body.planning #bwB .c[data-s]{cursor:crosshair}body.planning #bwB .c[data-s]:hover{background:#d9ecff}
 body.canmv #bwB .c[data-s],body.canmv #gp .m[data-s]{cursor:crosshair}body.canmv #bwB .c[data-s]:hover,body.canmv #gp .m[data-s]:hover{background:#ffe9a8}
@@ -680,7 +680,7 @@ header.win .body{background:#fff}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-20 10:20 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-20 10:29 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -705,8 +705,8 @@ header.win .body{background:#fff}
     </div>
   </header>
   <div id="tabs" hidden role="tablist" aria-label="열어 둔 플랜"></div>
-  <div id="plStrip" hidden><b id="plName"></b><span class="plBrush" hidden>POL<input data-b="pol" maxlength="5" aria-label="팔레트 POL"> POD<input data-b="pod" maxlength="5" aria-label="팔레트 POD"> SzTp<input data-b="type" maxlength="4" aria-label="팔레트 SzTp"> kg<input data-b="kg" maxlength="5" class="w" aria-label="팔레트 무게 kg">
-      <select data-b="fe" aria-label="팔레트 F/E"><option>F</option><option>E</option></select> OPR<input data-b="line" maxlength="8" aria-label="팔레트 OPR"></span><span class="plMsg"></span></div>
+  <div id="plStrip" hidden><b id="plName"></b><span class="plBrush" hidden>POL<select data-b="pol" aria-label="팔레트 POL"></select> POD<select data-b="pod" aria-label="팔레트 POD"></select> SzTp<select data-b="type" aria-label="팔레트 SzTp"></select> kg<input data-b="kg" maxlength="5" class="w" aria-label="팔레트 무게 kg">
+      <select data-b="fe" aria-label="팔레트 F/E"><option>F</option><option>E</option></select></span><span class="plMsg"></span></div>
   <div class="note" id="note" hidden></div>
   <section class="win" id="sumWin"><div class="tb">Summary</div><div class="body" id="sum"></div>
     <div class="rz rzl" data-sz="l" title="끌어서 너비 조절 (더블클릭: 원래대로)"></div><div class="rz rzr" data-sz="r" title="끌어서 너비 조절 (더블클릭: 원래대로)"></div><div class="rz rzb" data-sz="b" title="끌어서 높이 조절 (더블클릭: 원래대로)"></div><div class="rz rzc" data-sz="c" title="끌어서 크기 조절 (더블클릭: 원래대로)"></div></section>
@@ -2016,6 +2016,35 @@ document.addEventListener("contextmenu",function(e){
 // 쉬프팅 내역: 옮긴 컨테이너는 원래 자리를 기억(ASC 는 st.sft[줄 번호], 그 밖은 b.from) — 칸에 보라색 S, Container Editor 에 "Shift 원래 → 지금".
 // 로드리스트(st.ll)와 쉬프팅 내역은 이 화면 안에서만 살아 있음: ASC·EDI 파일에는 그런 칸이 없어서 내보내면 '지금 자리'만 나감.
 var PL={cp:false,mode:"v",mir:"S",brush:{pol:"",pod:"",type:"22GP",kg:"14000",fe:"F",line:""},lsel:[],seq:0,last:-1};
+// 팔레트의 SzTp: cCASP 가 쓰는 크기·타입 표 (2026-11-20 에 cCASP 에서 읽어 옴, 102개). SZREP = cCASP 가 '대표'로 표시해 둔 14개 — 고르기 칸 맨 위에 둠.
+var SZREP="22GP 25GP 42GP 45GP L2GP 22RE 42RE 45RE 22TN 42TN 22PC 42PC 22UT 42UT".split(" "),SZALL="12AS 12BK 12BU 12GP 12HI 12HR 12PC 12PE 12PL 12PS 12RE 12RS 12RT 12SN 12TD 12TG 12TN 12UT 12VH 22AS 22BK 22BU 22GP 22HI 22HR 22PC 22PE 22PL 22PS 22RE 22RS 22RT 22SN 22TD 22TG 22TN 22UT 22VH 25GP 32AS 32BK 32BU 32GP 32HI 32HR 32PC 32PE 32PL 32PS 32RE 32RS 32RT 32SN 32TD 32TG 32TN 32UT 32VH 42AS 42BK 42BU 42GP 42HI 42HR 42PC 42PE 42PL 42PS 42RE 42RS 42RT 42SN 42TD 42TG 42TN 42UT 42VH 45GP 45PC 45RE B2AS B2BK B2BU L2AS L2BK L2BU L2GP L2HI L2HR L2PC L2PE L2PL L2PS L2RE L2RS L2RT L2SN L2TD L2TG L2TN L2UT L2VH".split(" ");
+// 팔레트의 POL · POD: 이 플랜의 선박이 그 항차에 기항하는 포트만. PC 설치판은 전산 포트 스케줄(schedRot) — POL 은 이 플랜의 포트까지, POD 는 그 뒤에 가는 포트.
+// 전산에서 못 찾거나 폰·웹이면 파일에 적힌 기항 순서와 실려 있는 컨테이너의 포트. 팔레트에는 OPR 칸이 없음(사용자 요청) — 새 컨테이너의 OPR 은 비워 둠.
+function palPorts(){
+  var S=schedRot(),all=[],pol=[],pod=[],me=outInfo().port,B=st.plan?st.plan.boxes:[];
+  function add(a,p){if(p&&a.indexOf(p)<0)a.push(p)}
+  if(S){var at=-1;S.calls.forEach(function(c,i){if(c.skip)return;add(all,c.p);if(at<0&&!c.next&&c.p===me)at=i});
+    if(at>=0)S.calls.forEach(function(c,i){if(c.skip)return;if(i<=at&&!c.next)add(pol,c.p);if(i>at)add(pod,c.p)});
+    if(!pol.length)pol=all.slice();if(!pod.length)pod=all.slice();return {pol:pol,pod:pod,me:me,src:"전산 포트 스케줄"}}
+  var c={},d={};B.forEach(function(b){c[b.pol]=(c[b.pol]||0)+1;d[b.pod]=(d[b.pod]||0)+1});
+  Object.keys(c).sort(function(a,b){return c[b]-c[a]}).forEach(function(p){add(pol,p)});Object.keys(d).sort(function(a,b){return d[b]-d[a]}).forEach(function(p){add(pod,p)});
+  (st.plan&&st.plan.rotation||[]).forEach(function(p){add(pol,p);add(pod,p)});return {pol:pol,pod:pod,me:me,src:"파일에 적힌 포트"}}
+function palFill(){   // 고르기 칸을 채우고, 지금 고른 값이 목록에 없으면 알맞은 것으로 바꿈
+  if(!st.plan)return {pol:[],pod:[]};
+  var P=palPorts(),b=PL.brush,mine={};st.plan.boxes.forEach(function(x){if(x.type)mine[x.type]=1});
+  var extra=Object.keys(mine).filter(function(t){return SZALL.indexOf(t)<0}).sort();      // 이 플랜에만 있는 표기(CASP 식 DC20 등)
+  if(P.pol.indexOf(b.pol)<0)b.pol=P.pol.indexOf(P.me)>=0?P.me:(P.pol[P.pol.length-1]||"");
+  if(P.pod.indexOf(b.pod)<0)b.pod=P.pod[0]||"";
+  if(SZALL.indexOf(b.type)<0&&extra.indexOf(b.type)<0)b.type="22GP";
+  b.line="";P.extra=extra;
+  function opts(a){return a.map(function(v){return "<option>"+esc(v)+"</option>"}).join("")}
+  var H={pol:opts(P.pol),pod:opts(P.pod),type:'<optgroup label="자주 쓰는 타입">'+opts(SZREP)+"</optgroup>"+(extra.length?'<optgroup label="이 플랜에 있는 다른 표기">'+opts(extra)+"</optgroup>":"")+
+      '<optgroup label="그 밖 (cCASP 표)">'+opts(SZALL.filter(function(t){return SZREP.indexOf(t)<0}))+"</optgroup>"};
+  [].forEach.call(document.querySelectorAll(".plBrush select[data-b]"),function(e){var k=e.dataset.b,h=H[k];if(h==null)return;if(e._h!==h){e.innerHTML=h;e._h=h}
+    e.title=k==="type"?"cCASP 의 크기 · 타입 표":"이 항차에 기항하는 포트만 ("+P.src+")"});
+  return P}
+function palSet(k,v){PL.brush[k]=v;   // cCASP 처럼: 공컨(E)이면 무게를 그 크기의 빈 컨테이너 무게로 (20' 2,000 kg · 40' 4,500 kg)
+  if((k==="fe"||k==="type")&&PL.brush.fe==="E"){var t=PL.brush.type;PL.brush.kg=/^[123]/.test(t)||/(20|2H)$/.test(t)?"2000":"4500"}}
 function fromOf(b){return st.lines?(st.sft||{})[b.li]:b.from}
 function p6(bay,row,tier){return pad(bay)+pad(row)+pad(tier)}
 function p6d(x){return x.slice(0,2)+"-"+x.slice(2,4)+"-"+x.slice(4,6)}
@@ -2159,8 +2188,7 @@ function plGesture(btn,x1,y1,x2,y2,area,md,alt){
     else if(mode==="sft"){if(boxes.length)plUnplan(boxes,"쉬프팅으로 빼낸 컨테이너");else plLoad(G)}}   // Shift: 컨테이너를 누르면 빼냄(원래 자리 기억) → 빈 칸을 누르면 다시 실림
   else{if(mode==="pal")plErase(boxes);else if(mode==="ll")plUnplan(boxes);else if(mode==="sft")plUnshift(boxes)}}
 function plMode(m){if(window.__STATIC__||!st.plan||st.example)return;PL.mode=PL.mode===m?"v":m;
-  if(PL.mode==="pal"&&!PL.brush.pol){var c={},d={};st.plan.boxes.forEach(function(b){c[b.pol]=(c[b.pol]||0)+1;d[b.pod]=(d[b.pod]||0)+1});
-    var top=function(o){return Object.keys(o).sort(function(a,b){return o[b]-o[a]})[0]||""};PL.brush.pol=top(c);PL.brush.pod=top(d)}
+  if(PL.mode==="pal")palFill();
   plDraw();
   plSay({v:"",ll:"LOAD LIST 에서 고른 뒤 General Plan(또는 Bay Plan)의 빈 칸을 누르거나 끌면 실려요. 여러 베이에 걸쳐 끌어도 돼요. 오른쪽 버튼 = 로드리스트로 내리기.",pal:"이 조건으로 General Plan(또는 Bay Plan)의 빈 칸을 누르거나 끌면 컨테이너가 생겨요. 오른쪽 버튼 = 새로 만든 컨테이너 지우기.",
     sft:"Shift: 옮길 컨테이너를 누르거나 끌면 빠져서 LOAD LIST 로 가요(원래 자리 기억). 이어서 빈 칸을 누르거나 끌면 다시 실려요. 오른쪽 버튼 = 쉬프팅 취소(원래 자리로).",
@@ -2172,7 +2200,8 @@ function plDraw(){
   [].forEach.call(document.querySelectorAll(".plModes button"),function(b){b.setAttribute("aria-pressed",b.dataset.pm===PL.mode)});
   [].forEach.call(document.querySelectorAll(".plMir button"),function(b){b.setAttribute("aria-pressed",b.dataset.mir===PL.mir)});
   [].forEach.call(document.querySelectorAll(".plBrush"),function(x){x.hidden=PL.mode!=="pal"});
-  [].forEach.call(document.querySelectorAll(".plBrush [data-b]"),function(i){if(document.activeElement!==i)i.value=PL.brush[i.dataset.b]});
+  if(PL.mode==="pal")palFill();
+  [].forEach.call(document.querySelectorAll(".plBrush [data-b]"),function(i){if(document.activeElement!==i||i.tagName==="SELECT")i.value=PL.brush[i.dataset.b]});
   var can=PL.cp&&st.pick.length>0&&tOn(),nm={ll:"로드리스트로 싣기",pal:"팔레트로 싣기",sft:"Shift"}[PL.mode]||"";
   document.body.classList.toggle("canmv",can);
   if(can)nm=(nm?nm+" · ":"")+"지정 "+st.pick.length+" VAN — Ctrl+클릭: 빈 칸 = 이동 · 같은 개수의 컨테이너 = 자리 교체 / Ctrl+Alt+클릭 = 더 지정 / Ctrl+오른쪽 = 해제";
@@ -2189,7 +2218,7 @@ function plDraw(){
   document.addEventListener("click",function(e){if(!e.target.closest)return;var b=e.target.closest(".plModes [data-pm]"),m=e.target.closest(".plMir [data-mir]");
     if(b){if(b.dataset.pm==="v"){PL.mode="v";plDraw();plSay("")}else plMode(b.dataset.pm)}else if(m)plMir(m.dataset.mir)});
   document.addEventListener("click",function(e){if(e.target.id==="eUnsf"){var b=st.plan.boxes[st.sel];if(b)plUnshift([b])}});
-  document.addEventListener("change",function(e){var t=e.target;if(t.closest&&t.closest(".plBrush")&&t.dataset.b){PL.brush[t.dataset.b]=t.value.trim().toUpperCase();plDraw()}});
+  document.addEventListener("change",function(e){var t=e.target;if(t.closest&&t.closest(".plBrush")&&t.dataset.b){palSet(t.dataset.b,t.value.trim().toUpperCase());plDraw()}});
   [].forEach.call(document.querySelectorAll(".plBrush,#llForm"),function(x){x.addEventListener("keydown",function(e){e.stopPropagation();if(e.key==="Enter")e.target.blur()})});
   $("llAdd").onclick=function(){var f=$("llForm");f.hidden=!f.hidden;if(!f.hidden)[].forEach.call(f.querySelectorAll("[data-l]"),function(i){var k=i.dataset.l;if(k!=="n"&&!i.value)i.value=PL.brush[k]||""})};
   $("llGo").onclick=function(){var v={};[].forEach.call($("llForm").querySelectorAll("[data-l]"),function(i){v[i.dataset.l]=i.value});
@@ -2258,19 +2287,16 @@ function tDraw(){
   var h='<div class="tabs"><button type="button" data-ts="ll"'+(T.src==="ll"?' class="on"':'')+'>로드리스트</button><button type="button" data-ts="pal"'+(T.src==="pal"?' class="on"':'')+'>팔레트</button></div>';
   if(T.src==="ll")h+=G.length?G.map(function(x){return '<button type="button" class="grp'+(x.k===T.grp?' on':'')+'" data-tg="'+esc(x.k)+'"><span>'+esc(x.pol+" → "+x.pod+" · "+x.type)+'</span><span>'+x.ids.length+' VAN · '+ton(x.kg)+' t</span></button>'}).join("")
       :'<div class="msgbox">로드리스트가 비어 있어요.<br>‘내리기’로 컨테이너를 내리면 여기로 들어오고, 새로 만들려면 ‘팔레트’를 쓰세요.</div>';
-  else{var B=st.plan.boxes,cnt=function(key){var o={};B.forEach(function(b){o[b[key]]=(o[b[key]]||0)+1});return Object.keys(o).sort(function(a,b){return o[b]-o[a]})};
-    var pods=cnt("pod");(st.plan.rotation||[]).forEach(function(x){if(pods.indexOf(x)<0)pods.push(x)});
-    var types=cnt("type").slice(0,6);["22GP","45GP","42GP","22RF","45RF"].forEach(function(x){if(types.indexOf(x)<0&&types.length<9)types.push(x)});
+  else{var PP=palFill(),types=SZREP.concat(PP.extra||[]);
     var chips=function(key,arr){return '<div class="chips">'+arr.filter(Boolean).map(function(v){return '<button type="button" data-tb="'+key+'" data-v="'+esc(v)+'"'+(PL.brush[key]===v?' class="on"':'')+'>'+esc(v)+'</button>'}).join("")+'</div>'};
-    h+='<div class="lab">POL</div>'+chips("pol",cnt("pol"))+'<div class="lab">POD</div>'+chips("pod",pods)+'<div class="lab">SzTp</div>'+chips("type",types)+
+    h+='<div class="lab">POL</div>'+chips("pol",PP.pol)+'<div class="lab">POD</div>'+chips("pod",PP.pod)+'<div class="lab">SzTp</div>'+chips("type",types)+
       '<div class="lab">F/E · 무게(kg)</div><div class="chips">'+chips("fe",["F","E"]).replace(/^<div class="chips">|<\/div>$/g,"")+'<input id="tpKg" inputmode="numeric" maxlength="5" value="'+esc(PL.brush.kg)+'" aria-label="무게 kg"></div>'}
   D.innerHTML=h}
 (function(){
   function act(e){return TOUCH&&tOn()&&e.target.closest}
   $("tpR").addEventListener("click",function(e){var b=e.target.closest("[data-tt]");if(!b)return;var T=PL.t;
     T.tool=T.tool===b.dataset.tt?"":b.dataset.tt;T.open=false;T.marks=[];st.pick=[];st.sel=-1;$("sheet").hidden=true;
-    if(T.tool==="load"&&!PL.brush.pol){var c={},d={};st.plan.boxes.forEach(function(x){c[x.pol]=(c[x.pol]||0)+1;d[x.pod]=(d[x.pod]||0)+1});
-      var top=function(o){return Object.keys(o).sort(function(a,b2){return o[b2]-o[a]})[0]||""};PL.brush.pol=top(c);PL.brush.pod=top(d)}
+    if(T.tool==="load")palFill();
     if(T.tool==="load"&&!(st.ll||[]).length)T.src="pal";
     render()});
   $("tpMir").onclick=function(){PL.mir=PL.mir==="2FA"?"S":"2FA";plDraw();plSay(PL.mir==="2FA"?"2F/A 켬: 20' 를 실으면 같은 해치 반대쪽 20' 베이에도 같이 실려요.":"미러 끔 (Single).")};
@@ -2288,7 +2314,7 @@ function tDraw(){
     else if(T.tool==="move"){T.marks=[];plMove([{p:Q.p,cells:cells}])}};
   $("tpD").addEventListener("click",function(e){var T=PL.t,a=e.target.closest("[data-ts]"),g=e.target.closest("[data-tg]"),c=e.target.closest("[data-tb]");
     if(a){T.src=a.dataset.ts;tDraw()}else if(g){T.grp=T.grp===g.dataset.tg?"":g.dataset.tg;if(T.grp)T.open=false;tDraw()}
-    else if(c){PL.brush[c.dataset.tb]=c.dataset.v;tDraw()}});
+    else if(c){palSet(c.dataset.tb,c.dataset.v);tDraw()}});
   $("tpD").addEventListener("change",function(e){if(e.target.id==="tpKg"){var v=e.target.value.replace(/\D/g,"");PL.brush.kg=v||"0";tDraw()}});
   $("tpD").addEventListener("keydown",function(e){e.stopPropagation();if(e.key==="Enter")e.target.blur()});
   // 도구가 켜져 있는 동안 Bay Plan 안의 누름은 여기서 먼저 받음
@@ -2673,7 +2699,7 @@ function schedRot(){
   if(r&&!(r.fail&&Date.now()-r.at>60000))return r.ok&&r.calls&&r.calls.length?r:null;
   SROT[key]={busy:true,at:Date.now()};
   mlGet("/rotation?vsl="+encodeURIComponent(I.vsl)+"&voy="+encodeURIComponent(I.voy)).then(function(d){d=d||{};d.at=Date.now();SROT[key]=d},function(){SROT[key]={fail:true,at:Date.now()}})
-    .then(function(){if(st.plan&&st.name===nm&&SROT[key].ok)render()});
+    .then(function(){if(st.plan&&st.name===nm&&SROT[key].ok){render();if(PL.mode==="pal")plDraw()}});
   return null}
 var HEX={},BAY2P={},V3={mode:"3d",yaw:-0.62,pit:0.5,zoom:1,hold:false,faces:[],hov:null,M:null,port:{}};
 // ---------- 그 항의 실제 바람·파도 ----------
