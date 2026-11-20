@@ -71,6 +71,7 @@ function RotJson($q) {
 function QVoy($q) { $v = ([string]$q['vsl']).ToUpper(); $y = ([string]$q['voy']).ToUpper(); $p = ([string]$q['port']).ToUpper(); if ($v -notmatch '^[A-Z0-9]{3,5}$' -or $y -notmatch '^\d{3,4}[A-Z]$' -or $p -notmatch '^[A-Z]{5}$') { return $null }; return @($v, $y, $p) }
 function CbfJson($q) { $a = QVoy $q; if (-not $a) { return '{"ok":false,"why":"noinput"}' }; return ((Out-Cbf $a[0] $a[1] $a[2]) | ConvertTo-Json -Depth 6 -Compress) }
 function CllJson($q) { $a = QVoy $q; if (-not $a) { return '{"ok":false,"why":"noinput"}' }; return ((Out-Cll $a[0] $a[1] $a[2] ([string]$q['pods'])) | ConvertTo-Json -Depth 5 -Compress) }
+function BkJson($q) { $a = QVoy $q; if (-not $a) { return '{"ok":false,"why":"noinput"}' }; return ((Out-Bk $a[0] $a[1] $a[2] ([string]$q['etd'])) | ConvertTo-Json -Depth 5 -Compress) }
 function CloseMailJson($q) { $a = QVoy $q; if (-not $a) { return '{"mails":[]}' }; return (@{ mails = @(Out-CloseMail $a[0] ([string]$q['name']) $a[1]) } | ConvertTo-Json -Depth 5 -Compress) }
 function OutOpen($q) {
     $mode = if ($q.send -eq $true) { 'send' } elseif ($q.draft) { 'draft' } else { 'show' }
@@ -179,6 +180,7 @@ while ($true) {
         elseif ($path -eq '/list') { $d = 7; if ($q['days'] -match '^\d+$') { $d = [Math]::Min(30, [Math]::Max(1, [int]$q['days'])) }; Send $st '200 OK' 'application/json; charset=utf-8' ($utf8.GetBytes((ListJson $d))) }
         elseif ($path -eq '/rotation' -and $outOk) { Send $st '200 OK' 'application/json; charset=utf-8' ($utf8.GetBytes((RotJson $q))) }
         elseif ($path -eq '/cbf' -and $outOk) { Send $st '200 OK' 'application/json; charset=utf-8' ($utf8.GetBytes((CbfJson $q))) }
+        elseif ($path -eq '/bk' -and $outOk) { Send $st '200 OK' 'application/json; charset=utf-8' ($utf8.GetBytes((BkJson $q))) }
         elseif ($path -eq '/cll' -and $outOk) { Send $st '200 OK' 'application/json; charset=utf-8' ($utf8.GetBytes((CllJson $q))) }
         elseif ($path -eq '/closemail' -and $outOk) { Send $st '200 OK' 'application/json; charset=utf-8' ($utf8.GetBytes((CloseMailJson $q))) }
         elseif ($path -eq '/mailhint') { Send $st '200 OK' 'application/json; charset=utf-8' ($utf8.GetBytes((MailHint $q))) }
