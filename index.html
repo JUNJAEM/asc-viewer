@@ -680,7 +680,7 @@ header.win .body{background:#fff}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-20 10:29 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-20 10:33 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -705,7 +705,7 @@ header.win .body{background:#fff}
     </div>
   </header>
   <div id="tabs" hidden role="tablist" aria-label="열어 둔 플랜"></div>
-  <div id="plStrip" hidden><b id="plName"></b><span class="plBrush" hidden>POL<select data-b="pol" aria-label="팔레트 POL"></select> POD<select data-b="pod" aria-label="팔레트 POD"></select> SzTp<select data-b="type" aria-label="팔레트 SzTp"></select> kg<input data-b="kg" maxlength="5" class="w" aria-label="팔레트 무게 kg">
+  <div id="plStrip" hidden><b id="plName"></b><span class="plBrush" hidden>POL<select data-b="pol" aria-label="팔레트 POL"></select><input data-b="pol" maxlength="5" list="palPolL" aria-label="팔레트 POL 직접 입력" hidden><datalist id="palPolL"></datalist> POD<select data-b="pod" aria-label="팔레트 POD"></select><input data-b="pod" maxlength="5" list="palPodL" aria-label="팔레트 POD 직접 입력" hidden><datalist id="palPodL"></datalist> SzTp<select data-b="type" aria-label="팔레트 SzTp"></select> ton<input data-bt="1" maxlength="5" class="w" inputmode="decimal" aria-label="팔레트 무게 톤" title="무게를 톤으로 (예: 14 또는 14.5)">
       <select data-b="fe" aria-label="팔레트 F/E"><option>F</option><option>E</option></select></span><span class="plMsg"></span></div>
   <div class="note" id="note" hidden></div>
   <section class="win" id="sumWin"><div class="tb">Summary</div><div class="body" id="sum"></div>
@@ -2016,8 +2016,8 @@ document.addEventListener("contextmenu",function(e){
 // 쉬프팅 내역: 옮긴 컨테이너는 원래 자리를 기억(ASC 는 st.sft[줄 번호], 그 밖은 b.from) — 칸에 보라색 S, Container Editor 에 "Shift 원래 → 지금".
 // 로드리스트(st.ll)와 쉬프팅 내역은 이 화면 안에서만 살아 있음: ASC·EDI 파일에는 그런 칸이 없어서 내보내면 '지금 자리'만 나감.
 var PL={cp:false,mode:"v",mir:"S",brush:{pol:"",pod:"",type:"22GP",kg:"14000",fe:"F",line:""},lsel:[],seq:0,last:-1};
-// 팔레트의 SzTp: cCASP 가 쓰는 크기·타입 표 (2026-11-20 에 cCASP 에서 읽어 옴, 102개). SZREP = cCASP 가 '대표'로 표시해 둔 14개 — 고르기 칸 맨 위에 둠.
-var SZREP="22GP 25GP 42GP 45GP L2GP 22RE 42RE 45RE 22TN 42TN 22PC 42PC 22UT 42UT".split(" "),SZALL="12AS 12BK 12BU 12GP 12HI 12HR 12PC 12PE 12PL 12PS 12RE 12RS 12RT 12SN 12TD 12TG 12TN 12UT 12VH 22AS 22BK 22BU 22GP 22HI 22HR 22PC 22PE 22PL 22PS 22RE 22RS 22RT 22SN 22TD 22TG 22TN 22UT 22VH 25GP 32AS 32BK 32BU 32GP 32HI 32HR 32PC 32PE 32PL 32PS 32RE 32RS 32RT 32SN 32TD 32TG 32TN 32UT 32VH 42AS 42BK 42BU 42GP 42HI 42HR 42PC 42PE 42PL 42PS 42RE 42RS 42RT 42SN 42TD 42TG 42TN 42UT 42VH 45GP 45PC 45RE B2AS B2BK B2BU L2AS L2BK L2BU L2GP L2HI L2HR L2PC L2PE L2PL L2PS L2RE L2RS L2RT L2SN L2TD L2TG L2TN L2UT L2VH".split(" ");
+// 팔레트의 SzTp: 자주 쓰는 타입 14개만 (cCASP 의 크기·타입 표 102개 가운데 cCASP 가 '대표'로 표시해 둔 것, 2026-11-20 에 읽어 옴). 사용자 요청으로 나머지는 뺌.
+var SZREP="22GP 25GP 42GP 45GP L2GP 22RE 42RE 45RE 22TN 42TN 22PC 42PC 22UT 42UT".split(" ");
 // 팔레트의 POL · POD: 이 플랜의 선박이 그 항차에 기항하는 포트만. PC 설치판은 전산 포트 스케줄(schedRot) — POL 은 이 플랜의 포트까지, POD 는 그 뒤에 가는 포트.
 // 전산에서 못 찾거나 폰·웹이면 파일에 적힌 기항 순서와 실려 있는 컨테이너의 포트. 팔레트에는 OPR 칸이 없음(사용자 요청) — 새 컨테이너의 OPR 은 비워 둠.
 function palPorts(){
@@ -2029,20 +2029,22 @@ function palPorts(){
   var c={},d={};B.forEach(function(b){c[b.pol]=(c[b.pol]||0)+1;d[b.pod]=(d[b.pod]||0)+1});
   Object.keys(c).sort(function(a,b){return c[b]-c[a]}).forEach(function(p){add(pol,p)});Object.keys(d).sort(function(a,b){return d[b]-d[a]}).forEach(function(p){add(pod,p)});
   (st.plan&&st.plan.rotation||[]).forEach(function(p){add(pol,p);add(pod,p)});return {pol:pol,pod:pod,me:me,src:"파일에 적힌 포트"}}
-function palFill(){   // 고르기 칸을 채우고, 지금 고른 값이 목록에 없으면 알맞은 것으로 바꿈
+function palFill(){   // 팔레트 칸을 채움. POL · POD 는 전산에서 기항지를 찾았을 때(PC 설치판)만 목록에서 고르고, 아니면(깃허브 페이지 · 폰, 전산에 없는 항차) 직접 적음
   if(!st.plan)return {pol:[],pod:[]};
-  var P=palPorts(),b=PL.brush,mine={};st.plan.boxes.forEach(function(x){if(x.type)mine[x.type]=1});
-  var extra=Object.keys(mine).filter(function(t){return SZALL.indexOf(t)<0}).sort();      // 이 플랜에만 있는 표기(CASP 식 DC20 등)
-  if(P.pol.indexOf(b.pol)<0)b.pol=P.pol.indexOf(P.me)>=0?P.me:(P.pol[P.pol.length-1]||"");
-  if(P.pod.indexOf(b.pod)<0)b.pod=P.pod[0]||"";
-  if(SZALL.indexOf(b.type)<0&&extra.indexOf(b.type)<0)b.type="22GP";
-  b.line="";P.extra=extra;
+  var P=palPorts(),b=PL.brush,fix=P.src.indexOf("전산")===0;
+  if(fix?P.pol.indexOf(b.pol)<0:!b.pol)b.pol=P.pol.indexOf(P.me)>=0?P.me:(P.pol[fix?P.pol.length-1:0]||"");
+  if(fix?P.pod.indexOf(b.pod)<0:!b.pod)b.pod=P.pod[0]||"";
+  if(SZREP.indexOf(b.type)<0)b.type="22GP";
+  b.line="";P.fix=fix;
   function opts(a){return a.map(function(v){return "<option>"+esc(v)+"</option>"}).join("")}
-  var H={pol:opts(P.pol),pod:opts(P.pod),type:'<optgroup label="자주 쓰는 타입">'+opts(SZREP)+"</optgroup>"+(extra.length?'<optgroup label="이 플랜에 있는 다른 표기">'+opts(extra)+"</optgroup>":"")+
-      '<optgroup label="그 밖 (cCASP 표)">'+opts(SZALL.filter(function(t){return SZREP.indexOf(t)<0}))+"</optgroup>"};
-  [].forEach.call(document.querySelectorAll(".plBrush select[data-b]"),function(e){var k=e.dataset.b,h=H[k];if(h==null)return;if(e._h!==h){e.innerHTML=h;e._h=h}
-    e.title=k==="type"?"cCASP 의 크기 · 타입 표":"이 항차에 기항하는 포트만 ("+P.src+")"});
+  var H={pol:opts(P.pol),pod:opts(P.pod),type:opts(SZREP)};
+  [].forEach.call(document.querySelectorAll(".plBrush [data-b]"),function(e){var k=e.dataset.b,sel=e.tagName==="SELECT";
+    if(k==="pol"||k==="pod"){e.hidden=sel!==fix;var box=sel?e:$(e.getAttribute("list"));if(box&&box._h!==H[k]){box.innerHTML=H[k];box._h=H[k]}
+      e.title=fix?"이 항차에 기항하는 포트만 (전산 포트 스케줄)":"3글자(PUS)나 5글자(KRPUS)로 적어요. 파일에 있는 포트는 목록으로도 떠요"}
+    else if(k==="type"&&sel){if(e._h!==H.type){e.innerHTML=H.type;e._h=H.type}e.title="자주 쓰는 타입"}});
   return P}
+function palTon(){return String(Math.round((+PL.brush.kg||0)/100)/10)}      // 팔레트의 무게 칸은 톤으로 보여 주고 받음 (안에서는 kg 로 들고 있음)
+function palTonSet(txt){var v=parseFloat(String(txt).replace(",","."));if(!(v>0&&v<100))return false;PL.brush.kg=String(Math.round(v*1000));return true}
 function palSet(k,v){PL.brush[k]=v;   // cCASP 처럼: 공컨(E)이면 무게를 그 크기의 빈 컨테이너 무게로 (20' 2,000 kg · 40' 4,500 kg)
   if((k==="fe"||k==="type")&&PL.brush.fe==="E"){var t=PL.brush.type;PL.brush.kg=/^[123]/.test(t)||/(20|2H)$/.test(t)?"2000":"4500"}}
 function fromOf(b){return st.lines?(st.sft||{})[b.li]:b.from}
@@ -2202,6 +2204,7 @@ function plDraw(){
   [].forEach.call(document.querySelectorAll(".plBrush"),function(x){x.hidden=PL.mode!=="pal"});
   if(PL.mode==="pal")palFill();
   [].forEach.call(document.querySelectorAll(".plBrush [data-b]"),function(i){if(document.activeElement!==i||i.tagName==="SELECT")i.value=PL.brush[i.dataset.b]});
+  [].forEach.call(document.querySelectorAll(".plBrush [data-bt]"),function(i){if(document.activeElement!==i)i.value=palTon()});
   var can=PL.cp&&st.pick.length>0&&tOn(),nm={ll:"로드리스트로 싣기",pal:"팔레트로 싣기",sft:"Shift"}[PL.mode]||"";
   document.body.classList.toggle("canmv",can);
   if(can)nm=(nm?nm+" · ":"")+"지정 "+st.pick.length+" VAN — Ctrl+클릭: 빈 칸 = 이동 · 같은 개수의 컨테이너 = 자리 교체 / Ctrl+Alt+클릭 = 더 지정 / Ctrl+오른쪽 = 해제";
@@ -2218,7 +2221,8 @@ function plDraw(){
   document.addEventListener("click",function(e){if(!e.target.closest)return;var b=e.target.closest(".plModes [data-pm]"),m=e.target.closest(".plMir [data-mir]");
     if(b){if(b.dataset.pm==="v"){PL.mode="v";plDraw();plSay("")}else plMode(b.dataset.pm)}else if(m)plMir(m.dataset.mir)});
   document.addEventListener("click",function(e){if(e.target.id==="eUnsf"){var b=st.plan.boxes[st.sel];if(b)plUnshift([b])}});
-  document.addEventListener("change",function(e){var t=e.target;if(t.closest&&t.closest(".plBrush")&&t.dataset.b){palSet(t.dataset.b,t.value.trim().toUpperCase());plDraw()}});
+  document.addEventListener("change",function(e){var t=e.target;if(t.closest&&t.closest(".plBrush")&&t.dataset.bt){var okT=palTonSet(t.value);t.blur();plDraw();if(!okT)plSay("무게를 톤으로 넣어 주세요 (예: 14 또는 14.5).",true);return}
+    if(t.closest&&t.closest(".plBrush")&&t.dataset.b){palSet(t.dataset.b,t.value.trim().toUpperCase());plDraw()}});
   [].forEach.call(document.querySelectorAll(".plBrush,#llForm"),function(x){x.addEventListener("keydown",function(e){e.stopPropagation();if(e.key==="Enter")e.target.blur()})});
   $("llAdd").onclick=function(){var f=$("llForm");f.hidden=!f.hidden;if(!f.hidden)[].forEach.call(f.querySelectorAll("[data-l]"),function(i){var k=i.dataset.l;if(k!=="n"&&!i.value)i.value=PL.brush[k]||""})};
   $("llGo").onclick=function(){var v={};[].forEach.call($("llForm").querySelectorAll("[data-l]"),function(i){v[i.dataset.l]=i.value});
@@ -2287,10 +2291,10 @@ function tDraw(){
   var h='<div class="tabs"><button type="button" data-ts="ll"'+(T.src==="ll"?' class="on"':'')+'>로드리스트</button><button type="button" data-ts="pal"'+(T.src==="pal"?' class="on"':'')+'>팔레트</button></div>';
   if(T.src==="ll")h+=G.length?G.map(function(x){return '<button type="button" class="grp'+(x.k===T.grp?' on':'')+'" data-tg="'+esc(x.k)+'"><span>'+esc(x.pol+" → "+x.pod+" · "+x.type)+'</span><span>'+x.ids.length+' VAN · '+ton(x.kg)+' t</span></button>'}).join("")
       :'<div class="msgbox">로드리스트가 비어 있어요.<br>‘내리기’로 컨테이너를 내리면 여기로 들어오고, 새로 만들려면 ‘팔레트’를 쓰세요.</div>';
-  else{var PP=palFill(),types=SZREP.concat(PP.extra||[]);
+  else{var PP=palFill(),types=SZREP,typ=function(id,k,arr){return PP.fix?"":'<div class="chips"><input id="'+id+'" maxlength="5" placeholder="직접 입력 (PUS)" value="'+esc(arr.indexOf(PL.brush[k])<0?PL.brush[k]:"")+'" aria-label="'+k.toUpperCase()+' 직접 입력" style="text-transform:uppercase"></div>'};
     var chips=function(key,arr){return '<div class="chips">'+arr.filter(Boolean).map(function(v){return '<button type="button" data-tb="'+key+'" data-v="'+esc(v)+'"'+(PL.brush[key]===v?' class="on"':'')+'>'+esc(v)+'</button>'}).join("")+'</div>'};
-    h+='<div class="lab">POL</div>'+chips("pol",PP.pol)+'<div class="lab">POD</div>'+chips("pod",PP.pod)+'<div class="lab">SzTp</div>'+chips("type",types)+
-      '<div class="lab">F/E · 무게(kg)</div><div class="chips">'+chips("fe",["F","E"]).replace(/^<div class="chips">|<\/div>$/g,"")+'<input id="tpKg" inputmode="numeric" maxlength="5" value="'+esc(PL.brush.kg)+'" aria-label="무게 kg"></div>'}
+    h+='<div class="lab">POL</div>'+chips("pol",PP.pol)+typ("tpPol","pol",PP.pol)+'<div class="lab">POD</div>'+chips("pod",PP.pod)+typ("tpPod","pod",PP.pod)+'<div class="lab">SzTp</div>'+chips("type",types)+
+      '<div class="lab">F/E · 무게(ton)</div><div class="chips">'+chips("fe",["F","E"]).replace(/^<div class="chips">|<\/div>$/g,"")+'<input id="tpKg" inputmode="decimal" maxlength="5" value="'+esc(palTon())+'" aria-label="무게 톤"></div>'}
   D.innerHTML=h}
 (function(){
   function act(e){return TOUCH&&tOn()&&e.target.closest}
@@ -2315,7 +2319,9 @@ function tDraw(){
   $("tpD").addEventListener("click",function(e){var T=PL.t,a=e.target.closest("[data-ts]"),g=e.target.closest("[data-tg]"),c=e.target.closest("[data-tb]");
     if(a){T.src=a.dataset.ts;tDraw()}else if(g){T.grp=T.grp===g.dataset.tg?"":g.dataset.tg;if(T.grp)T.open=false;tDraw()}
     else if(c){palSet(c.dataset.tb,c.dataset.v);tDraw()}});
-  $("tpD").addEventListener("change",function(e){if(e.target.id==="tpKg"){var v=e.target.value.replace(/\D/g,"");PL.brush.kg=v||"0";tDraw()}});
+  $("tpD").addEventListener("change",function(e){var pk={tpPol:"pol",tpPod:"pod"}[e.target.id];
+    if(pk){var pv=e.target.value.trim().toUpperCase();if(/^([A-Z]{3}|[A-Z]{5})$/.test(pv)){PL.brush[pk]=pv;tDraw()}else if(pv)e.target.style.borderColor="#c50f1f";return}
+    if(e.target.id==="tpKg"){palTonSet(e.target.value);tDraw()}});
   $("tpD").addEventListener("keydown",function(e){e.stopPropagation();if(e.key==="Enter")e.target.blur()});
   // 도구가 켜져 있는 동안 Bay Plan 안의 누름은 여기서 먼저 받음
   document.addEventListener("click",function(e){
