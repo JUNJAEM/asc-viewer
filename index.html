@@ -706,7 +706,7 @@ header.win .body{background:#fff}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-20 13:00 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-20 13:15 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -2631,7 +2631,9 @@ function mlPick(id,i,btn){
 //  · 전산: HAS 라인은 흥아 전산, 그 밖의 라인(SKR 등)은 장금 전산 값을 씀(도우미가 합쳐 줌). 선박 · 항차 · 이 플랜의 포트로 조회.
 //  · 맞추는 단위 = 양하지 × 크기(20' / 40' / HQ) × F/E. "CBF 수량 − 플랜에 이미 실린 수량(이 포트에서 실은 것) − LOAD LIST 에 있는 수량" 만큼 LOAD LIST 에 새로 만듦.
 //    CBF 가 줄었으면 아직 안 실은 LOAD LIST 것부터 빼고, 그래도 남는 것(이미 플랜에 실린 것)은 '플랜 초과'로 알려 줌(플랜은 건드리지 않음).
-//  · 변동분 = 지난번 CBF 와 이번 CBF 의 차이. 내역을 남기고, 변동으로 새로 생긴 LOAD LIST 줄에는 N 표시('변동분만'으로 따로 볼 수 있음).
+//  · 수량은 저장된 CBF(조회)가 아니라 실시간 부킹으로 셈(사용자 지시 2026-11-20: "갯수 변동분은 조회가 아닌 B/K Recalculation 으로"). 그 버튼은 화면 프로그램 안의 것이라 누를 수 없어서,
+//    같은 부킹 자료인 전산 Container Loading List(박스별)를 라인 × 양하지 × 크기 × F/E 로 세어 씀(cbfLive). SKR = 장금 전산, HAS = 흥아 전산. 타사 슬롯 라인(PCS · CKL 등)은 저장된 CBF 값.
+//  · 변동분 = 지난번 수량과 이번 수량의 차이. 내역을 남기고, 변동으로 새로 생긴 LOAD LIST 줄에는 N 표시('변동분만'으로 따로 볼 수 있음).
 //  · 마감: 전산 화면의 BK/Recalculation 버튼 자체는 읽을 수 없어서(화면 프로그램 안의 것) CBF 확정(Fix) 기록 · 카고 마감 시각 · 메일함의 마감 메일로 판단.
 //    마감으로 보이면 전산의 박스별 로딩리스트(CLL)와 플랜의 컨테이너 번호를 대조해 차이를 알려 줌.
 var CB={},CBK=[["f20","20","F","22GP"],["f40","40","F","42GP"],["fhq","HQ","F","45GP"],["e20","20","E","22GP"],["e40","40","E","42GP"],["ehq","HQ","E","45GP"]],CBTARE={"20":2200,"40":3800,"HQ":3900},CBNAME={"20":"20'","40":"40'","HQ":"HQ"};
@@ -2683,24 +2685,46 @@ function cllCmp(S){   // 전산 로딩리스트(박스별)와 플랜의 번호 �
   R.cnt=Object.keys(ks).sort().filter(function(k){return (ca[k]||0)!==(pa[k]||0)}).map(function(k){return {k:k,a:pa[k]||0,b:ca[k]||0}});
   R.numOk=R.plan>0&&R.noNum<R.plan*0.5;                    // 플랜에 번호가 절반도 안 적혀 있으면(프리 플랜) 번호 대조는 뜻이 없음 → 수량으로만 봄
   R.diff=R.numOk?R.onlyCll.length+R.onlyPlan.length+R.pod.length+R.type.length:R.cnt.length;return R}
+function cbfLive(d,c){   // 수량을 실시간 부킹 기준으로 바꿈: 전산 로딩리스트(c)의 박스를 라인 × 양하지 × 크기 × F/E 로 세어 d.rows 를 갈아 끼움. 저장된 CBF 는 d.saved 에 남김
+  if(!c)return d;
+  var LN={SNKO:"SKR",HALK:"HAS"},cov={},g={},cnt={},src={},stale=[],K=CBK.map(function(k){return k[0]}),saved=d.rows||[],svN={},rows=[];
+  (c.comps||[]).forEach(function(x){if(LN[x])cov[LN[x]]=1});
+  (c.boxes||[]).forEach(function(b){var ln=LN[b.comp];if(!ln)return;cov[ln]=1;var kd=cllKind(b.type)||"40",k=ln+"|"+b.pod,r=g[k]||(g[k]={line:ln,pod:b.pod,f20:0,f40:0,fhq:0,e20:0,e40:0,ehq:0,gw:0,nw:0,rmk:"",live:1});
+    r[(b.fe==="E"?"e":"f")+(kd==="20"?"20":kd==="HQ"?"hq":"40")]++;r.gw+=+b.kg||0;cnt[ln]=(cnt[ln]||0)+1});
+  saved.forEach(function(r){var n=0;K.forEach(function(k){n+=+r[k]||0});svN[r.line]=(svN[r.line]||0)+n});
+  // 라인마다 어느 쪽을 쓸지: 전산 로딩리스트에 그 라인 박스가 있으면 실시간. 로딩리스트는 비었는데 저장된 CBF 에만 수량이 있으면(아직 컨테이너가 안 잡힌 예상 물량일 수 있음) 저장값을 그대로 둠
+  Object.keys(cov).forEach(function(ln){src[ln]=cnt[ln]||!svN[ln]?"live":"empty"});
+  saved.forEach(function(r){if(src[r.line]!=="live"){rows.push(r);if(!src[r.line])src[r.line]="saved"}});
+  Object.keys(g).forEach(function(k){rows.push(g[k])});
+  // 저장된 CBF(조회)와 실시간이 다른 곳 = 전산에서 아직 B/K Recalculation 이 안 된 변동분
+  var a={},b={},ks={};
+  function add(m,r){K.forEach(function(k,i){var n=+r[k]||0;if(!n)return;var key=r.line+"|"+String(r.pod).slice(-3)+"|"+CBK[i][1]+"|"+CBK[i][2];m[key]=(m[key]||0)+n})}
+  saved.forEach(function(r){if(src[r.line]==="live")add(a,r)});Object.keys(g).forEach(function(k){add(b,g[k])});
+  Object.keys(a).concat(Object.keys(b)).forEach(function(k){ks[k]=1});
+  Object.keys(ks).sort().forEach(function(k){if((a[k]||0)!==(b[k]||0)){var p=k.split("|");stale.push({line:p[0],pod:p[1],kind:p[2],fe:p[3],a:a[k]||0,b:b[k]||0})}});
+  d.saved=saved;d.rows=rows;d.src=src;d.stale=stale;return d}
 function cbfLoad(){
   var S=cbfSt();if(!S||S.busy)return;S.busy=true;S.err="";cbfDraw();
   var id=S.id,q="?vsl="+id.vsl+"&voy="+id.voy+"&port="+id.p5,nm=st.name,sh=curShip();
   mlGet("/cbf"+q).then(function(d){if(!d||!d.ok)throw new Error(d&&d.why==="nokey"?"이 PC 에 전산 조회 키가 없어요":d&&d.why||"전산 응답 없음");
-      var first=!S.d,prev=S.d?cbfMap(S.d):null,cur=cbfMap(d);
-      if(prev){var ks={};Object.keys(prev).concat(Object.keys(cur)).forEach(function(k){ks[k]=1});
-        Object.keys(ks).forEach(function(k){var a=prev[k]?prev[k].n:0,b=cur[k]?cur[k].n:0;if(a!==b){var p=k.split("|");S.hist.unshift({at:d.at,pod:p[0],kind:p[1],fe:p[2],from:a,to:b})}})}
-      S.d=d;S.at=Date.now();if(st.name===nm&&st.plan)cbfSync(S,first);
-      return mlGet("/closemail"+q+"&name="+encodeURIComponent(sh&&sh.n||"")).then(function(m){S.mails=m&&m.mails||[]},function(){})})
-    .then(function(){if(S.d&&cbfClosed(S).any)return mlGet("/cll"+q).then(function(c){if(c&&c.ok){S.cll=c;if(st.name===nm&&st.plan)S.cmp=cllCmp(S)}},function(){})})
+      return mlGet("/cll"+q+"&pods="+(d.pods||[]).join(",")).then(function(c){return c&&c.ok?c:null},function(){return null}).then(function(c){   // pods = 이 항차가 앞으로 들르는 항 — T/S 화물을 '이 배에서 내리는 항'으로 세기 위해 넘김
+        if(!c&&S.d&&S.d.src){S.at=Date.now();throw new Error("실시간 부킹(전산 로딩리스트)을 못 읽어서 지난번 수량을 그대로 뒀어요")}   // 실시간으로 세던 것을 조회값으로 바꿔 세면 가짜 변동이 생김
+        if(c)S.cll=c;cbfLive(d,c);
+        var first=!S.d,prev=S.d?cbfMap(S.d):null,cur=cbfMap(d);
+        if(prev){var ks={};Object.keys(prev).concat(Object.keys(cur)).forEach(function(k){ks[k]=1});
+          Object.keys(ks).forEach(function(k){var a=prev[k]?prev[k].n:0,b=cur[k]?cur[k].n:0;if(a!==b){var p=k.split("|");S.hist.unshift({at:d.at,pod:p[0],kind:p[1],fe:p[2],from:a,to:b})}})}
+        S.d=d;S.at=Date.now();if(st.name===nm&&st.plan)cbfSync(S,first);
+        return mlGet("/closemail"+q+"&name="+encodeURIComponent(sh&&sh.n||"")).then(function(m){S.mails=m&&m.mails||[]},function(){})})})
+    .then(function(){if(S.d&&S.cll&&cbfClosed(S).any&&st.name===nm&&st.plan)S.cmp=cllCmp(S)})
     .catch(function(e){S.err=String(e&&e.message||e)}).then(function(){S.busy=false;if(st.name===nm){plDraw();cbfDraw()}})}
 function cbfTot(m){var n=0;Object.keys(m).forEach(function(k){n+=m[k].n});return n}
 function cbfLine(S){   // LOAD LIST 창의 한 줄 요약
   if(S.busy&&!S.d)return "전산 CBF 불러오는 중…";if(S.err&&!S.d)return '<b style="color:#c50f1f">CBF 를 못 불러왔어요</b> ('+esc(S.err)+')';if(!S.d)return "";
   var m=cbfMap(S.d),h=cbfHave(S.id.port),tot=cbfTot(m),pl=0,ll=0,k,over=0,c=cbfClosed(S),t="";
   for(k in h.plan)pl+=h.plan[k];for(k in h.ll)ll+=h.ll[k];(S.sync&&S.sync.over||[]).forEach(function(o){over+=o.n});
-  t="CBF "+esc(S.d.at.slice(11))+" · <b>"+tot+"</b> VAN = 플랜 "+pl+" + 로드리스트 "+ll+(tot===pl+ll&&!over?' <b style="color:#0a7a2f">✓</b>':' <b style="color:#c50f1f">✗ '+(over?"플랜 초과 "+over:"차이 "+(pl+ll-tot))+'</b>');
+  t=(S.d.src?"B/K 기준 ":"CBF 조회값 ")+esc(S.d.at.slice(11))+" · <b>"+tot+"</b> VAN = 플랜 "+pl+" + 로드리스트 "+ll+(tot===pl+ll&&!over?' <b style="color:#0a7a2f">✓</b>':' <b style="color:#c50f1f">✗ '+(over?"플랜 초과 "+over:"차이 "+(pl+ll-tot))+'</b>');
   if(S.hist.length)t+=' · 변동 '+S.hist.length+'건';
+  if(S.d.stale&&S.d.stale.length)t+=' · 조회값과 차이 '+S.d.stale.length;
   if(c.any)t+=' · <b style="color:'+(S.cmp&&S.cmp.diff?"#c50f1f":"#0a7a2f")+'">마감'+(S.cmp?(S.cmp.diff?" — 로딩리스트와 차이 "+S.cmp.diff+"건":" — 로딩리스트와 일치"):"")+'</b>';
   if(S.busy)t+=" · 새로 읽는 중…";return t}
 function cbfHtml(S){
@@ -2711,9 +2735,17 @@ function cbfHtml(S){
   Object.keys(m).forEach(function(k){pods[m[k].pod]=1;keys[k]=1;for(var l in m[k].lines)lines[l]=(lines[l]||0)+m[k].lines[l]});
   Object.keys(hv.plan).concat(Object.keys(hv.ll)).forEach(function(k){pods[k.split("|")[0]]=1;keys[k]=1});
   var tot=cbfTot(m),pl=0,ll=0,k;for(k in hv.plan)pl+=hv.plan[k];for(k in hv.ll)ll+=hv.ll[k];
-  h+='<div class="owr"><b>한눈에</b><div class="ro">전산 '+esc(d.at)+' 기준 · CBF <b>'+tot+'</b> VAN ('+Object.keys(lines).map(function(l){return esc(l)+" "+lines[l]}).join(" · ")+') · 플랜에 실린 것 <b>'+pl+'</b> · LOAD LIST <b>'+ll+'</b> → '+
+  h+='<div class="owr"><b>한눈에</b><div class="ro">전산 '+esc(d.at)+' 기준 · '+(d.src?"실시간 부킹":"CBF 조회값")+' <b>'+tot+'</b> VAN ('+Object.keys(lines).map(function(l){return esc(l)+" "+lines[l]}).join(" · ")+') · 플랜에 실린 것 <b>'+pl+'</b> · LOAD LIST <b>'+ll+'</b> → '+
     (tot===pl+ll?'<b style="color:#0a7a2f">수량 일치</b>'+(ll?" (LOAD LIST 의 "+ll+"개를 마저 실으면 됨)":" · 전부 플랜에 실려 있음"):'<b style="color:#c50f1f">'+(pl+ll>tot?"플랜 쪽이 "+(pl+ll-tot)+"개 많음":"CBF 가 "+(tot-pl-ll)+"개 많음")+'</b>')+
     (S.sync&&(S.sync.add||S.sync.del)?'<small>이번에 LOAD LIST 에 '+(S.sync.add?"새로 만든 것 "+S.sync.add+"개 ":"")+(S.sync.del?"뺀 것 "+S.sync.del+"개":"")+'</small>':'')+(S.sync&&S.sync.old?'<small>옛 CASP($604) 파일이라 LOAD LIST 를 새로 만들 수 없어요. 수량 비교만 해요.</small>':'')+'</div></div>';
+  // 수량의 출처: 실시간 부킹(전산 로딩리스트 = 전산 화면의 B/K Recalculation 이 세는 자료) ↔ 저장된 CBF(조회)
+  if(d.src){var sv=(d.fix||[]).map(function(f){return f.inp}).filter(Boolean).sort().pop(),stl=d.stale||[],svT='저장된 CBF(조회'+(sv?", 마지막 저장 "+esc(dt(sv)):"")+')';
+    h+='<div class="owr"><b>B/K 기준</b><div class="ro">수량은 조회값이 아니라 <b>실시간 부킹</b>으로 셌어요 (전산 Container Loading List — B/K Recalculation 을 눌렀을 때 나오는 수량과 같은 자료) : '+
+      Object.keys(d.src).sort().map(function(l){return esc(l)+" "+({live:"실시간",saved:"저장된 CBF",empty:"저장된 CBF (부킹 쪽이 아직 비어 있음)"}[d.src[l]])}).join(" · ")+'<br>'+
+      (stl.length?'<b style="color:#c50f1f">'+svT+'와 '+stl.length+'군데 달라요</b> — 전산에서 아직 B/K Recalculation 이 안 된 변동분이에요 : '+stl.map(function(x){return esc(x.line+" "+x.pod+" "+CBNAME[x.kind]+" "+x.fe)+" (조회 "+x.a+" → 실시간 "+x.b+")"}).join(", ")
+        :svT+'와 수량이 같아요.')+
+      '<small>타사 슬롯 라인(PCS · CKL 등)은 우리 전산에 부킹이 없어서 저장된 CBF 값을 그대로 써요. T/S 화물은 최종 목적지가 아니라 이 배에서 내리는 항으로 세요.</small></div></div>'}
+  else h+='<div class="owr"><b>B/K 기준</b><div class="ro"><b style="color:#c50f1f">실시간 부킹(전산 로딩리스트)을 못 읽어서 저장된 CBF(조회) 수량으로 셌어요.</b> 전산에서 B/K Recalculation 이 안 된 변동분은 빠져 있을 수 있어요.</div></div>';
   // 마감
   h+='<div class="owr"><b>마감</b><div class="ro">'+(d.fix||[]).map(function(f){return (f.comp==="HALK"?"흥아":"장금")+" 전산 CBF "+(f.fixed?'<b style="color:#c50f1f">확정(Fix) '+esc(dt(f.when))+'</b>':"미확정")+(f.inp?" · 마지막 입력 "+esc(dt(f.inp)):"")}).join("<br>")+
     (d.closing||[]).map(function(x){return "<br>"+(x.comp==="HALK"?"흥아":"장금")+" "+esc(x.wharf)+" 서류 마감 "+esc(dt(x.doc))+" · 카고 마감 "+esc(dt(x.cargo))}).join("")+
@@ -2732,7 +2764,7 @@ function cbfHtml(S){
   h+='<div class="owr"><b>변동분</b><div>'+(S.hist.length?'<table class="et cbt"><thead><tr><th>전산 시각</th><th>POD</th><th>크기</th><th>F/E</th><th class="n">전</th><th class="n">후</th><th class="n">변동</th></tr></thead><tbody>'+
       S.hist.slice(0,40).map(function(x){var dd=x.to-x.from;return '<tr><td>'+esc(x.at.slice(5))+'</td><th>'+esc(x.pod)+'</th><td>'+CBNAME[x.kind]+'</td><td>'+x.fe+'</td><td class="n">'+x.from+'</td><td class="n">'+x.to+'</td><td class="n '+(dd>0?"up":"dn")+'">'+(dd>0?"+":"")+dd+'</td></tr>'}).join("")+'</tbody></table>'+
       '<small>늘어난 것은 LOAD LIST 에 <b class="lln">N</b> 표시로 들어가 있어요 (LOAD LIST 의 ‘변동분만’으로 따로 볼 수 있어요). 줄어든 것은 아직 안 실은 LOAD LIST 것부터 뺐고, 이미 실은 것은 위 표에 빨갛게 나와요.</small>'
-      :'<div class="ro">처음 불러온 뒤로 CBF 가 바뀐 적이 없어요.</div>')+'</div></div>';
+      :'<div class="ro">처음 불러온 뒤로 수량이 바뀐 적이 없어요.</div>')+'</div></div>';
   // 번호 대조 (CLL)
   var R=S.cmp,lst=function(a,fn){return a.slice(0,30).map(fn).join(", ")+(a.length>30?" 외 "+(a.length-30)+"개":"")};
   h+='<div class="owr"><b>번호 대조</b><div class="ro">'+(R?'전산 로딩리스트 '+R.n+'개 ↔ 플랜(이 포트 · 우리 라인) '+R.plan+'개'+(R.noNum?" (플랜에 번호 없는 것 "+R.noNum+"개)":"")+' → '+(R.diff?'<b style="color:#c50f1f">차이 '+R.diff+'건</b>':'<b style="color:#0a7a2f">차이 없음</b>')+
@@ -2760,7 +2792,7 @@ function cbfOpen(on){if(on==null)on=$("cbfV").hidden;$("cbfV").hidden=!on;if(on)
   $("cbfB").addEventListener("click",function(e){var S=cbfSt();if(!S)return;
     if(e.target.id==="cbfGo")cbfLoad();
     else if(e.target.id==="cbfCll"){var q="?vsl="+S.id.vsl+"&voy="+S.id.voy+"&port="+S.id.p5;S.busy=true;cbfDraw();
-      mlGet("/cll"+q).then(function(c){if(c&&c.ok){S.cll=c;S.cmp=cllCmp(S)}else S.err="로딩리스트를 못 받았어요"},function(e2){S.err=String(e2&&e2.message||e2)}).then(function(){S.busy=false;plDraw();cbfDraw()})}});
+      mlGet("/cll"+q+"&pods="+((S.d&&S.d.pods)||[]).join(",")).then(function(c){if(c&&c.ok){S.cll=c;S.cmp=cllCmp(S)}else S.err="로딩리스트를 못 받았어요"},function(e2){S.err=String(e2&&e2.message||e2)}).then(function(){S.busy=false;plDraw();cbfDraw()})}});
   $("llChg").onchange=function(){PL.onlyChg=this.checked;plDraw()};
   setInterval(function(){var S=cbfSt();if(S&&S.d&&!S.busy&&Date.now()-S.at>=600000&&(PL.mode==="ll"||!$("cbfV").hidden))cbfLoad()},30000);   // 10분마다 (로드리스트 모드이거나 점검 창이 열려 있을 때)
 })();

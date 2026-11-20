@@ -70,7 +70,7 @@ function RotJson($q) {
 # CBF link of the LOAD LIST (read-only look-ups): booking forecast, box list, closing notices in the mailbox
 function QVoy($q) { $v = ([string]$q['vsl']).ToUpper(); $y = ([string]$q['voy']).ToUpper(); $p = ([string]$q['port']).ToUpper(); if ($v -notmatch '^[A-Z0-9]{3,5}$' -or $y -notmatch '^\d{3,4}[A-Z]$' -or $p -notmatch '^[A-Z]{5}$') { return $null }; return @($v, $y, $p) }
 function CbfJson($q) { $a = QVoy $q; if (-not $a) { return '{"ok":false,"why":"noinput"}' }; return ((Out-Cbf $a[0] $a[1] $a[2]) | ConvertTo-Json -Depth 6 -Compress) }
-function CllJson($q) { $a = QVoy $q; if (-not $a) { return '{"ok":false,"why":"noinput"}' }; return ((Out-Cll $a[0] $a[1] $a[2]) | ConvertTo-Json -Depth 5 -Compress) }
+function CllJson($q) { $a = QVoy $q; if (-not $a) { return '{"ok":false,"why":"noinput"}' }; return ((Out-Cll $a[0] $a[1] $a[2] ([string]$q['pods'])) | ConvertTo-Json -Depth 5 -Compress) }
 function CloseMailJson($q) { $a = QVoy $q; if (-not $a) { return '{"mails":[]}' }; return (@{ mails = @(Out-CloseMail $a[0] ([string]$q['name']) $a[1]) } | ConvertTo-Json -Depth 5 -Compress) }
 function OutOpen($q) {
     $mode = if ($q.send -eq $true) { 'send' } elseif ($q.draft) { 'draft' } else { 'show' }
