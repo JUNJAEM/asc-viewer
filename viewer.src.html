@@ -714,6 +714,7 @@ header.win .body{background:#fff}
 .owc{margin-top:10px;padding:10px 12px;border:2px solid #c50f1f;border-radius:4px;background:#fff5f5;color:#3b0a0a;font-size:13px;line-height:1.7}.owc>b{display:block;margin-bottom:4px}.owc .owf span{color:#6b3a3a}
 #setV{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.32);padding:16px}#setV[hidden]{display:none}
 .setr{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:6px 2px}.setr b{min-width:76px}.seth{margin:10px 2px 2px;color:var(--fg2);font-size:12px;line-height:1.5}
+.mcrow{display:flex;gap:8px;flex-wrap:wrap;width:100%;margin-top:4px}#mcIn{flex:1 1 180px;min-width:0;font:inherit;font-size:14px;padding:7px 9px;border:1px solid var(--edge);border-radius:7px;background:var(--win);color:var(--fg)}#mcInfo{font-size:12.5px;font-weight:700}#mcInfo.ok{color:#0a7a2f}#mcInfo.no{color:var(--fg2)}
 #thSeg button{padding:6px 18px;font-size:13px}
 :root[data-theme="dark"]{
   color-scheme:dark;
@@ -872,7 +873,10 @@ header.win .body{background:#fff}
 <div id="setV" hidden><div class="win hwin" role="dialog" aria-label="설정">
   <div class="tb">설정<span class="sp"></span><button type="button" id="setX" aria-label="닫기">×</button></div>
   <div class="body"><div class="setr"><b>화면 모드</b><span class="seg" id="thSeg"><button type="button" data-th="light">밝게</button><button type="button" data-th="dark">어둡게</button></span></div>
-    <p class="seth">고른 모드는 이 기기에 기억돼요. 플랜 칸의 포트 색은 두 모드에서 같아요. ‘이미지로 저장’은 항상 밝은 바탕으로 저장돼요.</p></div></div></div>
+    <p class="seth">고른 모드는 이 기기에 기억돼요. 플랜 칸의 포트 색은 두 모드에서 같아요. ‘이미지로 저장’은 항상 밝은 바탕으로 저장돼요.</p>
+    <div class="setr"><b>폰 메일 연결</b> <span id="mcInfo"></span>
+      <div class="mcrow"><input id="mcIn" type="text" autocomplete="off" spellcheck="false" placeholder="PC 에서 받은 연결 코드 (ascmail...)"><button type="button" id="mcSave" class="btn">연결</button><button type="button" id="mcClear" class="btn">지우기</button></div>
+      <p class="seth">퇴근 후 폰에서 메일함을 쓰려면, 회사 PC 에서 <b>mail-phone-setup</b> 을 한 번 실행해 나온 연결 코드를 붙여넣으세요. 메일은 바깥 서버를 거치지 않고 회사 PC 에서 사설망(Tailscale)으로 바로 와요.</p></div></div></div></div>
 <div id="outV" hidden><div class="win hwin owin" role="dialog" aria-label="OUTBOUND 메일 작성">
   <div class="tb">OUTBOUND 메일 작성<span class="sp"></span><button type="button" id="outX" aria-label="닫기">×</button></div>
   <div class="body" id="outB"></div></div></div>
@@ -2789,7 +2793,14 @@ var ML={ship:"",items:[],cat:"",q:"",busy:false,err:"",at:"",days:3,order:[]};
 // 필요한 것: 회사 Entra(Azure AD)에 등록한 앱 ID 하나 = mail-config.js 의 ASC_GRAPH.clientId  (종류: 단일 페이지 앱(SPA), 리디렉션 URI: 이 페이지 주소, 위임 권한: Mail.Read)
 // 로그인은 표준 방식(인증 코드 + PKCE)을 직접 구현 — 외부 라이브러리 없음. 토큰은 이 기기의 브라우저 저장소에만 둠.
 var GR={cfg:window.ASC_GRAPH||{},K:"ascGrTok",mail:function(){try{return localStorage.getItem("ascGrMail")||""}catch(_){return ""}}};
-function grOn(){return !window.__MAILSRVJS__}                 // PC 설치판은 아웃룩 도우미, 그 밖(폰·웹)은 Graph
+// 폰 메일 연결: 회사 PC 의 도우미(127.0.0.1)에 Tailscale 사설망으로 직접 닿는 주소(base)+토큰. 바깥 서버를 거치지 않음. PC 에서 mail-phone-setup 을 돌려 받은 연결 코드를 한 번 저장.
+function mlConn(){try{var c=JSON.parse(localStorage.getItem("ascMailConn")||"null");return c&&c.base&&c.token?c:null}catch(_){return null}}
+function mlOn(){return !!window.__MAILSRVJS__||!!mlConn()}   // 메일 도우미를 쓸 수 있나 (PC 설치판 또는 폰 저장 연결)
+function mcDecode(x){x=String(x||"").trim();var m=/ascmail\.([A-Za-z0-9_\-]+)/.exec(x);if(!m)return null;
+  try{var b=m[1].replace(/-/g,"+").replace(/_/g,"/");while(b.length%4)b+="=";var j=JSON.parse(atob(b));return j&&j.b&&j.t?{base:String(j.b).replace(/\/+$/,""),token:String(j.t)}:null}catch(_){return null}}
+function mcSet(c){try{if(c)localStorage.setItem("ascMailConn",JSON.stringify(c));else localStorage.removeItem("ascMailConn")}catch(_){}}
+(function(){try{var h=location.hash||"";if(h.indexOf("#mail=")===0){var c=mcDecode(h.slice(6));if(c)mcSet(c);history.replaceState(null,"",location.pathname+location.search)}}catch(_){}})();
+function grOn(){return !mlOn()}                 // 둘 다 없을 때만 Graph (앱 등록 승인 전이라 지금은 안 씀)
 function grReady(){return !!(GR.cfg&&GR.cfg.clientId)}
 function grHere(){return location.origin+location.pathname}
 function grAuth(){return "https://login.microsoftonline.com/"+(GR.cfg.tenant||"organizations")+"/oauth2/v2.0/"}
@@ -2848,11 +2859,12 @@ function grList(days){
 function grFile(id,aid){return grGet("https://graph.microsoft.com/v1.0/me/messages/"+encodeURIComponent(id)+"/attachments/"+encodeURIComponent(aid)+"/$value",true)}
 
 function mlSrv(){return new Promise(function(ok){
+  var c=mlConn();if(c)return ok({base:c.base,token:c.token});   // 폰: 저장된 Tailscale 연결로 바로
   if(!window.__MAILSRVJS__)return ok(null);
   var sc=document.createElement("script");window.__MAILSRV__=null;sc.src=window.__MAILSRVJS__+"?"+Date.now();
-  sc.onload=function(){sc.remove();ok(window.__MAILSRV__)};sc.onerror=function(){sc.remove();ok(null)};document.head.appendChild(sc)})}
+  sc.onload=function(){sc.remove();var S=window.__MAILSRV__;ok(S&&S.port?{base:"http://127.0.0.1:"+S.port,token:S.token}:null)};sc.onerror=function(){sc.remove();ok(null)};document.head.appendChild(sc)})}
 function mlGet(path,bin){return mlSrv().then(function(S){if(!S)throw new Error("off");
-  return fetch("http://127.0.0.1:"+S.port+path+(path.indexOf("?")<0?"?":"&")+"t="+S.token).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return bin?r.arrayBuffer():r.json()})})}
+  return fetch(S.base+path+(path.indexOf("?")<0?"?":"&")+"t="+encodeURIComponent(S.token)).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return bin?r.arrayBuffer():r.json()})})}
 function mlLoad(){
   if(ML.busy)return;ML.busy=true;ML.err="";mlDraw();
   (grOn()?(grReady()?grList(ML.days):Promise.reject(new Error("setup"))):mlGet("/list?days="+ML.days)).then(function(d){ML.items=d.items||[];ML.at=d.at||"";ML.seen=d.seen}).catch(function(e){ML.err=String(e&&e.message||e)}).then(function(){ML.busy=false;mlDraw()})}
@@ -2940,7 +2952,7 @@ function mlPick(id,i,btn){
 //  · 마감: 전산 화면의 BK/Recalculation 버튼 자체는 읽을 수 없어서(화면 프로그램 안의 것) CBF 확정(Fix) 기록 · 카고 마감 시각 · 메일함의 마감 메일로 판단.
 //    마감으로 보이면 전산의 박스별 로딩리스트(CLL)와 플랜의 컨테이너 번호를 대조해 차이를 알려 줌.
 var CB={},CBK=[["f20","20","F","22GP"],["f40","40","F","42GP"],["fhq","HQ","F","45GP"],["e20","20","E","22GP"],["e40","40","E","42GP"],["ehq","HQ","E","45GP"]],CBTARE={"20":2200,"40":3800,"HQ":3900},CBNAME={"20":"20'","40":"40'","HQ":"HQ"};
-function cbfId(){if(!window.__MAILSRVJS__||window.__STATIC__||!st.plan||st.example)return null;var I=outInfo();
+function cbfId(){if(!mlOn()||window.__STATIC__||!st.plan||st.example)return null;var I=outInfo();
   if(!I.vsl||!/^\d{3,4}[A-Z]$/.test(I.voy)||!I.port)return null;var p5=port5(I.port);if(!/^[A-Z]{5}$/.test(p5||""))return null;
   return {vsl:I.vsl,voy:I.voy,port:I.port,p5:p5,k:I.vsl+"|"+I.voy+"|"+p5}}
 function cbfSt(){var id=cbfId();if(!id)return null;return CB[id.k]||(CB[id.k]={id:id,d:null,at:0,hist:[],busy:false,err:"",cll:null,cmp:null,mails:null,sync:null})}
@@ -3122,7 +3134,7 @@ function cbfDraw(){var S=cbfSt(),row=$("llC");if(row){row.hidden=!S;if(S){$("cbf
   if(!$("cbfV").hidden)$("cbfB").innerHTML=S?cbfHtml(S):'<div class="msgbox">이 플랜은 전산 CBF 를 조회할 수 없어요.<br>PC 설치판에서, 파일 이름으로 선박 · 항차 · 포트를 알 수 있는 플랜만 돼요.</div>'}
 function cbfOpen(on){if(on==null)on=$("cbfV").hidden;$("cbfV").hidden=!on;if(on){var S=cbfSt();if(S&&!S.d&&!S.busy)cbfLoad();cbfDraw()}}
 (function(){
-  if(window.__STATIC__||!window.__MAILSRVJS__)return;
+  if(window.__STATIC__||!mlOn())return;
   $("cbfBtn").onclick=function(){cbfOpen(true)};$("cbfX").onclick=function(){cbfOpen(false)};
   $("cbfV").addEventListener("keydown",function(e){e.stopPropagation();if(e.key==="Escape")cbfOpen(false)});
   $("cbfB").addEventListener("click",function(e){var S=cbfSt();if(!S)return;
@@ -3172,7 +3184,7 @@ function outAdd(k,el){var v=String(el.value||"").trim();if(!v)return;
   var L=outRc(k).slice();parts.forEach(function(a){if(!L.some(function(x){return String(x.a).toLowerCase()===a.toLowerCase()}))L.push({n:"",a:a})});
   OUT[k]=L;if($("outS"))OUT.keepS=$("outS").value;outDraw();var ni=document.querySelector('[data-ra="'+k+'"]');if(ni)ni.focus()}
 function mlPost(path,obj){return mlSrv().then(function(S){if(!S)throw new Error("off");
-  return fetch("http://127.0.0.1:"+S.port+path+"?t="+S.token,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(obj)}).then(function(r){
+  return fetch(S.base+path+"?t="+encodeURIComponent(S.token),{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(obj)}).then(function(r){
     if(!r.ok)return r.text().then(function(t){throw new Error(t||("HTTP "+r.status))});return r.json()})})}
 function outInfoOf(nm,plan,ship){   // 한 플랜에서 읽는 것: 선박 코드 · 항차 · 그 플랜의 포트(파일 이름) · 서비스(파일 이름에 있으면)
   nm=nm||"";var m=/ASC\d+_([A-Z0-9]+)_(\d{3,4}[A-Z])_([A-Z]{5})_([A-Z0-9]{3,5})/i.exec(nm),p5=m?m[3].toUpperCase():"",voy=String(plan&&plan.voy||"").trim().toUpperCase();
@@ -3264,7 +3276,7 @@ function outGo(send){
       else OUT.done="아웃룩에 새 메일 창을 띄웠어요. 작업 표시줄의 아웃룩을 확인해 주세요."})
     .catch(function(e){OUT.ask=false;var t=String(e&&e.message||e);OUT.err=send===true?"보내지 못했어요 ("+(/needs review/.test(t)?"내용 확인이 필요한 메일이에요":/recipient/.test(t)?"받는 사람 주소를 확인하지 못했어요":t)+"). 아웃룩에서 열어 확인해 주세요.":"아웃룩에 메일을 만들지 못했어요 ("+t+")"}).then(function(){OUT.busy=false;var s=$("outS").value,r=$("outR").value;outDraw();if($("outS")){$("outS").value=s;$("outR").value=r}})}
 (function(){
-  if(window.__STATIC__||!window.__MAILSRVJS__)return;
+  if(window.__STATIC__||!mlOn())return;
   $("outBtn").hidden=false;$("outBtn").onclick=function(){outOpen()};$("outX").onclick=function(){outOpen(false)};
   $("outV").addEventListener("keydown",function(e){e.stopPropagation();if(e.key==="Escape")outOpen(false)});
   $("outB").addEventListener("mousedown",function(e){var b=e.target.closest&&e.target.closest("[data-ex]");if(b)e.preventDefault()});   // 글자 모양 버튼을 눌러도 본문에서 고른 자리가 풀리지 않게
@@ -3322,6 +3334,10 @@ function setTheme(t,keep){t=t==="dark"?"dark":"light";if(t==="dark")document.doc
   $("setBtn").onclick=function(){box()};$("setX").onclick=function(){box(false)};
   $("setV").addEventListener("click",function(e){if(e.target.id==="setV")box(false)});
   $("thSeg").addEventListener("click",function(e){var b=e.target.closest("[data-th]");if(b){setTheme(b.dataset.th,true);if(st.plan)render()}});
+  function mcShow(){var c=mlConn(),el=$("mcInfo");if(!el)return;if(c){var h=c.base.split("://").pop().split("/")[0];el.textContent="연결됨 · "+h;el.className="ok"}else{el.textContent="연결 안 됨";el.className="no"}}
+  var _box=box;box=function(on){_box(on);if(!$("setV").hidden)mcShow()};$("setBtn").onclick=function(){box()};
+  $("mcSave").onclick=function(){var c=mcDecode($("mcIn").value);if(!c){$("mcIn").style.borderColor="#c50f1f";return say("연결 코드를 알아볼 수 없어요. PC 에서 받은 ascmail... 코드를 그대로 붙여넣어 주세요.",true)}mcSet(c);say("폰 메일 연결을 저장했어요. 메일함이 이 PC 에서 직접 와요.");location.reload()};
+  $("mcClear").onclick=function(){mcSet(null);$("mcIn").value="";mcShow();say("폰 메일 연결을 지웠어요.");location.reload()};
 })();
 // ---------- VESSEL VIEW (예전 이름 3D VIEW — 코드 안 이름은 v3 그대로) ----------
 // 선박 모양은 도면이 아니라 cCASP 구조에서 만든 것: 전장·폭·깊이, 베이·로우·티어 칸, 거주구가 어느 베이 뒤에 있는지(ships.js 의 g).
@@ -3345,7 +3361,7 @@ var LOOK={SHVY:{hull:"#2f6fb0",under:"#b8434a",fun:"#7fc49a",house:"#f1ecdd"},NB
 // 스킵한 포트는 중간선. 전산에서 못 찾거나 폰·웹(전산에 닿지 않음)이면 파일에 적힌 순서 그대로. 화면 표시만 바꾸고, 색 순서·리핸들링 판단은 파일의 순서를 그대로 씀.
 var SROT={};
 function schedRot(){
-  if(!window.__MAILSRVJS__||window.__STATIC__||!st.plan||st.example)return null;
+  if(!mlOn()||window.__STATIC__||!st.plan||st.example)return null;
   var I=outInfo();if(!I.vsl||!/^\d{3,4}[A-Z]$/.test(I.voy))return null;
   var key=I.vsl+"|"+I.voy,r=SROT[key],nm=st.name;
   if(r&&!(r.fail&&Date.now()-r.at>60000))return r.ok&&r.calls&&r.calls.length?r:null;
@@ -3424,7 +3440,7 @@ function mailHint(){
   if(ref)ML.items.forEach(function(m){if(m.from+"|"+m.fd===ref.key)m.files.forEach(function(f){peers.push(f.n)})});
   function done(d){d=d||{};MH[nm]={sub:portOfName(d.sub||(ref?ref.sub:""),ship),body:portOfText(d.body),snd:portOfPeers((d.peers||[]).concat(peers))};
     if(!$("v3").hidden&&st.name===nm){wxLoad(v3Port());v3Draw()}}
-  if(window.__MAILSRVJS__)mlGet("/mailhint?"+(ref&&ref.id?"id="+encodeURIComponent(ref.id):"name="+encodeURIComponent(nm))).then(done,function(){done(null)});
+  if(mlOn())mlGet("/mailhint?"+(ref&&ref.id?"id="+encodeURIComponent(ref.id):"name="+encodeURIComponent(nm))).then(done,function(){done(null)});
   else setTimeout(function(){done(null)},0);
   return null}
 // 포트를 정하는 차례: 파일 이름 → 보낸 사람이 평소 보내는 포트 → 파일 안 내용 → 메일 제목 → 메일 본문. 이름이 아닌 것으로 정했으면 화면에 무엇으로 추정했는지 같이 적음(V3.pwhy)
@@ -4007,7 +4023,7 @@ var KEYS=[
   {keys:["Alt","E"],d:"EDITOR / PIVOT 켜기 · 끄기",code:"KeyE",alt:1,plan:1,fn:function(){$("edBtn").click()}},
   {keys:["Ctrl","Tab"],d:"다음 플랜 탭으로 (마지막 탭 다음은 첫 탭)",code:"Tab",ctrl:1,fn:function(){tabStep(1)}},
   {keys:["Alt","F"],d:"컨테이너 찾기 열기 · 닫기",code:"KeyF",alt:1,plan:1,fn:function(){findBox()}},
-  {keys:["Alt","M"],d:"메일함 열기 · 닫기 — 팀 메일로 온 플랜을 아웃룩에서 바로 열기 (PC 설치판)",code:"KeyM",alt:1,fn:function(){if(window.__MAILSRVJS__&&!window.__STATIC__)mlOpen()}},
+  {keys:["Alt","M"],d:"메일함 열기 · 닫기 — 팀 메일로 온 플랜을 아웃룩에서 바로 열기 (PC 설치판)",code:"KeyM",alt:1,fn:function(){if(mlOn()&&!window.__STATIC__)mlOpen()}},
   {keys:["Ctrl","클릭"],or:["Ctrl","드래그"],d:"컨테이너 지정 (지정된 것이 없을 때). 지정된 것이 있으면 → 빈 칸 = 그 자리로 이동, 같은 개수의 다른 컨테이너 = 자리 교체(확인 창)"},
   {keys:["Ctrl","Alt","클릭"],or:["Ctrl","Alt","드래그"],d:"지정에 더하기 (여러 개 지정)"},
   {keys:["Ctrl","Shift","클릭"],or:["Ctrl","Shift","드래그"],d:"이 포트에서 싣지 않은 컨테이너(ROB)까지 지정 · 이동 — Shift 없이는 ROB 는 지정되지 않음. ROB 를 옮기면 쉬프팅(S)으로 남음"},

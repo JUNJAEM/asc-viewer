@@ -17,7 +17,11 @@ function Log($m) { try { Add-Content -LiteralPath $log -Value ((Get-Date).ToStri
 $listener = $null; $port = 0
 foreach ($p in 47815..47835) { try { $l = New-Object Net.Sockets.TcpListener([Net.IPAddress]::Loopback, $p); $l.Start(); $listener = $l; $port = $p; break } catch { } }
 if (-not $listener) { Log 'no free port'; exit }
-$token = [Guid]::NewGuid().ToString('N') + [Guid]::NewGuid().ToString('N')
+# token: persistent (kept in mailsrv-token.txt next to this file) so a phone that saved the connection keeps working across restarts. Never committed; stays on this PC.
+$tokFile = Join-Path $dir 'mailsrv-token.txt'
+$token = ''
+if (Test-Path $tokFile) { try { $token = (Get-Content -LiteralPath $tokFile -Raw).Trim() } catch { } }
+if ($token -notmatch '^[0-9a-fA-F]{32,}$') { $token = [Guid]::NewGuid().ToString('N') + [Guid]::NewGuid().ToString('N'); try { [IO.File]::WriteAllText($tokFile, $token, (New-Object Text.UTF8Encoding($false))) } catch { } }
 [IO.File]::WriteAllText((Join-Path $tmp 'mailsrv.js'), "window.__MAILSRV__={port:$port,token:'$token'};", (New-Object Text.UTF8Encoding($false)))
 Log "listening on $port"
 
