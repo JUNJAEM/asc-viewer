@@ -46,5 +46,7 @@ for code in sorted(want - set(out)) if ASK else []:
         if "429" in str(e): print("하루 요청 한도에 걸림 — 내일 다시 돌리면 남은 포트를 채움"); break
     time.sleep(0.12)
 out.update(FIX)
+from geo_called import coords   # 실제 기항지 108곳은 이름으로 직접 잡은 좌표가 우선 (tools/geo_called.py)
+out.update(coords())
 json.dump(out, open(OUT, "w", encoding="utf-8"), separators=(",", ":"), sort_keys=True)
 print(len(set(out) & want), "of", len(want), "ports have coordinates; missing:", " ".join(sorted(want - set(out))))
