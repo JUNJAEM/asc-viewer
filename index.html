@@ -650,7 +650,9 @@ header.win .body{background:#fff}
 /* ===== 설정: 화면 모드 — 어둡게 (설정 ▸ 화면 모드). 밝게는 위의 기본값 그대로 ===== */
 #outV{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.32);padding:16px}#outV[hidden]{display:none}
 #cbfV{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.32);padding:16px}#cbfV[hidden]{display:none}
-.llc{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:5px 8px;border-bottom:1px solid var(--edge);font-size:11.5px;line-height:1.4}.llc[hidden]{display:none}.cbtip{cursor:help;border-bottom:1px dotted currentColor}.llc #cbfS{flex:1 1 150px;min-width:0}
+.llc{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:5px 8px;border-bottom:1px solid var(--edge);font-size:11.5px;line-height:1.4}.llc[hidden]{display:none}.cbtip{cursor:pointer;border-bottom:1px dotted currentColor}
+#cbfP{padding:6px 9px;border-bottom:1px solid var(--edge);background:#fff6d6;color:#111;font-size:12.5px;font-weight:700;line-height:1.55;white-space:pre-line;cursor:pointer}#cbfP[hidden]{display:none}
+#llBox.pv #cbfP{width:0;min-width:100%;box-sizing:border-box}[data-theme="dark"] #cbfP{background:#4a4020;color:#fff}.llc #cbfS{flex:1 1 150px;min-width:0}
 .llc button{font:inherit;font-size:11.5px;font-weight:700;padding:1px 7px;border:1px solid var(--edge);border-radius:3px;background:#fff;color:#111;cursor:pointer}.llc label{white-space:nowrap;display:inline-flex;gap:3px;align-items:center}
 .lln{display:inline-block;margin-right:4px;padding:0 4px;border-radius:3px;background:#d83b01;color:#fff;font-size:10px;font-weight:700;line-height:14px;vertical-align:1px}
 .cbt{font-size:12px;min-width:0;width:auto}.cbt td{text-align:right}.cbt td.z{color:#bbb}.cbt td.bad{background:#fde7e9;color:#a80000;font-weight:700}.cbt td small{display:inline;color:inherit;opacity:.75;margin:0 0 0 3px}
@@ -717,7 +719,7 @@ header.win .body{background:#fff}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-20 13:52 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-20 13:57 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -732,7 +734,8 @@ header.win .body{background:#fff}
         <button class="btn" id="outBtn" type="button" hidden title="지금 플랜(고친 내용 포함)을 붙인 OUTBOUND 메일을 만들어요 — 받는 사람 · 본문을 그 자리에서 고치고, 아웃룩에서 열거나 확인 후 바로 보낼 수 있어요">OUTBOUND 메일</button></div></span>
       <span class="mn" data-mn="tool"><button class="btn mnb" type="button" aria-haspopup="true" aria-expanded="false" title="컨테이너 찾기 · 목록과 집계표">도구</button><div class="mnp" hidden role="menu">
         <button class="btn" id="findBtn" type="button" title="컨테이너 번호 찾기 (Alt + F)">SEARCH CNTR</button>
-        <button class="btn" id="edBtn" type="button" aria-pressed="false" title="컨테이너 목록(Editor)과 집계표(Pivot) 창을 켜고 꺼요 (Alt + E)">EDITOR / PIVOT</button></div></span>
+        <button class="btn" id="edBtn" type="button" aria-pressed="false" title="컨테이너 목록(Editor)과 집계표(Pivot) 창을 켜고 꺼요 (Alt + E)">EDITOR / PIVOT</button>
+        <button class="btn" id="cbfBtn" type="button" hidden title="전산 부킹(B/K) · CBF 와 플랜 대조, 변동분, 마감 점검을 한 창에서 봐요">CBF · 마감 점검</button></div></span>
       <span class="pltop" id="plTop"><span class="seg plModes"><button type="button" data-pm="v" title="보기만 (플래닝 끔)">보기</button><button type="button" data-pm="ll" title="Planning by Load List (Alt + S)">로드리스트</button><button type="button" data-pm="pal" title="Planning by Palette (Alt + Q)">팔레트</button><button type="button" data-pm="sft" title="Shift Mode (Alt + W) — 컨테이너를 눌러 빼낸 뒤 다른 자리에 다시 싣기">Shift</button></span>
     <span class="seg plMir"><button type="button" data-mir="S" title="Single — 누른 칸에만 (Alt + Z)">S</button><button type="button" data-mir="2FA" title="Mirror for Fore and Aft — 같은 해치의 앞·뒤 20' 베이에 같이 (Alt + C)">2F/A</button></span></span>
       <span class="mn" data-mn="etc"><button class="btn mnb" type="button" aria-haspopup="true" aria-expanded="false" title="단축키 모음 · 화면 설정">도움말 · 설정</button><div class="mnp" hidden role="menu">
@@ -842,7 +845,8 @@ header.win .body{background:#fff}
 <div id="pkTip" hidden role="tooltip"></div>
 <div id="llBox" hidden><div class="llh" title="끌어서 창을 옮길 수 있어요 (두 번 누르면 처음 자리로)"><b>LOAD LIST</b> <span id="llN"></span><span class="sp"></span>
     <button type="button" id="llBack" title="고른 것 중 쉬프팅으로 내린 컨테이너를 원래 자리에 다시 놓아요">원래 자리로</button><button type="button" id="llAll" title="전부 고르기 · 다시 누르면 전부 해제">전체</button><button type="button" id="llAdd" title="조건과 수량으로 로드리스트 만들기">＋ 추가</button></div>
-  <div class="llc" id="llC" hidden><button type="button" id="cbfBtn" title="전산 CBF 와 플랜 대조 · 변동분 · 마감 점검">CBF 점검</button><span id="cbfS"></span><label title="CBF 가 바뀌어서 새로 생긴 것만 보기"><input type="checkbox" id="llChg"> 변동분만</label></div>
+  <div class="llc" id="llC" hidden><span id="cbfS"></span><label title="CBF 가 바뀌어서 새로 생긴 것만 보기"><input type="checkbox" id="llChg"> 변동분만</label></div>
+  <div id="cbfP" hidden title="누르면 닫혀요"></div>
   <div class="llp" id="llP"><span class="seg"><button type="button" data-lv="p" title="행 × 열 로 묶어서 보기 — 칸을 누르면 그 묶음이 골라져요">피벗</button><button type="button" data-lv="l" title="컨테이너를 한 줄에 하나씩 보기">목록</button></span>
     <span id="llPv">행 <select id="llR"></select> 열 <select id="llK"></select> 값 <select id="llV"><option value="van">Unit</option><option value="teu">TEU</option><option value="kg">무게(t)</option></select> <button type="button" id="llX" title="행과 열 바꾸기">↔</button></span></div>
   <div id="llForm" hidden>POL<input data-l="pol" maxlength="5"> POD<input data-l="pod" maxlength="5"> SzTp<input data-l="type" maxlength="4"> kg<input data-l="kg" maxlength="5" class="w">
@@ -2340,7 +2344,7 @@ function llTable(L){   // LOAD LIST 창의 표 (피벗 또는 목록)
     :"줄을 눌러 고르고(Ctrl·Shift 여러 개, 더블클릭 = 그 줄부터 끝까지) Bay Plan 의 빈 칸을 누르거나 끌면 실려요. 오른쪽 버튼 = 다시 로드리스트로.";
   if(PL.fit)PL.fit()}
 function plDraw(){
-  tDraw();
+  tDraw();$("cbfBtn").hidden=!cbfId();
   var on=PL.mode!=="v";document.body.classList.toggle("planning",on);
   [].forEach.call(document.querySelectorAll(".plModes button"),function(b){b.setAttribute("aria-pressed",b.dataset.pm===PL.mode)});
   [].forEach.call(document.querySelectorAll(".plMir button"),function(b){b.setAttribute("aria-pressed",b.dataset.mir===PL.mir)});
@@ -2758,7 +2762,7 @@ function cbfLoad(){
 function cbfTot(m){var n=0;Object.keys(m).forEach(function(k){n+=m[k].n});return n}
 function cntTxt(x){var p=x.k.split("|");return p[0]+" "+(CBNAME[p[1]]||p[1])+" "+p[2]+" — 플랜 "+x.a+" / 전산 "+x.b}
 function needTxt(key,n){var p=key.split("|");   // "SDJ 40HQ 풀 4대 더 로딩해야 합니다" — n = 전산 수 − 플랜에 그려진 수
-  return p[0]+" "+({"20":"20'","40":"40'","HQ":"40HQ"}[p[1]]||p[1])+" "+(p[2]==="E"?"공컨":"풀")+" "+Math.abs(n)+"대 "+(n>0?"더 로딩해야 합니다":"초과입니다 (전산보다 많이 그려짐)")}
+  return p[0]+" "+({"20":"20'","40":"40'","HQ":"40HQ"}[p[1]]||p[1])+" "+(p[2]==="E"?"공컨":"풀")+" "+Math.abs(n)+"대 "+(n>0?"더 로딩해야 합니다":"초과입니다, "+Math.abs(n)+"대 삭제 요망")}
 function cmpTip(R){   // '로딩리스트와 차이 n건' 에 커서를 올렸을 때: 어느 포트 · 어떤 컨테이너 · 몇 대 더 실어야 하는지만 (사용자 지시)
   var L=[];
   if(R.numOk){var g={},ks=[];
@@ -2772,15 +2776,15 @@ function cmpTip(R){   // '로딩리스트와 차이 n건' 에 커서를 올렸�
 function cbfLine(S){   // LOAD LIST 창의 한 줄 요약. 차이 · 변동 표시에는 커서를 올리면 내역이 나옴(title)
   if(S.busy&&!S.d)return "전산 CBF 불러오는 중…";if(S.err&&!S.d)return '<b style="color:#c50f1f">CBF 를 못 불러왔어요</b> ('+esc(S.err)+')';if(!S.d)return "";
   var m=cbfMap(S.d),h=cbfHave(S.id.port),tot=cbfTot(m),pl=0,ll=0,k,c=cbfClosed(S),t="",ks={},bad=[],R=cbfFresh(S);
-  var tip=function(txt,html){return '<span class="cbtip" title="'+esc(txt)+'">'+html+'</span>'},nm=function(key){var p=key.split("|");return p[0]+" "+(CBNAME[p[1]]||p[1])+" "+p[2]};
+  var tip=function(key,txt,html){return '<span class="cbtip" data-k="'+key+'" title="'+esc(txt)+'">'+html+'</span>'},nm=function(key){var p=key.split("|");return p[0]+" "+(CBNAME[p[1]]||p[1])+" "+p[2]};
   for(k in h.plan)pl+=h.plan[k];for(k in h.ll)ll+=h.ll[k];
   Object.keys(m).concat(Object.keys(h.plan),Object.keys(h.ll)).forEach(function(x){ks[x]=1});
   Object.keys(ks).sort().forEach(function(x){var a=m[x]?m[x].n:0,p=h.plan[x]||0,l=h.ll[x]||0;if(a!==p+l)bad.push(needTxt(x,a-p-l))});
   t=(S.d.src?"B/K 기준 ":"CBF 조회값 ")+esc(S.d.at.slice(11))+" · <b>"+tot+"</b> VAN = 플랜 "+pl+" + 로드리스트 "+ll+
-    (!bad.length?' <b style="color:#0a7a2f">✓</b>':' '+tip(bad.slice(0,14).join("\n")+(bad.length>14?"\n… 외 "+(bad.length-14)+"군데":""),'<b style="color:#c50f1f">✗ '+(pl+ll===tot?"칸별 차이 "+bad.length:pl+ll>tot?"플랜 초과 "+(pl+ll-tot):"모자람 "+(tot-pl-ll))+'</b>'));
-  if(S.hist.length)t+=' · '+tip("불러온 뒤로 바뀐 수량\n"+S.hist.slice(0,12).map(function(x){var dd=x.to-x.from;return "· "+x.at.slice(5)+"  "+x.pod+" "+CBNAME[x.kind]+" "+x.fe+" : "+x.from+" → "+x.to+" ("+(dd>0?"+":"")+dd+")"}).join("\n")+(S.hist.length>12?"\n… 외 "+(S.hist.length-12)+"건":""),'변동 '+S.hist.length+'건');
-  if(S.d.stale&&S.d.stale.length)t+=' · '+tip("저장된 CBF(조회)와 실시간 부킹이 다른 곳 — 전산에서 아직 B/K Recalculation 이 안 된 변동분\n"+S.d.stale.slice(0,12).map(function(x){return "· "+x.line+" "+x.pod+" "+CBNAME[x.kind]+" "+x.fe+" : 조회 "+x.a+" → 실시간 "+x.b}).join("\n")+(S.d.stale.length>12?"\n… 외 "+(S.d.stale.length-12)+"군데":""),'조회값과 차이 '+S.d.stale.length);
-  if(c.any){var ct='<b style="color:'+(R&&R.diff?"#c50f1f":"#0a7a2f")+'">마감'+(R?(R.diff?" — 로딩리스트와 차이 "+R.diff+"건":" — 로딩리스트와 일치"):"")+'</b>';t+=' · '+(R?tip(cmpTip(R),ct):ct)}
+    (!bad.length?' <b style="color:#0a7a2f">✓</b>':' '+tip("cnt",bad.slice(0,14).join("\n")+(bad.length>14?"\n… 외 "+(bad.length-14)+"군데":""),'<b style="color:#c50f1f">✗ '+(pl+ll===tot?"칸별 차이 "+bad.length:pl+ll>tot?"플랜 초과 "+(pl+ll-tot):"모자람 "+(tot-pl-ll))+'</b>'));
+  if(S.hist.length)t+=' · '+tip("hist","불러온 뒤로 바뀐 수량\n"+S.hist.slice(0,12).map(function(x){var dd=x.to-x.from;return "· "+x.at.slice(5)+"  "+x.pod+" "+CBNAME[x.kind]+" "+x.fe+" : "+x.from+" → "+x.to+" ("+(dd>0?"+":"")+dd+")"}).join("\n")+(S.hist.length>12?"\n… 외 "+(S.hist.length-12)+"건":""),'변동 '+S.hist.length+'건');
+  if(S.d.stale&&S.d.stale.length)t+=' · '+tip("stale","저장된 CBF(조회)와 실시간 부킹이 다른 곳 — 전산에서 아직 B/K Recalculation 이 안 된 변동분\n"+S.d.stale.slice(0,12).map(function(x){return "· "+x.line+" "+x.pod+" "+CBNAME[x.kind]+" "+x.fe+" : 조회 "+x.a+" → 실시간 "+x.b}).join("\n")+(S.d.stale.length>12?"\n… 외 "+(S.d.stale.length-12)+"군데":""),'조회값과 차이 '+S.d.stale.length);
+  if(c.any){var ct='<b style="color:'+(R&&R.diff?"#c50f1f":"#0a7a2f")+'">마감'+(R?(R.diff?" — 로딩리스트와 차이 "+R.diff+"건":" — 로딩리스트와 일치"):"")+'</b>';t+=' · '+(R?tip("cmp",cmpTip(R),ct):ct)}
   if(S.busy)t+=" · 새로 읽는 중…";return t}
 function cbfHtml(S){
   var d=S.d,h="",dt=function(x){x=String(x||"");return x.length>=12?x.slice(4,6)+"-"+x.slice(6,8)+" "+x.slice(8,10)+":"+x.slice(10,12):x||"-"};
@@ -2839,7 +2843,8 @@ function cbfHtml(S){
   if((d.dg||[]).length)h+='<div class="owr"><b>위험물</b><div class="ro">CBF 의 DG '+d.dg.length+'개 : '+d.dg.slice(0,40).map(function(x){return esc(String(x.pod).slice(-3)+" "+x.cls+"/"+x.un+(x.no?" "+x.no:""))}).join(", ")+'</div></div>';
   if(S.err)h+='<div class="own">마지막으로 다시 읽을 때 오류가 있었어요: '+esc(S.err)+'</div>';
   return h}
-function cbfDraw(){var S=cbfSt(),row=$("llC");if(row){row.hidden=!S;if(S){$("cbfS").innerHTML=cbfLine(S)||"CBF 를 아직 안 불러왔어요";$("llChg").checked=!!PL.onlyChg}}
+function cbfDraw(){var S=cbfSt(),row=$("llC");if(row){row.hidden=!S;if(S){$("cbfS").innerHTML=cbfLine(S)||"CBF 를 아직 안 불러왔어요";$("llChg").checked=!!PL.onlyChg}
+    var P=$("cbfP"),el=S&&PL.cbp?$("cbfS").querySelector('.cbtip[data-k="'+PL.cbp+'"]'):null;if(!el)PL.cbp=null;P.hidden=!el;if(el)P.textContent=el.title}   // 문구를 눌러 펼친 간단 안내 (그리는 동안 숫자가 따라 바뀜)
   if(!$("cbfV").hidden)$("cbfB").innerHTML=S?cbfHtml(S):'<div class="msgbox">이 플랜은 전산 CBF 를 조회할 수 없어요.<br>PC 설치판에서, 파일 이름으로 선박 · 항차 · 포트를 알 수 있는 플랜만 돼요.</div>'}
 function cbfOpen(on){if(on==null)on=$("cbfV").hidden;$("cbfV").hidden=!on;if(on){var S=cbfSt();if(S&&!S.d&&!S.busy)cbfLoad();cbfDraw()}}
 (function(){
@@ -2851,7 +2856,8 @@ function cbfOpen(on){if(on==null)on=$("cbfV").hidden;$("cbfV").hidden=!on;if(on)
     else if(e.target.id==="cbfCll"){var q="?vsl="+S.id.vsl+"&voy="+S.id.voy+"&port="+S.id.p5;S.busy=true;cbfDraw();
       mlGet("/cll"+q+"&pods="+((S.d&&S.d.pods)||[]).join(",")).then(function(c){if(c&&c.ok){S.cll=c;S.cmp=cllCmp(S)}else S.err="로딩리스트를 못 받았어요"},function(e2){S.err=String(e2&&e2.message||e2)}).then(function(){S.busy=false;plDraw();cbfDraw()})}});
   $("llChg").onchange=function(){PL.onlyChg=this.checked;plDraw()};
-  $("cbfS").addEventListener("click",function(e){if(e.target.closest(".cbtip"))cbfOpen(true)});
+  $("cbfS").addEventListener("click",function(e){var x=e.target.closest(".cbtip");if(x){PL.cbp=PL.cbp===x.dataset.k?null:x.dataset.k;cbfDraw()}});   // 문구를 누르면 그 내용만 간단히 (전체 점검 창은 도구 메뉴의 CBF · 마감 점검)
+  $("cbfP").onclick=function(){PL.cbp=null;cbfDraw()};
   setInterval(function(){var S=cbfSt();if(S&&S.d&&!S.busy&&Date.now()-S.at>=600000&&(PL.mode==="ll"||!$("cbfV").hidden))cbfLoad()},30000);   // 10분마다 (로드리스트 모드이거나 점검 창이 열려 있을 때)
 })();
 // ---------- OUTBOUND 메일 작성 (PC 설치판) ----------
@@ -3778,6 +3784,7 @@ function escClose(e){   // Esc 한 번에 떠 있는 창 하나를 닫음 — �
   if(typing){if(t.closest("#fbox")){findBox(false);return true}if(t.closest("#llBox,#plStrip")){t.blur();return modeOff()}return false}   // 글자를 넣는 중이면 그 칸이 든 창만 닫음(다른 창은 그대로)
   if(st.open){closeBay();return true}                            // Bay Plan
   if(!$("fbox").hidden){findBox(false);return true}              // SEARCH CNTR
+  if(PL.cbp){PL.cbp=null;cbfDraw();return true}                  // LOAD LIST 의 간단 안내
   if(modeOff())return true;                                      // 로드리스트 · 팔레트 · Shift 모드
   if(!$("v3").hidden){v3Open(false);return true}                 // VESSEL VIEW
   if(ES.on&&st.plan){$("edBtn").click();return true}             // EDITOR / PIVOT
