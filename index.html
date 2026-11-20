@@ -681,7 +681,7 @@ header.win .body{background:#fff}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-20 10:48 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-20 10:54 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -2094,8 +2094,11 @@ function addBox(o,t,ent){   // 새 컨테이너를 자리 t 에. ent = 로드리
   else{var nb=Object.assign({},o,{bay:t.bay,row:t.row,tier:t.tier});delete nb.li;if(from)nb.from=from;else delete nb.from;st.plan.boxes.push(nb);st.mod=true}}
 // 이 포트에서 싣는 컨테이너인가 (cCASP 의 checkLoadInclusiveShift: POL 이 지금 포트이거나, 여기서 쉬프팅한 것). 여기서 새로 만든 것도 포함.
 // 지금 포트 = 이 플랜의 포트(파일 이름). 포트를 모르면 가릴 수 없어서: 지정·이동은 전부 허용하고, 옮긴 것은 예전처럼 모두 쉬프팅 내역으로 남김.
-function planPort(){return outInfo().port||""}
-function thisPort(b){var me=planPort();return !!me&&(b.pol===me||!!fromOf(b)||isNew(b))}
+var PPORT={k:"",v:""};
+function planPort(){var me=outInfo().port||"";if(!me||!st.plan)return "";var k=st.name+"|"+me+"|"+st.plan.boxes.length;
+  if(PPORT.k!==k){PPORT.k=k;PPORT.v=st.plan.boxes.some(function(b){return String(b.pol).slice(-3)===me})?me:""}   // 이름에서 읽은 포트로 실은 컨테이너가 하나도 없으면(잘못 읽었거나 다른 표기) 가리지 않음
+  return PPORT.v}
+function thisPort(b){var me=planPort();return !!me&&(String(b.pol).slice(-3)===me||!!fromOf(b)||isNew(b))}
 function setPos(b,t){   // 실려 있는 컨테이너를 자리 t 로. 원래 자리를 쉬프팅 내역으로 남김(원래 자리로 돌아오면 지움)
   var old=p6(b.bay,b.row,b.tier),pos=p6(t.bay,t.row,t.tier),from=fromOf(b)||(thisPort(b)?null:old);if(from===pos)from=null;   // cCASP: 이 포트에서 싣는 것을 옮기면 그냥 다시 놓는 것, ROB 를 옮기면 쉬프팅
   if(st.lines){st.lines[b.li]=putCol(st.lines[b.li],0,6,pos);st.sft=st.sft||{};if(from)st.sft[b.li]=from;else delete st.sft[b.li]}
@@ -2118,6 +2121,16 @@ function plRun(G,is40,next,skip,word){   // 돌려주는 값 = 놓은 개수   /
   if(done)plDone(word+" "+done+" VAN."+(no?" 건너뛴 자리: "+no+".":"")+" Alt + 3 으로 되돌릴 수 있어요.");
   else plSay(no?"실을 수 있는 자리가 없어요 ("+no+").":"빈 칸을 누르거나 끌어 주세요.",true);
   return done}
+// 여러 개를 한 번에 놓기 — 20' 와 40' 가 섞여 있어도 됨 (끌어서 지정하면 두 크기가 같이 잡히기 마련이라, 섞였다고 막으면 아무것도 안 옮겨짐).
+// 20' 를 먼저(아래쪽), 그다음 40' 를 그 크기가 들어갈 수 있는 칸에. items 는 무거운 것부터. 돌려주는 값 {done: 놓은 것들, no: 건너뛴 자리 설명}
+function plRunMix(G,items,sizeOf,place,skip){
+  var O=occMap(skip),done=[],why={},pushed=false;
+  [false,true].forEach(function(is40){var L=items.filter(function(x){return (sizeOf(x)===40)===is40});if(!L.length)return;var T=plTargets(G,is40),n=0;
+    for(var k=0;k<T.length&&n<L.length;k++){var t=T[k],w=whyNot(is40,t.H,t.bay,t.row,t.tier,O);
+      if(w){if(!t.mir)why[w]=(why[w]||0)+1;continue}
+      if(!pushed){pushUndo();pushed=true}
+      place(L[n],t);done.push(L[n]);O[t.bay+"_"+t.row+"_"+t.tier]={};n++}});
+  return {done:done,no:Object.keys(why).map(function(w2){return w2+" "+why[w2]+"곳"}).join(", ")}}
 function f604(){return !!st.lines&&(st.lines[0]||"").indexOf("$604")===0}
 function plPaint(G){
   var f=plFields(PL.brush);if(typeof f==="string")return plSay(f,true);
@@ -2126,16 +2139,17 @@ function plPaint(G){
 function plLoad(G){
   var sel=(st.ll||[]).filter(function(e){return PL.lsel.indexOf(e.id)>=0}).sort(function(a,b){return b.b.kg-a.b.kg});
   if(!sel.length)return plSay("LOAD LIST 에서 실을 컨테이너를 먼저 골라 주세요.",true);
-  var is40=sel[0].b.size===40;if(sel.some(function(e){return (e.b.size===40)!==is40}))return plSay("20' 와 40' 를 같이 고를 수는 없어요. 한 크기만 골라 주세요.",true);
   if(f604()&&sel.some(function(e){return !e.raw}))return plSay("옛 CASP($604) 파일에는 새로 만든 로드리스트를 실을 수 없어요.",true);
-  plRun(G,is40,function(n){var e=sel[n];if(!e)return null;return function(t){addBox(e.b,t,e);st.ll=st.ll.filter(function(x){return x!==e});PL.lsel=PL.lsel.filter(function(i){return i!==e.id})}},null,"로드리스트에서 실은 컨테이너")}
+  var R=plRunMix(G,sel,function(e){return e.b.size},function(e,t){addBox(e.b,t,e);st.ll=st.ll.filter(function(x){return x!==e});PL.lsel=PL.lsel.filter(function(i){return i!==e.id})},null),left=sel.length-R.done.length;
+  if(R.done.length)plDone("로드리스트에서 실은 컨테이너 "+R.done.length+" VAN."+(left?" 자리가 모자라 남은 것 "+left+" VAN 은 LOAD LIST 에 고른 채로 있어요.":"")+(R.no?" 건너뛴 자리: "+R.no+".":"")+" Alt + 3 으로 되돌릴 수 있어요.");
+  else plSay(R.no?"실을 수 있는 자리가 없어요 ("+R.no+").":"빈 칸을 누르거나 끌어 주세요.",true)}
 function plPicked(){var B=st.plan.boxes;return st.pick.map(function(i){return B[i]}).filter(Boolean).sort(function(a,b){return b.kg-a.kg})}
 function plMove(G,list){
   var all=plPicked(),mv=list?all.filter(function(b){return list.indexOf(b)>=0}):all;if(!mv.length)return;
-  var is40=mv[0].size===40;if(mv.some(function(b){return (b.size===40)!==is40}))return plSay("20' 와 40' 를 같이 옮길 수는 없어요. 한 크기만 골라 주세요.",true);
-  var moved=[];
-  if(!plRun(G,is40,function(n){var b=mv[n];if(!b)return null;return function(t){moved.push(b);setPos(b,t)}},mv,"옮긴 컨테이너"))return;
+  var R=plRunMix(G,mv,function(b){return b.size},function(b,t){setPos(b,t)},mv),moved=R.done,left=mv.length-moved.length;
+  if(!moved.length)return plSay(R.no?"옮길 수 있는 자리가 없어요 ("+R.no+").":"빈 칸을 누르거나 끌어 주세요.",true);
   var rest=all.filter(function(b){return moved.indexOf(b)<0}).map(function(b){return st.lines?b.li:b});
+  plDone("옮긴 컨테이너 "+moved.length+" VAN ("+vanSum(moved).join(", ")+")."+(left?" 자리가 모자라 못 옮긴 "+left+" VAN 은 지정된 채로 있어요 — 빈 칸을 더 끌어 주세요.":"")+(R.no?" 건너뛴 자리: "+R.no+".":"")+" Alt + 3 으로 되돌릴 수 있어요.");
   if(rest.length){st.pick=st.plan.boxes.filter(function(b){return rest.indexOf(st.lines?b.li:b)>=0}).map(function(b){return b.i});PL.cp=st.pick.length>0;render()}}
 function plSwap(hit){
   var A=plPicked(),Bx=hit.filter(function(b){return A.indexOf(b)<0}).sort(function(a,b){return b.kg-a.kg});
