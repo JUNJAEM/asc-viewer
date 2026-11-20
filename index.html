@@ -240,6 +240,31 @@ body.static #sumWin .rz{display:none}
 @container (max-width:210px){ #sum .chipb small{display:none} #sum .kv span{font-size:10.5px} }
 /* 끌어서 고르기 (네모) */
 #gpw{user-select:none;-webkit-user-select:none;cursor:default}
+/* 플랜 리모컨: 화면 아래 붙는 조작판. 위쪽 General Plan 은 보기 · 커서 표시만 */
+#rc{position:fixed;left:50%;bottom:0;transform:translateX(-50%);z-index:13;width:min(560px,100vw);box-sizing:border-box;background:var(--win);color:var(--fg);border:1px solid var(--edge);border-bottom:0;border-radius:12px 12px 0 0;box-shadow:0 -8px 28px rgba(0,20,60,.3);padding:0 0 max(6px,env(safe-area-inset-bottom,0px));font-size:13px;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+#rc[hidden]{display:none}
+#rc .rct{display:flex;gap:8px;align-items:center;padding:6px 10px;background:#0b3f94;color:#fff;border-radius:11px 11px 0 0}#rc .rct .sp{flex:1}
+#rc .rct #rcPos{font-family:Consolas,monospace;font-weight:700}
+#rc .rct button{font:inherit;font-weight:700;min-width:34px;min-height:30px;border:1px solid rgba(255,255,255,.6);border-radius:6px;background:transparent;color:#fff}
+#rcInfo{display:flex;flex-wrap:wrap;gap:2px 10px;align-items:baseline;padding:6px 10px 2px;min-height:22px;font-size:13.5px}#rcInfo b{font-family:Consolas,monospace;font-size:14.5px}
+#rcInfo .rcn{color:var(--fg2)}#rcInfo .rch1{background:#d8382e;color:#fff;border-radius:4px;padding:0 6px;font-weight:700}#rcInfo .rcs{background:#7a00c8;color:#fff;border-radius:4px;padding:0 5px;font-weight:700}
+#rcHeld{padding:0 10px;min-height:16px;font-size:12px;color:var(--fg2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#rc .plMsg{display:block;padding:1px 10px 3px;min-height:16px;font-size:12px;font-weight:700;color:#0a7a2f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#rc .plMsg.err{color:#c50f1f}
+#rc .rcb{display:flex;gap:10px;align-items:stretch;padding:4px 10px 6px}
+#rc .rcpad{display:grid;grid-template-columns:repeat(3,48px);grid-template-rows:repeat(3,44px);gap:4px;flex:none}
+#rc .rcact{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;flex:1;min-width:0}
+#rc .rcb button{font:inherit;font-weight:700;font-size:14px;border:1px solid var(--edge);border-radius:8px;background:#fff;color:#111;min-height:44px;padding:0 4px;touch-action:manipulation}
+#rc .rcb button:disabled{opacity:.38}#rc .rcb button:active:not(:disabled){background:#cfe0ff}
+#rc .rcpad button{font-size:18px}#rc .rcpad .bj{font-size:11.5px;line-height:1.1}
+#rc #rcPickB{background:#d8382e;color:#fff;border-color:#7a1c16}#rc #rcDropB{background:#0b3f94;color:#fff;border-color:#0b3f94}
+[data-theme="dark"] #rc .rcb button{background:#3a3a3a;color:var(--fg);border-color:#666}[data-theme="dark"] #rc #rcPickB{background:#b02a22;color:#fff}[data-theme="dark"] #rc #rcDropB{background:#1f5fbf;color:#fff}
+#gp .m.rcc{outline:3px solid #ff2d95;outline-offset:1px;position:relative;z-index:6;box-shadow:0 0 0 7px rgba(255,45,149,.33);animation:rcb 1s ease-in-out infinite}
+@keyframes rcb{50%{box-shadow:0 0 0 11px rgba(255,45,149,.12)}}
+@media (prefers-reduced-motion:reduce){#gp .m.rcc{animation:none}}
+body.rcOn{padding-bottom:calc(238px + env(safe-area-inset-bottom,0px))}
+body.rcOn .gpw{max-height:max(160px,calc(100vh - 300px));max-height:max(160px,calc(100dvh - 300px))}
+#rcBtn[aria-pressed="true"]{background:#0b3f94;color:#fff}
+@media (max-height:520px){#rc .rcpad{grid-template-rows:repeat(3,32px)}#rc .rcb button{min-height:32px;font-size:13px}#rcHeld{display:none}#rc .rct{padding:3px 10px}body.rcOn{padding-bottom:190px}body.rcOn .gpw{max-height:max(120px,calc(100dvh - 215px))}}   /* 가로로 눕힌 폰 */
 #band{position:fixed;z-index:70;border:1px dashed #b00000;background:rgba(255,40,40,.14);pointer-events:none}
 #band.none{border:1px dashed #4d6fa8;background:rgba(90,140,220,.10)}   /* Ctrl 없는 왼쪽 끌기: 네모만 보이고 아무것도 고르지 않음 */
 #band.off{border-color:#3a4a66;background:rgba(90,110,150,.2)}
@@ -723,7 +748,7 @@ header.win .body{background:#fff}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-20 14:43 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-20 15:23 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -771,6 +796,7 @@ header.win .body{background:#fff}
       <div id="v3Tip" hidden></div></div></section>
   <section class="win" id="gpWin"><div class="tb">General Plan <small>선수가 오른쪽 · 베이를 더블클릭하면 Bay Plan이 떠요</small><span class="sp"></span>
     <button type="button" id="pkBtn" hidden aria-describedby="pkTip">CNTR 지정중 !</button>
+    <button type="button" id="rcBtn" aria-pressed="false" title="플랜 리모컨 — General Plan 을 보면서 아래 조작판으로 컨테이너를 집고 · 놓고 · 바꿔요 (폰에서 고치기 좋게)">리모컨</button>
     <button type="button" id="imgBtn" title="지금 보이는 General Plan을 포트 표·BSA와 함께 그림(PNG)으로 저장해요">이미지로 저장</button>
     <select id="lay" aria-label="베이 배열" title="베이 배열">
       <option value="row">한 줄로</option><option value="wrap">여러 줄로</option></select>
@@ -857,6 +883,16 @@ header.win .body{background:#fff}
     <select data-l="fe"><option>F</option><option>E</option></select> OPR<input data-l="line" maxlength="8"> 수량<input data-l="n" maxlength="3" value="1"> <button type="button" id="llGo">만들기</button></div>
   <div class="llw"><table id="llT"></table></div>
   <div class="llf" id="llF"></div></div>
+<div id="rc" hidden role="region" aria-label="플랜 리모컨">
+  <div class="rct"><b>리모컨</b><span id="rcPos"></span><span class="sp"></span><button type="button" data-rc="bay" id="rcBayB" title="커서가 있는 베이의 Bay Plan 을 열어요 (POD 같은 내용은 거기서 고쳐요)">Bay Plan</button><button type="button" id="rcX" aria-label="리모컨 닫기">×</button></div>
+  <div id="rcInfo"></div><div id="rcHeld"></div><span class="plMsg"></span>
+  <div class="rcb">
+    <div class="rcpad"><button type="button" class="bj" data-rc="bl" title="왼쪽 베이로">◀◀<br>베이</button><button type="button" data-rc="u" aria-label="위로">▲</button><button type="button" class="bj" data-rc="br" title="오른쪽 베이로">▶▶<br>베이</button>
+      <button type="button" data-rc="l" aria-label="왼쪽으로">◀</button><button type="button" data-rc="undo" id="rcUndoB" title="한 단계 되돌리기">↶</button><button type="button" data-rc="r" aria-label="오른쪽으로">▶</button>
+      <span></span><button type="button" data-rc="d" aria-label="아래로">▼</button><span></span></div>
+    <div class="rcact"><button type="button" data-rc="pick" id="rcPickB">집기</button><button type="button" data-rc="drop" id="rcDropB">놓기</button><button type="button" data-rc="swap" id="rcSwapB" title="집은 컨테이너와 커서의 컨테이너 자리를 바꿔요">바꾸기</button>
+      <button type="button" data-rc="down" id="rcDownB" title="로드리스트로 내려요">내리기</button><button type="button" data-rc="clr" id="rcClrB" title="집은 것을 모두 놓아줘요">집은 것 해제</button><span></span></div>
+  </div></div>
 <div id="fbox" hidden role="search"><b>컨테이너 찾기</b>
   <input id="q" type="search" placeholder="번호 또는 위치 (예: 8172320, 250884)" autocomplete="off" aria-label="컨테이너 번호 또는 위치">
   <span id="qn"></span><button type="button" id="fX" aria-label="닫기" title="닫기 (Alt + F 또는 Esc)">×</button></div>
@@ -1355,6 +1391,7 @@ function pickTip(){   // 지정중 버튼에 마우스를 올렸을 때: 고른 
   ks=Object.keys(m).sort();
   return "<table>"+ks.map(function(k){return "<tr><td>"+esc(k)+"</td><td>"+m[k]+"</td></tr>"}).join("")+'<tr class="tt"><td>합계</td><td>'+n+"개 · "+teu+" TEU</td></tr></table>"}
 function pickFlag(){   // render() 가 끝날 때마다: 골라 둔 컨테이너가 있으면 '지정중' 버튼을 보임
+  rcDraw();
   if(!st.pick.length&&ES.fade&&!ES.on)ES.fade=false;
   $("pkBtn").hidden=!st.pick.length;$("pkBtn").setAttribute("aria-pressed",!!ES.fade);$("pkBtn").title=ES.fade?"다시 누르면 흐림 풀기":"누르면 지정한 컨테이너만 남기고 나머지를 흐리게"; if(!st.pick.length)$("pkTip").hidden=true; else if(!$("pkTip").hidden)$("pkTip").innerHTML=pickTip()}
 function pickBar(){
@@ -2461,6 +2498,88 @@ function plDraw(){
     setTimeout(function(){document.removeEventListener("click",stop,true);document.removeEventListener("contextmenu",stop,true)},350);
     plGesture(D.btn,Math.min(D.x,e.clientX),Math.min(D.y,e.clientY),Math.max(D.x,e.clientX),Math.max(D.y,e.clientY),D.a,D.md,D.alt,D.sh,D.i0)},true);
   document.addEventListener("pointercancel",function(){if(band){band.remove();band=null}d=null});
+})();
+// ---------- 플랜 리모컨 (폰에서 General Plan 을 보면서 고치기) ----------
+// 사용자 목표(2026-11-20): 퇴근 뒤 컴퓨터 없이 폰으로 플랜 확인 → 수정. 폰은 칸이 작아 정확히 누르기 어렵고 끌기가 화면 이동과 겹치므로,
+// 위쪽 General Plan 은 보기만 하고(대충 누르면 가장 가까운 칸으로 커서가 감) 아래 리모컨에서 화살표로 한 칸씩 맞춘 뒤 집기 · 놓기 · 바꾸기 · 내리기를 누름.
+// 커서 = {go: 베이 그림 id, row, tier}. '집기' 는 지정(st.pick)과 같은 것이라 PC 의 Ctrl 지정 · 이동(plMove · plSwap)을 그대로 씀.
+var RC={on:false,cur:null};
+function rcCells(root){return [].slice.call((root||$("gp")).querySelectorAll(".mini .m[data-i],.mini .m[data-s]"))}
+function rcOf(el){var mi=el&&el.closest(".mini");if(!mi||!PANELS[mi.dataset.go])return null;
+  if(el.dataset.i!=null){var b=st.plan.boxes[+el.dataset.i];return b?{go:mi.dataset.go,row:b.row,tier:b.tier}:null}
+  var q=el.dataset.s.split("_");return {go:mi.dataset.go,row:+q[0],tier:+q[1]}}
+function rcEl(c){if(!c)return null;var mi=document.querySelector('#gp .mini[data-go="'+c.go+'"]');if(!mi)return null;
+  var e=mi.querySelector('.m[data-s="'+c.row+'_'+c.tier+'"]');if(e)return e;var B=st.plan.boxes;
+  return [].filter.call(mi.querySelectorAll(".m[data-i]"),function(x){var b=B[+x.dataset.i];return b&&b.row===c.row&&b.tier===c.tier})[0]||null}
+function rcBox(){var e=rcEl(RC.cur);return e&&e.dataset.i!=null?st.plan.boxes[+e.dataset.i]:null}
+function rcCtr(e){var r=e.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2,w:r.width,h:r.height}}
+function rcNear(x,y,list,max){var best=null,bd=1e18;list.forEach(function(e){var c=rcCtr(e),d=(c.x-x)*(c.x-x)+(c.y-y)*(c.y-y);if(d<bd){bd=d;best=e}});return best&&(max==null||bd<=max*max)?best:null}
+function rcSet(el,quiet){var c=rcOf(el);if(!c)return;RC.cur=c;rcDraw(!quiet)}
+function rcHome(){   // 커서가 없을 때: 화면에 보이는 첫 컨테이너(없으면 첫 칸)
+  var L=rcCells(),w=$("gpw").getBoundingClientRect(),vis=L.filter(function(e){var c=rcCtr(e);return c.w&&c.x>w.left&&c.x<w.right&&c.y>w.top&&c.y<w.bottom});
+  var e=vis.filter(function(x){return x.dataset.i!=null})[0]||vis[0]||L[0];if(e)rcSet(e)}
+function rcStep(dx,dy){   // 화면에서 본 방향으로 한 칸 (베이 그림을 넘어가도 됨)
+  var cur=rcEl(RC.cur);if(!cur)return rcHome();var c=rcCtr(cur),best=null,bs=1e18;
+  rcCells().forEach(function(e){if(e===cur)return;var q=rcCtr(e),along=dx?(q.x-c.x)*dx:(q.y-c.y)*dy,off=dx?Math.abs(q.y-c.y):Math.abs(q.x-c.x);
+    if(along<Math.max(2,(dx?c.w:c.h)*0.5))return;var lim=(dx?c.h:c.w)*0.6,s=off<=lim?along:along+off*6+10000;   // 같은 줄에 있는 것 먼저, 없으면 가장 가까운 것
+    if(s<bs){bs=s;best=e}});
+  if(best&&bs<10000+Math.max(c.w,c.h)*40)rcSet(best)}
+function rcBay(d){   // 옆 베이 그림으로 (화면에서 왼쪽 -1 / 오른쪽 +1). 같은 로우 · 단이 있으면 그 칸, 없으면 가장 비슷한 자리
+  var cur=rcEl(RC.cur);if(!cur)return rcHome();var mi=cur.closest(".mini"),M=[].slice.call(document.querySelectorAll("#gp .mini")).filter(function(m){return m.getBoundingClientRect().width>0});
+  var key=function(m){var r=m.getBoundingClientRect();return Math.round(r.top/60)*100000+r.left};M.sort(function(a,b){return key(a)-key(b)});
+  var k=M.indexOf(mi)+d;if(k<0||k>=M.length)return;var t=M[k],e=rcEl({go:t.dataset.go,row:RC.cur.row,tier:RC.cur.tier});
+  if(!e){var c=rcCtr(cur),a=mi.getBoundingClientRect(),b=t.getBoundingClientRect();e=rcNear(b.left+(c.x-a.left),b.top+(c.y-a.top),rcCells(t))}
+  if(e)rcSet(e)}
+function rcG(){var c=RC.cur,P=c&&PANELS[c.go];return P?[{p:P.p,cells:[{row:c.row,tier:c.tier}]}]:[]}
+function rcEmpty(){var e=rcEl(RC.cur);return !!(e&&e.dataset.s)}
+function rcPick(){var b=rcBox();if(!b)return plSay("빈 칸이에요. 컨테이너가 있는 칸에서 집어 주세요.",true);
+  var k=st.pick.indexOf(b.i);if(k<0)st.pick.push(b.i);else st.pick.splice(k,1);st.sel=-1;$("sheet").hidden=true;PL.cp=st.pick.length>0;render();
+  plSay(k<0?"집었어요 ("+st.pick.length+"개). 옮길 빈 칸으로 가서 놓기를 눌러 주세요.":"내려놓았어요 (집은 것 "+st.pick.length+"개).")}
+function rcDrop(){   // 집은 것을 커서의 빈 칸으로. 집은 것이 없으면 LOAD LIST 에서 싣기
+  if(!rcEmpty())return plSay(rcBox()?"이 칸에는 컨테이너가 있어요. 빈 칸으로 가거나 '바꾸기'를 눌러 주세요.":"커서를 빈 칸에 놓아 주세요.",true);
+  if(st.pick.length)return plMove(rcG());
+  if((st.ll||[]).length){if(!PL.lsel.length)PL.lsel=st.ll.map(function(e){return e.id});return plLoad(rcG())}
+  plSay("먼저 옮길 컨테이너를 집어 주세요.",true)}
+function rcSwap(){var b=rcBox(),A=plPicked();if(!b)return plSay("바꿀 상대 컨테이너가 있는 칸으로 가 주세요.",true);
+  if(!A.length)return plSay("먼저 컨테이너 하나를 집고, 바꿀 컨테이너로 가서 눌러 주세요.",true);
+  if(A.indexOf(b)>=0)return plSay("집은 컨테이너예요. 다른 컨테이너로 가 주세요.",true);
+  if(A.length!==1)return plSay("바꾸기는 하나를 집었을 때만 돼요 (지금 "+A.length+"개).",true);
+  plSwap([b])}
+function rcDown(){var b=rcBox(),A=plPicked();if(A.length)return plUnplan(A);if(b)return plUnplan([b]);plSay("내릴 컨테이너가 없어요.",true)}
+function rcOpenBay(){var c=RC.cur;if(!c)return;var b=rcBox();openBay(c.go);if(b){var nb=st.plan.boxes.filter(function(x){return x.bay===b.bay&&x.row===b.row&&x.tier===b.tier})[0];if(nb){st.pick=[nb.i];showBox(nb.i);render()}}}
+function rcDraw(scroll){   // render() 뒤마다: 커서 표시 · 정보 줄
+  if(!RC||!RC.on||!st.plan)return;
+  [].forEach.call(document.querySelectorAll("#gp .m.rcc"),function(e){e.classList.remove("rcc")});
+  var e=rcEl(RC.cur),B=st.plan.boxes,c=RC.cur,P=c&&PANELS[c.go],info=$("rcInfo"),held=plPicked();
+  if(e){e.classList.add("rcc");if(scroll)try{e.scrollIntoView({block:"nearest",inline:"nearest"})}catch(_){}}
+  var b=e&&e.dataset.i!=null?B[+e.dataset.i]:null,p=P&&P.p,bay=b?b.bay:(p?(p.kind==="f"?p.f:p.kind==="a"?p.a:p.h):"");
+  $("rcPos").textContent=e?"BAY "+pad(bay)+" · 로우 "+pad(c.row)+" · 단 "+pad(c.tier):"칸을 눌러 주세요";
+  info.innerHTML=!e?'<span class="rcn">General Plan 에서 고칠 곳 근처를 누르면 커서가 가요. 화살표로 한 칸씩 맞출 수 있어요.</span>':
+    b?'<b>'+esc(b.cntr||"(번호 없음)")+'</b> <span>'+esc(b.pol)+' → '+esc(b.pod)+'</span> <span>'+esc(b.type)+'</span> <span>'+ton(b.kg)+' t</span>'+(st.pick.indexOf(b.i)>=0?' <span class="rch1">집음</span>':'')+(fromOf(b)?' <span class="rcs">S</span>':''):
+    '<span class="rcn">빈 칸</span>';
+  $("rcHeld").textContent=held.length?"집은 것 "+held.length+"개 · "+vanSum(held).join(", "):((st.ll||[]).length?"LOAD LIST "+st.ll.length+"개 (놓기 = 싣기)":"");
+  $("rcPickB").textContent=b&&st.pick.indexOf(b.i)>=0?"놓아주기":"집기";
+  $("rcPickB").disabled=!b;$("rcDropB").disabled=!(e&&e.dataset.s&&(held.length||(st.ll||[]).length));$("rcSwapB").disabled=!(b&&held.length===1&&held[0]!==b);
+  $("rcDownB").disabled=!(b||held.length);$("rcClrB").disabled=!held.length;$("rcUndoB").disabled=!(st.undo&&st.undo.length);$("rcBayB").disabled=!e}
+function rcOpen(on){if(on==null)on=!RC.on;if(on&&(!st.plan||st.example||window.__STATIC__))return say("플랜을 먼저 열어 주세요.");
+  RC.on=!!on;$("rc").hidden=!on;document.body.classList.toggle("rcOn",!!on);$("rcBtn").setAttribute("aria-pressed",on?"true":"false");
+  [].forEach.call(document.querySelectorAll("#gp .m.rcc"),function(e){e.classList.remove("rcc")});
+  if(on){plSay("");try{$("gpWin").scrollIntoView({block:"start"})}catch(_){}if(!rcEl(RC.cur))rcHome();else rcDraw(true)}}
+(function(){
+  $("rcBtn").onclick=function(){rcOpen()};$("rcX").onclick=function(){rcOpen(false)};
+  // General Plan 을 누르면(리모컨이 켜져 있을 때) Bay Plan 을 여는 대신 가장 가까운 칸으로 커서를 보냄
+  document.addEventListener("click",function(e){if(!RC.on||!e.target.closest||!e.target.closest("#gpw")||e.ctrlKey||e.metaKey||Date.now()-DRAGT<400)return;
+    var mi=e.target.closest(".mini"),el=rcNear(e.clientX,e.clientY,rcCells(mi||null),mi?null:90);e.stopPropagation();e.preventDefault();if(el)rcSet(el,true)},true);
+  var hold=null;function stop(){if(hold){clearTimeout(hold.t);clearInterval(hold.i);hold=null}}
+  $("rc").addEventListener("pointerdown",function(e){var b=e.target.closest("[data-rc]");if(!b||b.disabled)return;var a=b.dataset.rc,mv={u:[0,-1],d:[0,1],l:[-1,0],r:[1,0]}[a];
+    if(!mv)return;e.preventDefault();rcStep(mv[0],mv[1]);stop();hold={t:setTimeout(function(){hold.i=setInterval(function(){rcStep(mv[0],mv[1])},110)},380)}});   // 누르고 있으면 계속 감
+  ["pointerup","pointercancel","pointerleave"].forEach(function(t){$("rc").addEventListener(t,stop)});
+  $("rc").addEventListener("click",function(e){var b=e.target.closest("[data-rc]");if(!b||b.disabled)return;var a=b.dataset.rc;
+    if(a==="bl")rcBay(-1);else if(a==="br")rcBay(1);else if(a==="pick")rcPick();else if(a==="drop")rcDrop();else if(a==="swap")rcSwap();else if(a==="down")rcDown();
+    else if(a==="undo"){var nU=st.undo?st.undo.length:0;undo();plSay(nU?"한 단계 되돌렸어요.":"되돌릴 것이 없어요.",!nU)}else if(a==="clr"){st.pick=[];PL.cp=false;render();plSay("집은 것을 모두 놓아주었어요.")}else if(a==="bay")rcOpenBay();
+    rcDraw(true)});
+  $("rc").addEventListener("keydown",function(e){e.stopPropagation()});
+  window.addEventListener("resize",function(){if(RC.on)rcDraw()});
 })();
 // ---------- 폰(터치)에서 플래닝 ----------
 // 마우스 오른쪽 버튼·Ctrl·끌기가 없으니: 아래 도구 막대에서 도구를 켜고, 칸을 눌러 표시한 뒤 확정.
@@ -3832,6 +3951,7 @@ function escClose(e){   // Esc 한 번에 떠 있는 창 하나를 닫음 — �
   if(!$("fbox").hidden){findBox(false);return true}              // SEARCH CNTR
   if(PL.cbp){PL.cbp=null;cbfDraw();return true}                  // LOAD LIST 의 간단 안내
   if(modeOff())return true;                                      // 로드리스트 · 팔레트 · Shift 모드
+  if(RC.on){rcOpen(false);return true}                           // 플랜 리모컨
   if(!$("v3").hidden){v3Open(false);return true}                 // VESSEL VIEW
   if(ES.on&&st.plan){$("edBtn").click();return true}             // EDITOR / PIVOT
   return false}
