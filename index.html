@@ -239,6 +239,7 @@ body.static #sumWin .rz{display:none}
 }
 @container (max-width:210px){ #sum .chipb small{display:none} #sum .kv span{font-size:10.5px} }
 /* 끌어서 고르기 (네모) */
+#gpw{user-select:none;-webkit-user-select:none;cursor:default}
 #band{position:fixed;z-index:70;border:1px dashed #b00000;background:rgba(255,40,40,.14);pointer-events:none}
 #band.none{border:1px dashed #4d6fa8;background:rgba(90,140,220,.10)}   /* Ctrl 없는 왼쪽 끌기: 네모만 보이고 아무것도 고르지 않음 */
 #band.off{border-color:#3a4a66;background:rgba(90,110,150,.2)}
@@ -722,7 +723,7 @@ header.win .body{background:#fff}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-20 14:30 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-20 14:36 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -2052,13 +2053,16 @@ $("findBtn").onclick=function(){findBox()};$("fX").onclick=function(){findBox(fa
 // ---------- 끌기(네모): Bay Plan 창·General Plan 에서 마우스로 ----------
 // Ctrl + 왼쪽 버튼 = 네모 안 고르기(기존 선택에 더함) / Ctrl + 오른쪽 버튼 = 네모 안 선택 해제 / 오른쪽 버튼만 = 네모 안 컨테이너 삭제(Alt+3 으로 되돌림).
 // Ctrl 없이 왼쪽 버튼으로 끄는 것은 아무 일도 안 함. 터치 화면은 '여러 개 고르기' 버튼을 씀.
+// 끌기를 받는 곳: Bay Plan 창의 그림, 그리고 General Plan 의 그림 칸 전체(#gpw — 베이 그림 사이 · 바깥의 빈 곳도. 사용자 지시: 빈 공간에서도 플랜 위에서처럼 끌기가 되게).
+// General Plan 은 어디서 눌렀든 #gp 를 돌려줌(네모 안의 베이 · 칸은 #gp 안에서 찾음). 스크롤 막대를 누른 것은 뺌.
+function planArea(e){var t=e.target;if(!t||!t.closest)return null;var b=t.closest("#bwB");if(b)return b;var w=t.closest("#gpw");if(!w)return null;
+  if(t===w&&(e.offsetX>=w.clientWidth||e.offsetY>=w.clientHeight))return null;return $("gp")}
 (function(){
   var d=null,band=null;
-  function area(t){return t.closest&&(t.closest("#bwB")||t.closest("#gp"))}
   function clear(){if(band){band.remove();band=null}document.body.classList.remove("banding")}
   document.addEventListener("pointerdown",function(e){
     if(e.pointerType!=="mouse"||(e.button!==0&&e.button!==2)||window.__STATIC__||!st.plan)return;
-    var a=area(e.target),ct=e.ctrlKey||e.metaKey;if(!a||e.target.closest("input,select"))return;
+    var a=planArea(e),ct=e.ctrlKey||e.metaKey;if(!a||e.target.closest("input,select"))return;
     var mode=e.button===0?(ct?"add":"none"):(ct?"off":"del");   // none: Ctrl 없는 왼쪽 끌기 — 네모는 그려지지만 아무것도 안 고름
     d={x:e.clientX,y:e.clientY,a:a,on:false,mode:mode}});
   document.addEventListener("pointermove",function(e){
@@ -2430,7 +2434,7 @@ function plDraw(){
   $("llT").addEventListener("dblclick",function(e){var tr=e.target.closest("tr[data-l]");if(!tr)return;var ids=rowIds();PL.lsel=ids.slice(ids.indexOf(+tr.dataset.l));plDraw()});
   // 마우스: 플래닝 모드에서 Ctrl 없이 Bay Plan 을 누르거나 끄는 것은 여기서 먼저 받음(Ctrl 을 누르면 평소처럼 고르기)
   var d=null,band=null;
-  function zone(e){return !window.__STATIC__&&st.plan&&!st.example&&e.pointerType==="mouse"&&e.target.closest&&(e.target.closest("#bwB")||e.target.closest("#gp"))}
+  function zone(e){return !window.__STATIC__&&st.plan&&!st.example&&e.pointerType==="mouse"&&planArea(e)}
   document.addEventListener("pointerdown",function(e){
     var ar=zone(e);if(!ar||(e.button!==0&&e.button!==2)||e.target.closest("input,select"))return;
     var box=e.target.closest(".c.b,.m.b"),md="";
