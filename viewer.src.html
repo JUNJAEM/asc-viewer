@@ -360,7 +360,8 @@ body.planning #gp .m[data-s]{cursor:crosshair}body.planning #gp .m[data-s]:hover
 #llForm{padding:6px 8px;border-bottom:1px solid var(--edge);background:var(--chrome)}
 #llBox .llw{overflow:auto;flex:1 1 auto;min-height:40px}#llT{border-collapse:collapse;width:100%}
 #llT td,#llT th{padding:2px 6px;border-bottom:1px solid #e3e8f0;text-align:left;white-space:nowrap}#llT th{position:sticky;top:0;background:#eef3fa}
-#llT td.n{text-align:right}#llT tbody tr{cursor:pointer}#llT tr.on td{background:#ffd9d9}#llT td.msgbox{color:#667;white-space:normal;cursor:default}
+#llT td.n{text-align:right}.lls{display:inline-block;margin-right:4px;padding:0 4px;border-radius:3px;background:#7a00c8;color:#fff;font-size:10px;font-weight:700;line-height:14px;vertical-align:1px}
+.et.pv td.sfc,.et.pv th.sfc{color:#7a00c8;font-weight:700;background:#f7f0ff}.et.pv td.sfc.z{color:#bbb;font-weight:400;cursor:default}[data-theme="dark"] .et.pv td.sfc,[data-theme="dark"] .et.pv th.sfc{background:#2d2140;color:#cfa6ff}#llT tbody tr{cursor:pointer}#llT tr.on td{background:#ffd9d9}#llT td.msgbox{color:#667;white-space:normal;cursor:default}
 #llBox .llf{padding:5px 8px;border-top:1px solid var(--edge);color:#445;font-size:11px;line-height:1.35}
 .tpl{display:none}
 @media (hover:none){#bwPl{display:none}
@@ -1221,14 +1222,16 @@ function edDraw(){
     var val=function(bs){if(!bs||!bs.length)return "";var kg=0,teu=0;bs.forEach(function(b){kg+=b.kg;teu+=b.size===20?1:2});
       return ES.pv==="van"?bs.length.toLocaleString():ES.pv==="teu"?teu.toLocaleString():ES.pv==="kg"?(kg/1000).toLocaleString("en-US",{maximumFractionDigits:1}):(kg/bs.length/1000).toFixed(1)};
     var all=function(pred){return L.filter(pred)};
+    // 쉬프팅 열: 값(Unit·TEU·무게) 고르기와 상관없이 늘 개수. 칸에 보라색 S 가 붙은 컨테이너(옮겼거나, 들었다 놓은 것)
+    var SFC="\u0003",sfc=function(r,bs){return '<td class="sfc'+(bs.length?'':' z')+'" data-pr="'+esc(r)+'" data-pc="'+SFC+'" title="쉬프팅한 컨테이너 '+bs.length+'개'+(bs.length?' — 누르면 골라져요':'')+'">'+(bs.length||"·")+'</td>'};
     var cell=function(r,c,bs,cls){var v=val(bs);return '<td class="'+(v===""?'z ':'')+(cls||'')+'" data-pr="'+esc(r)+'" data-pc="'+esc(c)+'" title="누르면 이 '+(bs?bs.length:0)+'개가 골라져요">'+(v===""?"·":v)+'</td>'};
     var NUL="\u0002";
     body.innerHTML='<div class="pvc"><label>행 <select id="pvR">'+opt(ES.pr)+'</select></label><label>열 <select id="pvC">'+opt(ES.pc)+'</select></label>'+
       '<label>값 <select id="pvV">'+VS.map(function(v){return '<option value="'+v[0]+'"'+(v[0]===ES.pv?' selected':'')+'>'+v[1]+'</option>'}).join("")+'</select></label>'+
       '<button type="button" class="x" id="pvX" title="행과 열 바꾸기">행 ↔ 열</button><span class="hint">칸을 누르면 그 컨테이너들이 골라져요. Editor의 조건이 그대로 적용돼요.</span></div>'+
-      '<div class="edw"><table class="et pv"><thead><tr><th class="rh">'+fr[1]+' \\ '+fc[1]+'</th>'+cs.map(function(c){return '<th class="n" data-pr="'+NUL+'" data-pc="'+esc(c)+'">'+esc(c||"(없음)")+'</th>'}).join("")+'<th class="n tot" data-pr="'+NUL+'" data-pc="'+NUL+'">합계</th></tr></thead><tbody>'+
-      rs.map(function(r){return '<tr><th class="rh" data-pr="'+esc(r)+'" data-pc="'+NUL+'">'+esc(r||"(없음)")+'</th>'+cs.map(function(c){return cell(r,c,M[r+"\u0001"+c])}).join("")+cell(r,NUL,all(function(b){return String(fr[3](b))===r}),"tot")+'</tr>'}).join("")+
-      '<tr class="tot"><th class="rh">합계</th>'+cs.map(function(c){return cell(NUL,c,all(function(b){return String(fc[3](b))===c}),"tot")}).join("")+cell(NUL,NUL,L,"tot")+'</tr></tbody></table></div>';
+      '<div class="edw"><table class="et pv"><thead><tr><th class="rh">'+fr[1]+' \\ '+fc[1]+'</th>'+cs.map(function(c){return '<th class="n" data-pr="'+NUL+'" data-pc="'+esc(c)+'">'+esc(c||"(없음)")+'</th>'}).join("")+'<th class="n sfc" data-pr="'+NUL+'" data-pc="'+SFC+'" title="쉬프팅한 컨테이너 수 (칸에 보라색 S 가 붙은 것). 누르면 그 컨테이너들이 골라져요">쉬프팅</th><th class="n tot" data-pr="'+NUL+'" data-pc="'+NUL+'">합계</th></tr></thead><tbody>'+
+      rs.map(function(r){return '<tr><th class="rh" data-pr="'+esc(r)+'" data-pc="'+NUL+'">'+esc(r||"(없음)")+'</th>'+cs.map(function(c){return cell(r,c,M[r+"\u0001"+c])}).join("")+sfc(r,all(function(b){return String(fr[3](b))===r&&!!fromOf(b)}))+cell(r,NUL,all(function(b){return String(fr[3](b))===r}),"tot")+'</tr>'}).join("")+
+      '<tr class="tot"><th class="rh">합계</th>'+cs.map(function(c){return cell(NUL,c,all(function(b){return String(fc[3](b))===c}),"tot")}).join("")+sfc(NUL,all(function(b){return !!fromOf(b)}))+cell(NUL,NUL,L,"tot")+'</tr></tbody></table></div>';
   }
 }
 (function(){
@@ -1256,7 +1259,7 @@ function edDraw(){
       else st.pick=[bi];
       var sc=W.querySelector(".edw").scrollTop;if(off2)unmark(bi);else showBox(bi);render();W.querySelector(".edw").scrollTop=sc;return}
     if(pc&&ES.tab==="P"){var NUL="\u0002",r=pc.dataset.pr,c=pc.dataset.pc,fr=EFM[ES.pr],fc=EFM[ES.pc];
-      st.pick=edList().filter(function(b){return (r===NUL||String(fr[3](b))===r)&&(c===NUL||String(fc[3](b))===c)}).map(function(b){return b.i});
+      st.pick=edList().filter(function(b){return (r===NUL||String(fr[3](b))===r)&&(c===NUL||(c==="\u0003"?!!fromOf(b):String(fc[3](b))===c))}).map(function(b){return b.i});
       if(r===NUL&&c===NUL&&e.target.tagName==="TH")st.pick=[];
       render()}
   });
@@ -2079,7 +2082,9 @@ function mkObj(f){   // 조건만으로 컨테이너 하나 만들기 (번호는
 function nextSerial(){var m=0;st.lines.forEach(function(l){if(/^\d{6} /.test(l)){var n=+l.slice(177,182);if(n>m)m=n}});return m+1}
 function insAt(){for(var i=1;i<st.lines.length;i++)if(st.lines[i].indexOf("***")===0)return i;var n=st.lines.length;while(n>1&&st.lines[n-1]==="")n--;return n}
 function addBox(o,t,ent){   // 새 컨테이너를 자리 t 에. ent = 로드리스트 줄(원래 ASC 줄·줄 번호·원래 자리를 들고 있을 수 있음)
-  var pos=p6(t.bay,t.row,t.tier),from=ent&&ent.from&&ent.from!==pos?ent.from:null;
+  var pos=p6(t.bay,t.row,t.tier),from=ent&&ent.from?(ent.sft?ent.from:(ent.from!==pos&&!thisPort(o)?ent.from:null)):null;
+  // 쉬프팅으로 빼낸 것(ent.sft)은 어디에 다시 놓든 — 원래 자리여도 — 쉬프팅 표시를 남김(들었다 놓은 것도 쉬프팅). 지우려면 Shift 모드의 오른쪽 버튼(쉬프팅 취소).
+  // 로드리스트 모드에서 내렸다가 다시 실은 것은 cCASP 처럼 ROB 일 때만 쉬프팅으로 남김.
   if(st.lines){var li;
     if(ent&&ent.li!=null&&st.lines[ent.li]===""){li=ent.li;st.lines[li]=putCol(ent.raw,0,6,pos)}
     else{li=insAt();st.lines.splice(li,0,ent&&ent.raw?putCol(ent.raw,0,6,pos):ascRow(Object.assign({},o,{bay:t.bay,row:t.row,tier:t.tier}),nextSerial(),""));st.orig.splice(li,0,undefined)}
@@ -2138,10 +2143,10 @@ function plSwap(hit){
   pushUndo();var P1=A.map(function(b){return {bay:b.bay,row:b.row,tier:b.tier}}),P2=Bx.map(function(b){return {bay:b.bay,row:b.row,tier:b.tier}});
   A.forEach(function(b,k){setPos(b,P2[k])});Bx.forEach(function(b,k){setPos(b,P1[k])});
   plDone("자리를 바꾼 컨테이너 "+A.length+" 쌍 (무거운 것끼리 짝). Alt + 3 으로 되돌릴 수 있어요.")}
-function toLL(bx){   // 실려 있는 컨테이너를 로드리스트 줄로 (원래 자리를 기억)
-  var E=bx.map(function(b){var c=Object.assign({},b);delete c.from;return {id:++PL.seq,b:c,raw:st.lines?st.lines[b.li]:null,li:st.lines?b.li:null,from:fromOf(b)||p6(b.bay,b.row,b.tier)}});
+function toLL(bx,sft){   // 실려 있는 컨테이너를 로드리스트 줄로 (원래 자리를 기억)
+  var E=bx.map(function(b){var c=Object.assign({},b);delete c.from;return {id:++PL.seq,b:c,raw:st.lines?st.lines[b.li]:null,li:st.lines?b.li:null,from:fromOf(b)||p6(b.bay,b.row,b.tier),sft:!!sft||!!fromOf(b)}});      // sft = 쉬프팅으로 빼낸 것(또는 이미 쉬프팅 표시가 있던 것) — 다시 실어도 표시가 남음
   st.ll=(st.ll||[]).concat(E);dropBoxes(bx);return E}
-function plUnplan(bx,word){if(!bx.length)return;pushUndo();var E=toLL(bx);PL.lsel=E.map(function(e){return e.id});
+function plUnplan(bx,word,sft){if(!bx.length)return;pushUndo();var E=toLL(bx,sft);PL.lsel=E.map(function(e){return e.id});
   plDone((word||"로드리스트로 내린 컨테이너")+" "+bx.length+" VAN ("+vanSum(bx).join(", ")+"). 고른 상태라 바로 다른 칸에 실을 수 있어요.")}
 function isNew(b){return st.lines?st.orig[b.li]===undefined:!!b.nw}   // 이 화면에서 새로 만든 컨테이너인가 (원본 파일에 없던 것)
 function plErase(bx){var mine=bx.filter(isNew);
@@ -2162,7 +2167,7 @@ function plBack(){   // 로드리스트에 있는 쉬프팅 컨테이너를 원�
   if(!E.length)return plSay("고른 것 중에 쉬프팅으로 내린 컨테이너가 없어요.",true);
   E.forEach(function(e){var fr=e.from,t={bay:+fr.slice(0,2),row:+fr.slice(2,4),tier:+fr.slice(4,6)},k=t.bay+"_"+t.row+"_"+t.tier;
     if(O[k]){no++;return}if(!pushed){pushUndo();pushed=true}O[k]={};addBox(e.b,t,e);st.ll=st.ll.filter(function(x){return x!==e})});
-  if(pushed)plDone("원래 자리에 다시 놓은 컨테이너 "+(E.length-no)+" VAN."+(no?" 자리가 차 있어 못 놓은 것 "+no+" VAN.":""));else plSay("원래 자리가 다른 컨테이너로 차 있어요.",true)}
+  if(pushed)plDone("원래 자리에 다시 놓은 컨테이너 "+(E.length-no)+" VAN (쉬프팅 표시는 남아요 — 지우려면 Shift 모드에서 오른쪽 버튼)."+(no?" 자리가 차 있어 못 놓은 것 "+no+" VAN.":""));else plSay("원래 자리가 다른 컨테이너로 차 있어요.",true)}
 // cCASP 의 Ctrl 동작 (General Plan · Bay Plan 공통) — cCASP VesselExplorerController.onMouseUpTask 의 'view' 갈래 그대로:
 //  Ctrl+왼쪽(클릭·끌기)   지정된 것이 없으면 그 컨테이너들을 지정.
 //                        지정된 것이 있으면 → 같은 개수·같은 크기의 다른 컨테이너를 눌렀을 때 자리 교체(물어봄), 아니면 네모 안의 빈 칸으로 이동(무거운 것부터), 빈 칸도 없으면 아무 일 없음
@@ -2197,7 +2202,7 @@ function plGesture(btn,x1,y1,x2,y2,area,md,alt,shift){
   else{var Q0=PANELS[st.open];if(!Q0)return;scan($("bwB"),".c",Q0.p)}
   if(mode==="sel")return plCtrl(btn,alt,G,boxes,shift);
   if(btn===0){if(mode==="pal")plPaint(G);else if(mode==="ll")plLoad(G);
-    else if(mode==="sft"){if(boxes.length)plUnplan(boxes,"쉬프팅으로 빼낸 컨테이너");else plLoad(G)}}   // Shift: 컨테이너를 누르면 빼냄(원래 자리 기억) → 빈 칸을 누르면 다시 실림
+    else if(mode==="sft"){if(boxes.length)plUnplan(boxes,"쉬프팅으로 빼낸 컨테이너",true);else plLoad(G)}}   // Shift: 컨테이너를 누르면 빼냄(원래 자리 기억) → 빈 칸을 누르면 다시 실림
   else{if(mode==="pal")plErase(boxes);else if(mode==="ll")plUnplan(boxes);else if(mode==="sft")plUnshift(boxes)}}
 function plMode(m){if(window.__STATIC__||!st.plan||st.example)return;PL.mode=PL.mode===m?"v":m;
   if(PL.mode==="pal")palFill();
@@ -2225,7 +2230,7 @@ function plDraw(){
   PL.lsel=PL.lsel.filter(function(i){return L.some(function(e){return e.id===i})});
   $("llN").textContent=L.length+" VAN"+(PL.lsel.length?" · 고른 것 "+PL.lsel.length:"");
   $("llT").innerHTML="<thead><tr><th>Container</th><th>POL</th><th>POD</th><th>SzTp</th><th>t</th><th>원래 자리</th></tr></thead><tbody>"+
-    (L.length?L.map(function(e){var b=e.b;return '<tr data-l="'+e.id+'"'+(PL.lsel.indexOf(e.id)>=0?' class="on"':'')+'><td>'+esc(b.cntr||"(번호 없음)")+'</td><td>'+esc(b.pol)+'</td><td>'+esc(b.pod)+'</td><td>'+esc(b.type)+'</td><td class="n">'+ton(b.kg)+'</td><td>'+(e.from?p6d(e.from):"")+'</td></tr>'}).join("")
+    (L.length?L.map(function(e){var b=e.b;return '<tr data-l="'+e.id+'"'+(PL.lsel.indexOf(e.id)>=0?' class="on"':'')+'><td>'+(e.sft?'<span class="lls" title="쉬프팅으로 빼낸 컨테이너 — 다시 실어도 쉬프팅 표시(S)가 남아요">S</span>':'')+esc(b.cntr||"(번호 없음)")+'</td><td>'+esc(b.pol)+'</td><td>'+esc(b.pod)+'</td><td>'+esc(b.type)+'</td><td class="n">'+ton(b.kg)+'</td><td>'+(e.from?p6d(e.from):"")+'</td></tr>'}).join("")
       :'<tr><td colspan="6" class="msgbox">비어 있어요. Bay Plan 에서 컨테이너를 오른쪽 버튼으로 누르거나 끌면 여기로 내려오고, ＋ 추가로 새로 만들 수도 있어요.</td></tr>')+"</tbody>"}
 (function(){
   document.addEventListener("click",function(e){if(!e.target.closest)return;var b=e.target.closest(".plModes [data-pm]"),m=e.target.closest(".plMir [data-mir]");
