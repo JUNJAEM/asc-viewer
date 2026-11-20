@@ -256,8 +256,8 @@ body.static #sumWin .rz{display:none}
 #rc .rcpad button{font-size:18px}#rc .rcpad .bj{font-size:11.5px;line-height:1.1}
 #rc #rcPickB{background:#d8382e;color:#fff;border-color:#7a1c16}#rc #rcDropB{background:#0b3f94;color:#fff;border-color:#0b3f94}
 [data-theme="dark"] #rc .rcb button{background:#3a3a3a;color:var(--fg);border-color:#666}[data-theme="dark"] #rc #rcPickB{background:#b02a22;color:#fff}[data-theme="dark"] #rc #rcDropB{background:#1f5fbf;color:#fff}
-#gp .m.rcc{outline:3px solid #ff2d95;outline-offset:1px;position:relative;z-index:6;box-shadow:0 0 0 7px rgba(255,45,149,.33);animation:rcb 1s ease-in-out infinite}
-@keyframes rcb{50%{box-shadow:0 0 0 11px rgba(255,45,149,.12)}}
+#gp .m.rcc{outline:3px solid var(--rcc,#ff2d95);outline-offset:1px;position:relative;z-index:6;box-shadow:0 0 0 5px var(--rck,#fff),0 0 0 10px var(--rcg,rgba(255,45,149,.38));animation:rcb 1s ease-in-out infinite}
+@keyframes rcb{50%{box-shadow:0 0 0 5px var(--rck,#fff),0 0 0 14px var(--rcg2,rgba(255,45,149,.14))}}
 @media (prefers-reduced-motion:reduce){#gp .m.rcc{animation:none}}
 body.rcOn{padding-bottom:calc(238px + env(safe-area-inset-bottom,0px))}
 body.rcOn .gpw{max-height:max(160px,calc(100vh - 300px));max-height:max(160px,calc(100dvh - 300px))}
@@ -273,7 +273,7 @@ body.rcOn .gpw{max-height:max(160px,calc(100vh - 300px));max-height:max(160px,ca
 #rc .rcg{display:flex;gap:6px;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch}#rc .rcg button{flex:none;font:inherit;font-size:12.5px;height:32px;padding:0 10px;border:1px solid var(--edge);border-radius:16px;background:#fff;color:#111}#rc .rcg button.on{background:#7a4b00;color:#fff;border-color:#7a4b00}
 #rc .rcg .rcn{color:var(--fg2);white-space:normal;line-height:1.4}
 [data-theme="dark"] #rc .rcx select,[data-theme="dark"] #rc .rcx input,[data-theme="dark"] #rc .rcg button{background:#1c1c1c;color:var(--fg);border-color:#777}[data-theme="dark"] #rc .rcb button.rcm{background:#444;color:var(--fg)}
-#gp .m.rca{outline:3px dashed #ff2d95;outline-offset:1px;position:relative;z-index:5}#gp .m.rcr{box-shadow:inset 0 0 0 2px #ff2d95}#gp .m.rcr[data-s]{background:#ffd0ea}
+#gp .m.rca{outline:3px dashed var(--rcc,#ff2d95);outline-offset:1px;position:relative;z-index:5}#gp .m.rcr{box-shadow:inset 0 0 0 2px var(--rcc,#ff2d95)}#gp .m.rcr[data-s]{background:var(--rcl,#ffd0ea)}
 @media (max-height:520px){#rc .rcpad{grid-template-rows:repeat(3,32px)}#rc .rcb button{min-height:32px;font-size:13px}#rcHeld{display:none}#rc .rct{padding:3px 10px}body.rcOn{padding-bottom:190px}body.rcOn .gpw{max-height:max(120px,calc(100dvh - 215px))}}   /* 가로로 눕힌 폰 */
 #band{position:fixed;z-index:70;border:1px dashed #b00000;background:rgba(255,40,40,.14);pointer-events:none}
 #band.none{border:1px dashed #4d6fa8;background:rgba(90,140,220,.10)}   /* Ctrl 없는 왼쪽 끌기: 네모만 보이고 아무것도 고르지 않음 */
@@ -499,6 +499,8 @@ table.et{border-collapse:collapse;font-size:12px;font-family:Consolas,"Malgun Go
 .pvc .hint{color:var(--fg2)}
 .et.pv td{text-align:right;cursor:pointer}
 .et.pv td.z{color:#bbb;cursor:default}
+.et.pv td.chg,.et.pv td.chg.z,.et.pv td.chg.tot{background:#ffe0dc;color:#c50f1f;font-weight:700;box-shadow:inset 0 0 0 2px #d8382e}.et.pv td.chg small{font-size:10px;font-weight:700;margin-left:4px;white-space:nowrap}
+[data-theme="dark"] .et.pv td.chg,[data-theme="dark"] .et.pv td.chg.z,[data-theme="dark"] .et.pv td.chg.tot{background:#5a1f1c;color:#ffb3ad;box-shadow:inset 0 0 0 2px #ff6b61}
 .et.pv th.rh{position:sticky;left:0;background:#e3e3ee;z-index:1;cursor:pointer}
 .et.pv thead th{cursor:pointer}
 .et.pv .tot{font-weight:700;background:#f1f1f7}
@@ -774,7 +776,7 @@ header.win .body{background:#fff}
         <button class="btn" id="outBtn" type="button" hidden title="지금 플랜(고친 내용 포함)을 붙인 OUTBOUND 메일을 만들어요 — 받는 사람 · 본문을 그 자리에서 고치고, 아웃룩에서 열거나 확인 후 바로 보낼 수 있어요">OUTBOUND 메일</button></div></span>
       <span class="mn" data-mn="tool"><button class="btn mnb" type="button" aria-haspopup="true" aria-expanded="false" title="컨테이너 찾기 · 목록과 집계표">도구</button><div class="mnp" hidden role="menu">
         <button class="btn" id="findBtn" type="button" title="컨테이너 번호 찾기 (Alt + F)">SEARCH CNTR</button>
-        <button class="btn" id="edBtn" type="button" aria-pressed="false" title="컨테이너 목록(Editor)과 집계표(Pivot) 창을 켜고 꺼요 (Alt + E)">EDITOR / PIVOT</button>
+        <button class="btn" id="edBtn" type="button" aria-pressed="false" title="집계표(Pivot)와 컨테이너 목록(Editor) 창을 켜고 꺼요 (Alt + E)">PIVOT / EDITOR</button>
         <button class="btn" id="cbfBtn" type="button" hidden title="전산 부킹(B/K) · CBF 와 플랜 대조, 변동분, 마감 점검을 한 창에서 봐요">CBF · 마감 점검</button></div></span>
       <span class="pltop" id="plTop"><span class="seg plModes"><button type="button" data-pm="v" title="보기만 (플래닝 끔)">보기</button><button type="button" data-pm="ll" title="Planning by Load List (Alt + S)">로드리스트</button><button type="button" data-pm="pal" title="Planning by Palette (Alt + Q)">팔레트</button><button type="button" data-pm="sft" title="Shift Mode (Alt + W) — 컨테이너를 눌러 빼낸 뒤 다른 자리에 다시 싣기">Shift</button></span>
     <span class="seg plMir"><button type="button" data-mir="S" title="Single — 누른 칸에만 (Alt + Z)">S</button><button type="button" data-mir="2FA" title="Mirror for Fore and Aft — 같은 해치의 앞·뒤 20' 베이에 같이 싣고, 옮기거나 지울 때도 같이 해요 (Alt + C)">2F/A</button></span></span>
@@ -817,7 +819,7 @@ header.win .body{background:#fff}
       <button type="button" id="zF" title="모든 베이가 보이는 가장 큰 비율로 다시 맞춰요">맞춤</button></span></div>
     <div class="gpx"><aside class="gi" id="gpInfo"></aside><div class="gpw" id="gpw"><div class="gp" id="gp"></div></div></div>
     <div class="rz rzr" data-rz="r" title="끌어서 너비 조절 (더블클릭: 원래대로)"></div><div class="rz rzb" data-rz="b" title="끌어서 높이 조절 (더블클릭: 원래대로)"></div><div class="rz rzc" data-rz="c" title="끌어서 크기 조절 (더블클릭: 원래대로)"></div></section>
-  <section class="win" id="edWin" hidden><div class="tb"><span class="etab"><button type="button" id="tabE">Editor</button><button type="button" id="tabP">Pivot</button><button type="button" id="tabS" title="쉬프팅한 컨테이너만 모아 봐요 (원래 자리 → 지금 자리)">Shifting</button></span>
+  <section class="win" id="edWin" hidden><div class="tb"><span class="etab"><button type="button" id="tabP">Pivot</button><button type="button" id="tabE">Editor</button><button type="button" id="tabS" title="쉬프팅한 컨테이너만 모아 봐요 (원래 자리 → 지금 자리)">Shifting</button></span>
       <small id="edCnt"></small><span class="sp"></span>
       <label class="fo" title="고른 컨테이너만 진하게, 나머지는 흐리게 (cCASP의 Highlight · Fade Out)"><input type="checkbox" id="edFade"> Fade Out</label>
       <button type="button" id="edCS" title="정렬 지우기 (Clear Sorters)">정렬 지우기</button><button type="button" id="edCF" title="조건 지우기 (Clear Filters)">조건 지우기</button></div>
@@ -947,6 +949,23 @@ var PAL=["#ffeb00","#1b2a8c","#ff4136","#19c2b0","#ff85e0","#ff9f1a","#2ecc40","
 var POLFIX={PUS:"#1b2a8c",PNC:"#ffeb00"},POLGR=["#8c8c8c","#d9d9d9","#4d4d4d","#b3b3b3"];
 var CUSTOM={};try{CUSTOM=JSON.parse(localStorage.getItem("ascPortColors")||"{}")||{}}catch(_){CUSTOM={}}
 function saveColors(){try{localStorage.setItem("ascPortColors",JSON.stringify(CUSTOM))}catch(_){}}
+// 리모컨 커서 색: 이 플랜에 쓰인 색들(양하항 · 선적항 색)과 빈 칸의 흰색에서 가장 멀리 떨어진(가장 잘 구분되는) 색을 후보 중에서 고름.
+// 거리는 사람 눈 기준(CIELAB). 후보마다 '가장 가까운 플랜 색까지의 거리' 를 재고, 그 값이 가장 큰 후보가 이김.
+var RCCAND=["#ff2d95","#00d8ff","#39ff14","#ff7a00","#e60000","#7a00ff","#0057ff","#000000","#ffe600","#00a651","#ff00ff","#8b4513"];
+function hexLab(h){var c=[1,3,5].map(function(i){var v=parseInt(h.substr(i,2),16)/255;return v<=.04045?v/12.92:Math.pow((v+.055)/1.055,2.4)});
+  var x=(c[0]*.4124+c[1]*.3576+c[2]*.1805)/.95047,y=c[0]*.2126+c[1]*.7152+c[2]*.0722,z=(c[0]*.0193+c[1]*.1192+c[2]*.9505)/1.08883;
+  var f=function(t){return t>.008856?Math.pow(t,1/3):7.787*t+16/116};x=f(x);y=f(y);z=f(z);return [116*y-16,500*(x-y),200*(y-z)]}
+function hexLum(h){var c=[1,3,5].map(function(i){var v=parseInt(h.substr(i,2),16)/255;return v<=.04045?v/12.92:Math.pow((v+.055)/1.055,2.4)});return c[0]*.2126+c[1]*.7152+c[2]*.0722}
+function rcBestColor(used){   // 빈 칸 바탕(밝은 테마 = 흰색) 위에서도 또렷해야 하므로 바탕과 밝기 대비 3:1 이 안 되는 후보(연두 · 노랑 · 하늘)는 뺌
+  var bg=document.documentElement.getAttribute("data-theme")==="dark"?"#1e1e1e":"#ffffff",lb=hexLum(bg);
+  var U=used.concat([bg]).filter(function(h){return /^#[0-9a-f]{6}$/i.test(h)}).map(hexLab),best=RCCAND[0],bd=-1;
+  RCCAND.forEach(function(c){var lc=hexLum(c),cr=(Math.max(lc,lb)+.05)/(Math.min(lc,lb)+.05);if(cr<3)return;
+    var L=hexLab(c),m=1e9;U.forEach(function(u){var d=Math.sqrt(Math.pow(L[0]-u[0],2)+Math.pow(L[1]-u[1],2)+Math.pow(L[2]-u[2],2));if(d<m)m=d});if(m>bd){bd=m;best=c}});
+  return best}
+function rcColorSet(used){var c=rcBestColor(used),r=parseInt(c.substr(1,2),16),g=parseInt(c.substr(3,2),16),b=parseInt(c.substr(5,2),16),S=document.documentElement.style;
+  if(S.getPropertyValue("--rcc")===c)return;
+  S.setProperty("--rcc",c);S.setProperty("--rck",ink(c)==="#fff"||ink(c)==="#ffffff"?"#fff":"#000");
+  S.setProperty("--rcg","rgba("+r+","+g+","+b+",.38)");S.setProperty("--rcg2","rgba("+r+","+g+","+b+",.14)");S.setProperty("--rcl","rgba("+r+","+g+","+b+",.22)")}
 function ink(hex){var r=parseInt(hex.substr(1,2),16),g=parseInt(hex.substr(3,2),16),b=parseInt(hex.substr(5,2),16);
   return (r*299+g*587+b*114)/1000>140?"#000":"#fff"}
 
@@ -1141,6 +1160,7 @@ function render(){
     var gr=POLGR.slice();
     polOrder.forEach(function(k){hexL[k]=CUSTOM[k]||POLFIX[k]||gr.shift()||"#8c8c8c";pols[k].css="--c2:"+hexL[k]+";--ck2:"+ink(hexL[k])})}
   HEX=hex;
+  rcColorSet(order.map(function(k){return hex[k]}).concat(PP?polOrder.map(function(k){return hexL[k]}):[]));
   function sty(b){return col[keyOf(b)]+(PP?";"+pols[b.pol].css:"")}
   if(st.filter&&(st.filter[0]==="@"?!(PP&&pols[st.filter.slice(1)]):!groups[st.filter]))st.filter=null;
 
@@ -1245,7 +1265,7 @@ function render(){
   if(st.saved){nt.hidden=false;nt.className="note";nt.textContent=st.saved}
   $("ship").value=st.ship;
   BAY2P={};ORD.forEach(function(id){var nm=PANELS[id].p.name.match(/\d+/g)||[];nm.forEach(function(n){if(!(+n in BAY2P))BAY2P[+n]=id})});
-  edDraw(); pickFlag(); if(!$("v3").hidden)v3Build();
+  pvSnap(); edDraw(); pickFlag(); if(!$("v3").hidden)v3Build();
 }
 
 function drawWin(){
@@ -1265,7 +1285,7 @@ function drawWin(){
 // ---------- Editor(목록) / Pivot — cCASP Stowage Edit · Pivot 과 같은 쓰임 ----------
 // Editor: 열 제목 = 정렬(Shift+클릭 = 여러 열), 둘째 줄 = 조건, 줄 클릭 = 고르기(Ctrl 여러 개), 더블클릭 = 그 베이 열기
 // Pivot : 행·열 항목과 값을 골라 집계, 칸을 누르면 그 컨테이너들이 골라짐
-var ES={on:false,tab:"E",sort:[],flt:{},fade:false,pr:"pod",pc:"type",pv:"van"};
+var ES={on:false,tab:"P",sort:[],flt:{},fade:false,pr:"pod",pc:"type",pv:"van"};
 try{ES.on=localStorage.getItem("ascEdOn")==="1"}catch(_){}
 function dg0(b){return (b.dgno&&st.plan.dg[b.dgno]&&st.plan.dg[b.dgno][0])||{}}
 var EF=[   // [키, 제목, 숫자?, 값, 목록에 보임?, 피벗 항목?]
@@ -1334,6 +1354,21 @@ function sftHtml(){
 function sftCopy(){var R=sftRows(),t=sftText(R),done=function(){say("쉬프팅 리스트 "+R.length+"줄을 복사했어요. 엑셀이나 메일에 붙여 넣으면 표가 돼요.")};
   function old(){var a=document.createElement("textarea");a.value=t;a.style.position="fixed";a.style.opacity="0";document.body.appendChild(a);a.select();try{document.execCommand("copy");done()}catch(_){say("복사하지 못했어요.",true)}a.remove()}
   try{navigator.clipboard.writeText(t).then(done,old)}catch(_){old()}}
+// 피벗 값이 방금 바뀐 칸: 플랜을 고칠 때마다(render) 지금 값을 직전 값과 견주어 달라진 칸을 PVH.chg 에 적어 둠 → 빨갛게 표시.
+// 다음에 값이 또 바뀌면 그때 바뀐 칸으로 갈아 끼움. 행 · 열 · 값 · 조건 · 플랜이 바뀌면 처음부터.
+var PVH={sig:"",prev:null,chg:{}};
+function pvSnap(){
+  if(!st.plan||window.__STATIC__)return;
+  var fr=EFM[ES.pr],fc=EFM[ES.pc],NUL="\u0002",S="\u0001",cur={},out={},k;if(!fr||!fc)return;
+  function add(k,b){var o=cur[k]||(cur[k]={n:0,teu:0,kg:0});o.n++;o.teu+=b.size===20?1:2;o.kg+=b.kg}
+  edList().forEach(function(b){if(fromOf(b))return;var r=String(fr[3](b)),c=String(fc[3](b));add(r+S+c,b);add(r+S+NUL,b);add(NUL+S+c,b);add(NUL+S+NUL,b)});
+  for(k in cur)out[k]=ES.pv==="van"?cur[k].n:ES.pv==="teu"?cur[k].teu:ES.pv==="kg"?cur[k].kg:cur[k].kg/cur[k].n;
+  var sig=CUR+"|"+st.name+"|"+ES.pr+"|"+ES.pc+"|"+ES.pv+"|"+JSON.stringify(ES.flt);
+  if(PVH.sig!==sig||!PVH.prev){PVH.sig=sig;PVH.prev=out;PVH.chg={};return}
+  var d={},n=0;for(k in out)if(out[k]!==PVH.prev[k]){d[k]=out[k]-(PVH.prev[k]||0);n++}
+  for(k in PVH.prev)if(!(k in out)){d[k]=-PVH.prev[k];n++}
+  if(n){PVH.chg=d;PVH.prev=out}}
+function pvDelta(d){if(ES.pv==="avg")return "";var v=ES.pv==="kg"?(Math.abs(d)/1000).toLocaleString("en-US",{maximumFractionDigits:1}):Math.abs(d).toLocaleString();return (d>0?"+":"−")+v}
 function edDraw(){
   if(!st.plan||window.__STATIC__)return;
   $("edWin").hidden=!ES.on;$("edBtn").setAttribute("aria-pressed",ES.on?"true":"false");
@@ -1351,7 +1386,7 @@ function edDraw(){
   }else if(ES.tab==="S"){
     body.innerHTML=sftHtml();
   }else{
-    var pf=EF.filter(function(f){return f[5]}),L=edRows()||edList();
+    pvSnap();var pf=EF.filter(function(f){return f[5]}),L=edRows()||edList();
     var opt=function(sel){return pf.map(function(f){return '<option value="'+f[0]+'"'+(f[0]===sel?' selected':'')+'>'+f[1]+'</option>'}).join("")};
     var VS=[["van","Unit (개수)"],["teu","TEU"],["kg","Weight 합계 (t)"],["avg","Weight 평균 (t)"]];
     // 쉬프팅한 컨테이너(칸에 보라색 S)는 칸 · 합계에 넣지 않고, 합계 뒤의 따로 떨어진 '쉬프팅' 열에만 보임 — 합계 + 쉬프팅 = 실려 있는 전체.
@@ -1364,7 +1399,8 @@ function edDraw(){
       return ES.pv==="van"?bs.length.toLocaleString():ES.pv==="teu"?teu.toLocaleString():ES.pv==="kg"?(kg/1000).toLocaleString("en-US",{maximumFractionDigits:1}):(kg/bs.length/1000).toFixed(1)};
     var rowIs=function(r){return function(b){return String(fr[3](b))===r}};
     var SFC="\u0003";
-    var cell=function(r,c,bs,cls){var v=val(bs);return '<td class="'+(v===""?'z ':'')+(cls||'')+'" data-pr="'+esc(r)+'" data-pc="'+esc(c)+'" title="'+(c===SFC?"쉬프팅한 컨테이너 ":"누르면 이 ")+(bs?bs.length:0)+'개'+(c===SFC?" — 합계에는 들어 있지 않아요. 누르면 골라져요":"가 골라져요")+'">'+(v===""?"·":v)+'</td>'};
+    var cell=function(r,c,bs,cls){var v=val(bs),dk=PVH.chg[r+"\u0001"+c],ch=dk!==undefined&&c!==SFC,dt=ch?pvDelta(dk):"";
+      return '<td class="'+(v===""?'z ':'')+(ch?'chg ':'')+(cls||'')+'" data-pr="'+esc(r)+'" data-pc="'+esc(c)+'" title="'+(ch?"방금 바뀌었어요"+(dt?" ("+dt+")":"")+" · ":"")+(c===SFC?"쉬프팅한 컨테이너 ":"누르면 이 ")+(bs?bs.length:0)+'개'+(c===SFC?" — 합계에는 들어 있지 않아요. 누르면 골라져요":"가 골라져요")+'">'+(v===""?(ch?"0":"·"):v)+(dt?'<small>'+dt+'</small>':'')+'</td>'};
     var NUL="\u0002";
     body.innerHTML='<div class="pvc"><label>행 <select id="pvR">'+opt(ES.pr)+'</select></label><label>열 <select id="pvC">'+opt(ES.pc)+'</select></label>'+
       '<label>값 <select id="pvV">'+VS.map(function(v){return '<option value="'+v[0]+'"'+(v[0]===ES.pv?' selected':'')+'>'+v[1]+'</option>'}).join("")+'</select></label>'+
@@ -2223,9 +2259,11 @@ function whyNot(is40,H,bay,row,tier,O){   // 그 크기의 컨테이너를 거�
   if(is40){if(hasSlot(h,row,tier)===false)return "40' 를 실을 수 없는 칸";
     if(O[h+"_"+k]||O[f+"_"+k]||O[a+"_"+k])return "이미 실려 있는 칸";
     var hb=hasSlot(h,row,tier-2);if(hb===null)return "";
-    if(!hb&&hasSlot(f,row,tier-2)!==true&&hasSlot(a,row,tier-2)!==true)return "";   // 맨 아래 단
-    if(O[h+"_"+kb]||(O[f+"_"+kb]&&O[a+"_"+kb]))return "";
-    return "밑이 비어 있는 칸"}
+    if(O[h+"_"+kb])return "";
+    // 앞 절반 · 뒤 절반을 따로 봄: 그 밑에 칸이 아예 없으면 해치커버(갑판) 위라 받쳐진 것, 칸이 있으면 20' 가 실려 있어야 함.
+    // (예: OSVY · VTVY · HTVY 의 02 베이 84단 = 앞은 01 베이 82단의 20' 위, 뒤는 03 베이 해치커버 위)
+    var sup=function(x){return hasSlot(x,row,tier-2)!==true||!!O[x+"_"+kb]};
+    return sup(f)&&sup(a)?"":"밑이 비어 있는 칸"}
   if(hasSlot(bay,row,tier)===false)return "실을 수 없는 칸";
   if(O[bay+"_"+k]||O[h+"_"+k])return "이미 실려 있는 칸";
   if(hasSlot(bay,row,tier-2)!==true)return "";
@@ -4043,7 +4081,7 @@ function v3Open(on){if(on==null)on=$("v3").hidden;$("v3").hidden=!on;var b=$("v3
 // code 가 없는 줄은 마우스 동작처럼 다른 곳에서 처리하는 것 — 도움말에만 나옴.
 var KEYS=[
   {keys:["F1"],d:"도움말 열기 · 닫기",code:"F1",fn:function(){helpBox()}},
-  {keys:["Alt","E"],d:"EDITOR / PIVOT 켜기 · 끄기",code:"KeyE",alt:1,plan:1,fn:function(){$("edBtn").click()}},
+  {keys:["Alt","E"],d:"PIVOT / EDITOR 켜기 · 끄기",code:"KeyE",alt:1,plan:1,fn:function(){$("edBtn").click()}},
   {keys:["Ctrl","Tab"],d:"다음 플랜 탭으로 (마지막 탭 다음은 첫 탭)",code:"Tab",ctrl:1,fn:function(){tabStep(1)}},
   {keys:["Alt","F"],d:"컨테이너 찾기 열기 · 닫기",code:"KeyF",alt:1,plan:1,fn:function(){findBox()}},
   {keys:["Alt","M"],d:"메일함 열기 · 닫기 — 팀 메일로 온 플랜을 아웃룩에서 바로 열기 (PC 설치판)",code:"KeyM",alt:1,fn:function(){if(mlOn()&&!window.__STATIC__)mlOpen()}},
