@@ -50,12 +50,15 @@ $port = [regex]::Match($txt, 'port:(\d+)').Groups[1].Value
 $token = [regex]::Match($txt, "token:'([0-9a-fA-F]+)'").Groups[1].Value
 if (-not $port -or -not $token) { Write-Host 'Could not read the helper port/token. Open a plan in the viewer once and run this again.' -ForegroundColor Yellow; exit 1 }
 
-# expose 127.0.0.1:port on the tailnet over HTTPS (private to your own devices). Try the newer CLI form, then the older one.
+# expose 127.0.0.1:port on the tailnet over HTTPS (private to your own devices).
+# Needs "HTTPS Certificates" enabled in the admin console (login.tailscale.com/admin/dns). If serve hangs, that toggle is off.
+$cert = (& $ts cert $dns 2>&1 | Out-String)
+if ($cert -match 'does not support|HTTPS') { Write-Host 'HTTPS certificates are not enabled for your tailnet.' -ForegroundColor Yellow; Write-Host 'Open https://login.tailscale.com/admin/dns and turn on MagicDNS + HTTPS Certificates, then run this again.' -ForegroundColor Yellow; exit 1 }
+$job = Start-Job { param($ts, $port) & $ts serve --bg $port 2>&1 | Out-String } -ArgumentList $ts, $port
 $served = $false
-foreach ($args in @(@('serve', '--bg', '--https=443', "http://127.0.0.1:$port"), @('serve', '--bg', "$port"))) {
-    try { & $ts @args 2>&1 | Out-Null; if ($LASTEXITCODE -eq 0) { $served = $true; break } } catch { }
-}
-if (-not $served) { Write-Host 'tailscale serve did not succeed. Your Tailscale version/admin settings may differ. Run this once by hand and tell me the result:' -ForegroundColor Yellow; Write-Host "    `"$ts`" serve --bg http://127.0.0.1:$port" -ForegroundColor Yellow }
+if (Wait-Job $job -Timeout 90) { Receive-Job $job | Out-Null; $served = ((& $ts serve status 2>&1 | Out-String) -match '127\.0\.0\.1:' + $port) } else { Stop-Job $job }
+Remove-Job $job -Force -ErrorAction SilentlyContinue
+if (-not $served) { Write-Host 'tailscale serve did not finish. Run this once by hand and tell me what it says:' -ForegroundColor Yellow; Write-Host "    `"$ts`" serve --bg $port" -ForegroundColor Yellow }
 
 $base = "https://$dns"
 $jsonBytes = [Text.Encoding]::UTF8.GetBytes((@{ b = $base; t = $token } | ConvertTo-Json -Compress))
