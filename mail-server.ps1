@@ -60,6 +60,13 @@ function OutPrep($q) {
     $mail = $null; if ($id) { $mail = Out-Build $id ([string]$q.voy) ([string]$q.rot) $r.calls $order; $mail.imgs = Out-Imgs $id $mail.html }
     return (@{ rot = $r; cand = $cand; mail = $mail; svc = $svc; ports = $order; missing = $missing } | ConvertTo-Json -Depth 7 -Compress)
 }
+# rotation of one voyage from the company port schedule, for the Summary line of the viewer (read-only look-up)
+function RotJson($q) {
+    $v = ([string]$q['vsl']).ToUpper(); $y = ([string]$q['voy']).ToUpper()
+    if ($v -notmatch '^[A-Z0-9]{3,5}$' -or $y -notmatch '^\d{3,4}[A-Z]$') { return '{"ok":false,"why":"noinput"}' }
+    $pp = @(([string]$q['ports']).ToUpper() -split ',' | Where-Object { $_ -match '^[A-Z]{3}$' })
+    return ((Out-Rotation $v $y $pp $true) | ConvertTo-Json -Depth 5 -Compress)
+}
 function OutOpen($q) {
     $mode = if ($q.send -eq $true) { 'send' } elseif ($q.draft) { 'draft' } else { 'show' }
     $rcp = $null; if ($q.PSObject.Properties['to'] -or $q.PSObject.Properties['cc']) { $rcp = @{ to = @($q.to); cc = @($q.cc) } }     # only when the person changed the recipients
@@ -165,6 +172,7 @@ while ($true) {
         $lastReq = Get-Date
         if ($path -eq '/ping') { Send $st '200 OK' 'text/plain' ($utf8.GetBytes('ok')) }
         elseif ($path -eq '/list') { $d = 7; if ($q['days'] -match '^\d+$') { $d = [Math]::Min(30, [Math]::Max(1, [int]$q['days'])) }; Send $st '200 OK' 'application/json; charset=utf-8' ($utf8.GetBytes((ListJson $d))) }
+        elseif ($path -eq '/rotation' -and $outOk) { Send $st '200 OK' 'application/json; charset=utf-8' ($utf8.GetBytes((RotJson $q))) }
         elseif ($path -eq '/mailhint') { Send $st '200 OK' 'application/json; charset=utf-8' ($utf8.GetBytes((MailHint $q))) }
         elseif ($path -eq '/file') { Send $st '200 OK' 'application/octet-stream' (FileBytes $q['id'] $q['i']) }
         elseif ($verb -eq 'POST' -and $outOk -and ($path -eq '/outprep' -or $path -eq '/outopen')) {

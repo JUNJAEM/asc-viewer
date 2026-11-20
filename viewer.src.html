@@ -34,7 +34,8 @@ header.win .body{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;bac
 .kv span{color:var(--fg2);font-size:11.5px}
 .kv b{font-size:15px}
 .kv small{font-size:11.5px;font-weight:400}
-.rot{font-family:Consolas,monospace;font-size:11.5px;color:var(--fg2);overflow-wrap:anywhere;margin-top:6px}
+.rot{font-family:Consolas,monospace;font-size:11.5px;color:var(--fg2);overflow-wrap:anywhere;margin-top:6px}.rot small{font-family:var(--sans);opacity:.8;margin-left:8px;white-space:nowrap}.rot b{color:var(--fg);text-decoration:underline}
+body.empty #findBtn,body.static #findBtn{display:none}
 .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
 .chip{display:inline-flex;align-items:stretch;border:1px solid var(--edge);background:var(--win)}
 .chip.on{box-shadow:0 0 0 2px var(--num)}
@@ -682,6 +683,7 @@ header.win .body{background:#fff}
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
       <button class="btn" id="mailBtn" type="button" hidden title="팀 메일로 온 플랜(ASC · EDI)을 아웃룩에서 바로 불러와요 (Alt + M)">메일함</button>
+      <button class="btn" id="findBtn" type="button" title="컨테이너 번호 찾기 (Alt + F)">SEARCH CNTR</button>
       <span class="pltop" id="plTop"><span class="seg plModes"><button type="button" data-pm="v" title="보기만 (플래닝 끔)">보기</button><button type="button" data-pm="ll" title="Planning by Load List (Alt + S)">로드리스트</button><button type="button" data-pm="pal" title="Planning by Palette (Alt + Q)">팔레트</button><button type="button" data-pm="sft" title="Shift Mode (Alt + W) — 컨테이너를 눌러 빼낸 뒤 다른 자리에 다시 싣기">Shift</button></span>
     <span class="seg plMir"><button type="button" data-mir="S" title="Single — 누른 칸에만 (Alt + Z)">S</button><button type="button" data-mir="2FA" title="Mirror for Fore and Aft — 같은 해치의 앞·뒤 20' 베이에 같이 (Alt + C)">2F/A</button></span></span>
       <button class="btn" id="edBtn" type="button" aria-pressed="false" title="컨테이너 목록(Editor)과 집계표(Pivot) 창을 켜고 꺼요 (Alt + E)">EDITOR / PIVOT</button>
@@ -709,7 +711,6 @@ header.win .body{background:#fff}
   <div class="tools">
     <label for="ship" id="shipL">선박</label>
     <select id="ship"></select>
-    <button type="button" class="x" id="findBtn" title="컨테이너 번호 찾기 (Alt + F)">컨테이너 찾기</button>
   </div>
   <section class="win" id="v3" hidden aria-label="VESSEL VIEW">
     <div class="tb"><span id="v3T">VESSEL VIEW</span><small>끌거나 양옆 화살표로 돌리기 · 휠로 확대 · 베이를 누르면 Bay Plan</small><span class="sp"></span>
@@ -1031,7 +1032,7 @@ function render(){
   var sh=curShip(), nout=sh?outside(sh,B):0;
   var n20=0,n40=0,kg=0,dg=0,rf=0,em=0;
   B.forEach(function(b){if(b.size===20)n20++;else n40++;kg+=b.kg;if(b.dgno)dg++;if(b.rf)rf++;if(b.fe==="E")em++});
-  var rot=P.rotation.filter(function(p,i,a){return p!==a[i-1]}).join(" › ");
+  var rot=P.rotation.filter(function(p,i,a){return p!==a[i-1]}).join(" › "),SR=schedRot(),SRP=SR?outInfo().port:"";
   $("voyT").textContent=(sh?st.ship+" ":"")+(P.voy||"");
   $("sum").innerHTML='<div class="kv">'+
     (sh?'<div><span>선박</span><b>'+esc(st.ship)+(sh.n?' <small>'+esc(sh.n)+'</small>':'')+'</b></div>':'')+
@@ -1042,7 +1043,8 @@ function render(){
     '<div><span>무게</span><b>'+Math.round(kg/1000).toLocaleString()+' t</b></div>'+
     '<div><span>DG</span><b>'+dg+'</b></div><div><span>RF</span><b>'+rf+'</b></div><div><span>Empty</span><b>'+em+'</b></div>'+
     (nout?'<div><span>구조에 없는 칸</span><b style="color:var(--warn)">'+nout+'</b></div>':'')+'</div>'+
-    (rot?'<div class="rot">Port Rotation: '+esc(rot)+'</div>':'')+
+    (SR?'<div class="rot" title="'+esc("전산 포트 스케줄"+(SR.svc?" ("+SR.svc+")":"")+" :  "+SR.calls.map(function(c){return c.p+(c.skip?" 스킵":" "+c.eta)}).join("  →  ")+(rot?"\n파일에 적힌 순서 :  "+rot:""))+'">Port Rotation: '+
+        SR.calls.map(function(c){return c.skip?"<s>"+esc(c.p)+"</s>":(!c.next&&c.p===SRP?"<b>"+esc(c.p)+"</b>":esc(c.p))}).join(" › ")+'<small>전산 포트 스케줄 기준</small></div>':(rot?'<div class="rot">Port Rotation: '+esc(rot)+'</div>':''))+
     '<div class="chips"><button type="button" class="x" id="sortCol" title="양하항 '+order.length+'개에 맞춰 가장 잘 구분되는 색으로 다시 칠해요">색정렬</button><button type="button" class="x" id="v3Btn" title="General Plan 위에 선박 그림(입체 · 옆모습 · 윗모습)을 켜고 꺼요. 베이를 누르면 Bay Plan이 떠요" aria-pressed="'+!$("v3").hidden+'">VESSEL VIEW</button><em>POD</em>'+order.map(function(k){return chip(k,k,groups[k])}).join("")+
       '<em>POL</em>'+polOrder.map(function(k){return chip(k,"@"+k,pols[k])}).join("")+'</div>';
   function chip(k,f,g){return '<span class="chip'+(st.filter===f?' on':'')+'">'+
@@ -2659,6 +2661,18 @@ var LOOK={SHVY:{hull:"#2f6fb0",under:"#b8434a",fun:"#7fc49a",house:"#f1ecdd"},NB
   PCBJ:{hull:"#c0453a",fun:"#f2f2f2",cr:2,crc:"#e8d58a"},PCSZ:{hull:"#8a3530",fun:"#f0c870",cr:3,crc:"#f0c870"},SDTR:{fun:"#5cb531",cr:2,crc:"#b9bfc8"},
   NGTR:{hull:"#6a2430",fun:"#275b4b"},MZBG:{hull:"#7d3035",fun:"#5fd060"},MBBG:{hull:"#7a2a2c",fun:"#7bba63"},SWSR:{hull:"#b5452f"},
   HAB:{hull:"#1f4a9c",txt:"H E U N G - A"}};   // txt = 선체 옆에 크게 적힌 글씨
+// Summary 의 Port Rotation: PC 설치판에서는 그때그때 전산 포트 스케줄에서 이 선박·항차의 기항 순서를 찾아 보여 줌(메일 도우미 /rotation — 그 항차의 첫 기항지부터 외국 기항 뒤 돌아오는 한국 포트까지, 이 플랜의 포트는 굵게).
+// 스킵한 포트는 중간선. 전산에서 못 찾거나 폰·웹(전산에 닿지 않음)이면 파일에 적힌 순서 그대로. 화면 표시만 바꾸고, 색 순서·리핸들링 판단은 파일의 순서를 그대로 씀.
+var SROT={};
+function schedRot(){
+  if(!window.__MAILSRVJS__||window.__STATIC__||!st.plan||st.example)return null;
+  var I=outInfo();if(!I.vsl||!/^\d{3,4}[A-Z]$/.test(I.voy))return null;
+  var key=I.vsl+"|"+I.voy,r=SROT[key],nm=st.name;
+  if(r&&!(r.fail&&Date.now()-r.at>60000))return r.ok&&r.calls&&r.calls.length?r:null;
+  SROT[key]={busy:true,at:Date.now()};
+  mlGet("/rotation?vsl="+encodeURIComponent(I.vsl)+"&voy="+encodeURIComponent(I.voy)).then(function(d){d=d||{};d.at=Date.now();SROT[key]=d},function(){SROT[key]={fail:true,at:Date.now()}})
+    .then(function(){if(st.plan&&st.name===nm&&SROT[key].ok)render()});
+  return null}
 var HEX={},BAY2P={},V3={mode:"3d",yaw:-0.62,pit:0.5,zoom:1,hold:false,faces:[],hov:null,M:null,port:{}};
 // ---------- 그 항의 실제 바람·파도 ----------
 // 파일 이름에서 포트를 읽음: 5글자(JPOIT) 먼저, 없으면 회사 3글자(OIT). 좌표는 ships.js 의 ASC_GEO(tools/build_geo.py).
