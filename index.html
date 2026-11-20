@@ -366,6 +366,23 @@ body.planning #gp .m[data-s]{cursor:crosshair}body.planning #gp .m[data-s]:hover
 #llT td.n{text-align:right}.lls{display:inline-block;margin-right:4px;padding:0 4px;border-radius:3px;background:#7a00c8;color:#fff;font-size:10px;font-weight:700;line-height:14px;vertical-align:1px}
 .et.pv td.sfc,.et.pv th.sfc{color:#7a00c8;font-weight:700;background:#f7f0ff}.et.pv td.sfc.z{color:#bbb;font-weight:400;cursor:default}[data-theme="dark"] .et.pv td.sfc,[data-theme="dark"] .et.pv th.sfc{background:#2d2140;color:#cfa6ff}#llT tbody tr{cursor:pointer}#llT tr.on td{background:#ffd9d9}#llT td.msgbox{color:#667;white-space:normal;cursor:default}
 #llBox .llf{padding:5px 8px;border-top:1px solid var(--edge);color:#445;font-size:11px;line-height:1.35}
+.llp{display:flex;gap:4px 8px;align-items:center;flex-wrap:wrap;padding:4px 8px;border-bottom:1px solid var(--edge);font-size:11.5px}
+.llp #llPv{display:inline-flex;gap:4px 6px;align-items:center;flex-wrap:wrap}.llp #llPv[hidden]{display:none}
+.llp select{font:inherit;font-size:11.5px;height:20px;border:1px solid var(--edge);background:#fff;color:#000;border-radius:3px}
+.llp .seg button,.llp #llX{font:inherit;font-size:11.5px;font-weight:700;padding:1px 8px;border:1px solid var(--edge);background:#fff;color:#111;cursor:pointer}.llp #llX{border-radius:3px;padding:1px 6px}
+[data-theme="dark"] .llp select,[data-theme="dark"] .llp .seg button,[data-theme="dark"] .llp #llX{background:#1c1c1c;color:var(--fg);border-color:#777}
+.llp .seg button[aria-pressed="true"],[data-theme="dark"] .llp .seg button[aria-pressed="true"]{background:#0b3f94;color:#fff;box-shadow:none}
+#llBox.pv{width:max-content;min-width:min(390px,calc(100vw - 24px));max-width:min(calc(100vw - 24px),760px)}
+#llBox.pv .llf,#llBox.pv #llForm,#llBox.pv .llc,#llBox.pv .llp,#llBox.pv .llh{width:0;min-width:100%;box-sizing:border-box}
+#llBox.pv #llN{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#llBox .llh b,#llBox .llh button{white-space:nowrap;flex:none}
+#llBox.pv #llT{width:auto;min-width:100%;font-size:12px}
+#llT.pv td,#llT.pv th{border:1px solid #c9d3e2;text-align:right;padding:2px 7px}
+#llT.pv th.rh{text-align:left;left:0;z-index:1}#llT.pv tbody th{top:auto;position:sticky;cursor:pointer}#llT.pv thead th.rh{z-index:3;cursor:default}
+#llT.pv td:hover:not(.z){background:#e3ecff}#llT.pv td.part,#llT.pv td.part:hover{background:#ffeec2}#llT.pv td.on,#llT.pv td.on:hover{background:#ffd0d0;font-weight:700;box-shadow:inset 0 0 0 1px #c00}
+#llT.pv td.z{cursor:default}#llT.pv td.msgbox{text-align:left;border:0;max-width:300px}
+.llnew{color:#d83b01;font-size:9px;font-weight:700;margin-left:1px}
+[data-theme="dark"] #llT.pv td,[data-theme="dark"] #llT.pv th{border-color:#444}[data-theme="dark"] #llT.pv td:hover:not(.z){background:#3d3d3d}
+[data-theme="dark"] #llT.pv td.part,[data-theme="dark"] #llT.pv td.part:hover{background:#4a4020}[data-theme="dark"] #llT.pv td.on,[data-theme="dark"] #llT.pv td.on:hover{background:#5a2a2a}
 .tpl{display:none}
 @media (hover:none){#bwPl{display:none}
   .tpl{display:block;position:relative;flex:none;border-top:1px solid var(--edge);background:var(--chrome);font-size:13px}.tpl[hidden]{display:none}
@@ -689,7 +706,7 @@ header.win .body{background:#fff}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-20 11:50 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-20 13:00 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -814,10 +831,12 @@ header.win .body{background:#fff}
 <div id="llBox" hidden><div class="llh" title="끌어서 창을 옮길 수 있어요 (두 번 누르면 처음 자리로)"><b>LOAD LIST</b> <span id="llN"></span><span class="sp"></span>
     <button type="button" id="llBack" title="고른 것 중 쉬프팅으로 내린 컨테이너를 원래 자리에 다시 놓아요">원래 자리로</button><button type="button" id="llAll" title="전부 고르기 · 다시 누르면 전부 해제">전체</button><button type="button" id="llAdd" title="조건과 수량으로 로드리스트 만들기">＋ 추가</button></div>
   <div class="llc" id="llC" hidden><button type="button" id="cbfBtn" title="전산 CBF 와 플랜 대조 · 변동분 · 마감 점검">CBF 점검</button><span id="cbfS"></span><label title="CBF 가 바뀌어서 새로 생긴 것만 보기"><input type="checkbox" id="llChg"> 변동분만</label></div>
+  <div class="llp" id="llP"><span class="seg"><button type="button" data-lv="p" title="행 × 열 로 묶어서 보기 — 칸을 누르면 그 묶음이 골라져요">피벗</button><button type="button" data-lv="l" title="컨테이너를 한 줄에 하나씩 보기">목록</button></span>
+    <span id="llPv">행 <select id="llR"></select> 열 <select id="llK"></select> 값 <select id="llV"><option value="van">Unit</option><option value="teu">TEU</option><option value="kg">무게(t)</option></select> <button type="button" id="llX" title="행과 열 바꾸기">↔</button></span></div>
   <div id="llForm" hidden>POL<input data-l="pol" maxlength="5"> POD<input data-l="pod" maxlength="5"> SzTp<input data-l="type" maxlength="4"> kg<input data-l="kg" maxlength="5" class="w">
     <select data-l="fe"><option>F</option><option>E</option></select> OPR<input data-l="line" maxlength="8"> 수량<input data-l="n" maxlength="3" value="1"> <button type="button" id="llGo">만들기</button></div>
   <div class="llw"><table id="llT"></table></div>
-  <div class="llf">줄을 눌러 고르고(Ctrl·Shift 여러 개, 더블클릭 = 그 줄부터 끝까지) Bay Plan 의 빈 칸을 누르거나 끌면 실려요. 오른쪽 버튼 = 다시 로드리스트로.</div></div>
+  <div class="llf" id="llF"></div></div>
 <div id="fbox" hidden role="search"><b>컨테이너 찾기</b>
   <input id="q" type="search" placeholder="번호 또는 위치 (예: 8172320, 250884)" autocomplete="off" aria-label="컨테이너 번호 또는 위치">
   <span id="qn"></span><button type="button" id="fX" aria-label="닫기" title="닫기 (Alt + F 또는 Esc)">×</button></div>
@@ -2250,6 +2269,51 @@ function plMode(m){if(window.__STATIC__||!st.plan||st.example)return;PL.mode=PL.
     sft:"Shift: 옮길 컨테이너를 누르거나 끌면 빠져서 LOAD LIST 로 가요(원래 자리 기억). 이어서 빈 칸을 누르거나 끌면 다시 실려요. 오른쪽 버튼 = 쉬프팅 취소(원래 자리로).",
     mv:"Ctrl + 클릭(드래그)으로 고른 뒤, 빈 칸을 누르거나 끌면 이동 · 다른 컨테이너를 누르면 자리 교체 (다른 베이로도 돼요). 오른쪽 버튼 = 쉬프팅 취소."}[PL.mode])}
 function plMir(m){PL.mir=m;plDraw()}
+// LOAD LIST 창의 피벗: 행 × 열 로 묶어 개수를 보여 주고, 칸을 누르면 그 묶음이 골라짐 (EDITOR / PIVOT 의 피벗과 같은 모양). '목록' 으로 바꾸면 예전처럼 한 줄에 하나씩.
+var LLF=[["pod","POD",function(b){return String(b.pod||"")}],["pol","POL",function(b){return String(b.pol||"")}],["type","SzTp",function(b){return b.type||""}],
+  ["size","Size",function(b){return String(b.len||b.size||"")},1],["fe","F/E",function(b){return b.fe||""}],["line","OPR",function(b){return b.line||""}]],LLFM={};
+LLF.forEach(function(f){LLFM[f[0]]=f});
+PL.lv="p";PL.pr="pod";PL.pc="type";PL.pvv="van";PL.shown=[];
+try{var llSv=JSON.parse(localStorage.getItem("ascLlPv")||"null");if(llSv){if(llSv.v==="l"||llSv.v==="p")PL.lv=llSv.v;if(LLFM[llSv.r])PL.pr=llSv.r;if(LLFM[llSv.c]&&llSv.c!==PL.pr)PL.pc=llSv.c;if(/^(van|teu|kg)$/.test(llSv.val))PL.pvv=llSv.val}}catch(_){}
+function llSave(){try{localStorage.setItem("ascLlPv",JSON.stringify({v:PL.lv,r:PL.pr,c:PL.pc,val:PL.pvv}))}catch(_){}}
+function llPick(r,c){var NUL="\u0002",fr=LLFM[PL.pr],fc=LLFM[PL.pc];   // 피벗 칸(행 r · 열 c)에 든 로드리스트 줄들. NUL = 전부, \u0003 = 쉬프팅 열
+  return (PL.shown||[]).filter(function(e){return (r===NUL||String(fr[2](e.b))===r)&&(c===NUL||(c==="\u0003"?!!e.sft:String(fc[2](e.b))===c))})}
+function llCell(t,ctrl){   // 칸을 누름: 그 묶음만 고름(같은 칸을 다시 누르면 해제). Ctrl = 다른 칸을 더하거나 빼기
+  var ids=llPick(t.dataset.pr,t.dataset.pc).map(function(e){return e.id});if(!ids.length)return;
+  var allIn=ids.every(function(i){return PL.lsel.indexOf(i)>=0});
+  if(ctrl)PL.lsel=allIn?PL.lsel.filter(function(i){return ids.indexOf(i)<0}):PL.lsel.concat(ids.filter(function(i){return PL.lsel.indexOf(i)<0}));
+  else PL.lsel=allIn&&PL.lsel.length===ids.length?[]:ids;
+  PL.last=-1;plDraw()}
+function llList(L){
+  return "<thead><tr><th>Container</th><th>POL</th><th>POD</th><th>SzTp</th><th>t</th><th>원래 자리</th></tr></thead><tbody>"+
+    (L.length?L.map(function(e){var b=e.b;return '<tr data-l="'+e.id+'"'+(PL.lsel.indexOf(e.id)>=0?' class="on"':'')+'><td>'+(e.chg?'<span class="lln" title="CBF 가 바뀌어서 새로 생긴 것">N</span>':'')+(e.sft?'<span class="lls" title="쉬프팅으로 빼낸 컨테이너 — 다시 실어도 쉬프팅 표시(S)가 남아요">S</span>':'')+esc(b.cntr||"(번호 없음)")+'</td><td>'+esc(b.pol)+'</td><td>'+esc(b.pod)+'</td><td>'+esc(b.type)+'</td><td class="n">'+ton(b.kg)+'</td><td>'+(e.from?p6d(e.from):"")+'</td></tr>'}).join("")
+      :'<tr><td colspan="6" class="msgbox">비어 있어요. Bay Plan 에서 컨테이너를 오른쪽 버튼으로 누르거나 끌면 여기로 내려오고, ＋ 추가로 새로 만들 수도 있어요.</td></tr>')+"</tbody>"}
+function llPivot(L){
+  if(!L.length)return '<tbody><tr><td class="msgbox">비어 있어요. Bay Plan 에서 컨테이너를 오른쪽 버튼으로 누르거나 끌면 여기로 내려오고, ＋ 추가로 새로 만들 수도 있어요.</td></tr></tbody>';
+  var NUL="\u0002",SFC="\u0003",fr=LLFM[PL.pr],fc=LLFM[PL.pc],R={},C={},M={},anyS=L.some(function(e){return e.sft});
+  L.forEach(function(e){var r=String(fr[2](e.b)),c=String(fc[2](e.b));R[r]=1;C[c]=1;(M[r+"\u0001"+c]=M[r+"\u0001"+c]||[]).push(e)});
+  var srt=function(f){return function(a,b){return f[3]?a-b:(a<b?-1:a>b?1:0)}},rs=Object.keys(R).sort(srt(fr)),cs=Object.keys(C).sort(srt(fc));
+  function val(es){var kg=0,teu=0;es.forEach(function(e){kg+=e.b.kg;teu+=e.b.size===20?1:2});
+    return PL.pvv==="van"?es.length.toLocaleString():PL.pvv==="teu"?teu.toLocaleString():(kg/1000).toLocaleString("en-US",{maximumFractionDigits:1})}
+  function cell(r,c,es,cls,cnt){es=es||[];var n=es.length,s=es.filter(function(e){return PL.lsel.indexOf(e.id)>=0}).length,nw=es.some(function(e){return e.chg});
+    return '<td class="'+(n?'':'z ')+(s?(s===n?'on ':'part '):'')+(cls||'')+'" data-pr="'+esc(r)+'" data-pc="'+esc(c)+'"'+(n?' title="'+n+' VAN'+(s?' · 고른 것 '+s:'')+' — 누르면 골라져요 (Ctrl = 여러 칸)"':'')+'>'+(n?(cnt?n:val(es))+(nw?'<sup class="llnew" title="CBF 가 바뀌어서 새로 생긴 것이 들어 있어요">N</sup>':''):"·")+'</td>'}
+  function all(p){return L.filter(p)}
+  function rowIs(r){return function(e){return String(fr[2](e.b))===r}}
+  return '<thead><tr><th class="rh">'+fr[1]+' \\ '+fc[1]+'</th>'+cs.map(function(c){return '<th class="n" data-pr="'+NUL+'" data-pc="'+esc(c)+'" title="누르면 이 열 전체가 골라져요">'+esc(c||"(없음)")+'</th>'}).join("")+
+      (anyS?'<th class="n sfc" data-pr="'+NUL+'" data-pc="'+SFC+'" title="쉬프팅으로 빼낸 컨테이너 수. 누르면 그 컨테이너들이 골라져요">쉬프팅</th>':'')+'<th class="n tot" data-pr="'+NUL+'" data-pc="'+NUL+'" title="누르면 전부 골라져요">합계</th></tr></thead><tbody>'+
+    rs.map(function(r){return '<tr><th class="rh" data-pr="'+esc(r)+'" data-pc="'+NUL+'" title="누르면 이 행 전체가 골라져요">'+esc(r||"(없음)")+'</th>'+cs.map(function(c){return cell(r,c,M[r+"\u0001"+c])}).join("")+
+      (anyS?cell(r,SFC,all(function(e){return rowIs(r)(e)&&e.sft}),"sfc",1):'')+cell(r,NUL,all(rowIs(r)),"tot")+'</tr>'}).join("")+
+    '<tr class="tot"><th class="rh" data-pr="'+NUL+'" data-pc="'+NUL+'">합계</th>'+cs.map(function(c){return cell(NUL,c,all(function(e){return String(fc[2](e.b))===c}),"tot")}).join("")+
+      (anyS?cell(NUL,SFC,all(function(e){return e.sft}),"sfc",1):'')+cell(NUL,NUL,L,"tot")+'</tr></tbody>'}
+function llTable(L){   // LOAD LIST 창의 표 (피벗 또는 목록)
+  PL.shown=L;var pv=PL.lv!=="l",T=$("llT"),sc=T.parentNode,st0=sc.scrollTop,sl0=sc.scrollLeft;
+  $("llBox").classList.toggle("pv",pv);T.className=pv?"et pv":"";$("llPv").hidden=!pv;
+  [].forEach.call($("llP").querySelectorAll("[data-lv]"),function(b){b.setAttribute("aria-pressed",b.dataset.lv===PL.lv)});
+  [["llR",PL.pr],["llK",PL.pc],["llV",PL.pvv]].forEach(function(x){var s=$(x[0]);if(s.value!==x[1])s.value=x[1]});
+  T.innerHTML=pv?llPivot(L):llList(L);sc.scrollTop=st0;sc.scrollLeft=sl0;
+  $("llF").textContent=pv?"칸을 누르면 그 묶음이 골라져요 (Ctrl = 여러 칸 · 행 / 열 제목 = 그 줄 전체). 이어서 Bay Plan 의 빈 칸을 누르거나 끌면 무거운 것부터 실려요. 오른쪽 버튼 = 다시 로드리스트로."
+    :"줄을 눌러 고르고(Ctrl·Shift 여러 개, 더블클릭 = 그 줄부터 끝까지) Bay Plan 의 빈 칸을 누르거나 끌면 실려요. 오른쪽 버튼 = 다시 로드리스트로.";
+  if(PL.fit)PL.fit()}
 function plDraw(){
   tDraw();
   var on=PL.mode!=="v";document.body.classList.toggle("planning",on);
@@ -2270,16 +2334,14 @@ function plDraw(){
   if(PL.onlyChg)L=L.filter(function(e){return e.chg});
   PL.lsel=PL.lsel.filter(function(i){return L.some(function(e){return e.id===i})});
   $("llN").textContent=L.length+" VAN"+(PL.lsel.length?" · 고른 것 "+PL.lsel.length:"");
-  $("llT").innerHTML="<thead><tr><th>Container</th><th>POL</th><th>POD</th><th>SzTp</th><th>t</th><th>원래 자리</th></tr></thead><tbody>"+
-    (L.length?L.map(function(e){var b=e.b;return '<tr data-l="'+e.id+'"'+(PL.lsel.indexOf(e.id)>=0?' class="on"':'')+'><td>'+(e.chg?'<span class="lln" title="CBF 가 바뀌어서 새로 생긴 것">N</span>':'')+(e.sft?'<span class="lls" title="쉬프팅으로 빼낸 컨테이너 — 다시 실어도 쉬프팅 표시(S)가 남아요">S</span>':'')+esc(b.cntr||"(번호 없음)")+'</td><td>'+esc(b.pol)+'</td><td>'+esc(b.pod)+'</td><td>'+esc(b.type)+'</td><td class="n">'+ton(b.kg)+'</td><td>'+(e.from?p6d(e.from):"")+'</td></tr>'}).join("")
-      :'<tr><td colspan="6" class="msgbox">비어 있어요. Bay Plan 에서 컨테이너를 오른쪽 버튼으로 누르거나 끌면 여기로 내려오고, ＋ 추가로 새로 만들 수도 있어요.</td></tr>')+"</tbody>"}
+  llTable(L)}
 (function(){
   document.addEventListener("click",function(e){if(!e.target.closest)return;var b=e.target.closest(".plModes [data-pm]"),m=e.target.closest(".plMir [data-mir]");
     if(b){if(b.dataset.pm==="v"){PL.mode="v";plDraw();plSay("")}else plMode(b.dataset.pm)}else if(m)plMir(m.dataset.mir)});
   document.addEventListener("click",function(e){if(e.target.id==="eUnsf"){var b=st.plan.boxes[st.sel];if(b)plUnshift([b])}});
   document.addEventListener("change",function(e){var t=e.target;if(t.closest&&t.closest(".plBrush")&&t.dataset.bt){var okT=palTonSet(t.value);t.blur();plDraw();if(!okT)plSay("무게를 톤으로 넣어 주세요 (예: 14 또는 14.5).",true);return}
     if(t.closest&&t.closest(".plBrush")&&t.dataset.b){palSet(t.dataset.b,t.value.trim().toUpperCase());plDraw()}});
-  [].forEach.call(document.querySelectorAll(".plBrush,#llForm"),function(x){x.addEventListener("keydown",function(e){e.stopPropagation();if(e.key==="Enter")e.target.blur()})});
+  [].forEach.call(document.querySelectorAll(".plBrush,#llForm,#llP"),function(x){x.addEventListener("keydown",function(e){e.stopPropagation();if(e.key==="Enter")e.target.blur()})});
   $("llAdd").onclick=function(){var f=$("llForm");f.hidden=!f.hidden;if(!f.hidden)[].forEach.call(f.querySelectorAll("[data-l]"),function(i){var k=i.dataset.l;if(k!=="n"&&!i.value)i.value=PL.brush[k]||""})};
   $("llGo").onclick=function(){var v={};[].forEach.call($("llForm").querySelectorAll("[data-l]"),function(i){v[i.dataset.l]=i.value});
     var f=plFields(v),n=Math.max(1,Math.min(500,parseInt(v.n,10)||1));if(typeof f==="string")return plSay(f,true);
@@ -2287,8 +2349,15 @@ function plDraw(){
     st.ll=(st.ll||[]).concat(E);PL.lsel=E.map(function(e){return e.id});plDraw();plSay("로드리스트에 "+n+" VAN 을 만들었어요 ("+f.pol+" "+f.pod+" "+f.type+"). 고른 상태예요.")};
   $("llBack").onclick=function(){plBack()};
   $("llAll").onclick=function(){PL.lsel=PL.lsel.length?[]:(st.ll||[]).map(function(e){return e.id});plDraw()};
+  $("llR").innerHTML=$("llK").innerHTML=LLF.map(function(f){return '<option value="'+f[0]+'">'+f[1]+'</option>'}).join("");
+  $("llP").addEventListener("click",function(e){var b=e.target.closest("[data-lv]");if(b){PL.lv=b.dataset.lv;llSave();plDraw();return}
+    if(e.target.id==="llX"){var t=PL.pr;PL.pr=PL.pc;PL.pc=t;llSave();plDraw()}});
+  $("llP").addEventListener("change",function(e){var id=e.target.id,v=e.target.value;      // 행과 열에 같은 항목을 고르면 서로 맞바꿈
+    if(id==="llR"){if(v===PL.pc)PL.pc=PL.pr;PL.pr=v}else if(id==="llK"){if(v===PL.pr)PL.pr=PL.pc;PL.pc=v}else if(id==="llV")PL.pvv=v;else return;
+    e.target.blur();llSave();plDraw()});
   function rowIds(){return [].map.call($("llT").querySelectorAll("tr[data-l]"),function(r){return +r.dataset.l})}
-  $("llT").addEventListener("click",function(e){var tr=e.target.closest("tr[data-l]");if(!tr)return;var id=+tr.dataset.l,k=PL.lsel.indexOf(id),ids=rowIds();
+  $("llT").addEventListener("click",function(e){var pc=e.target.closest("[data-pr]");if(pc){llCell(pc,e.ctrlKey||e.metaKey);return}
+    var tr=e.target.closest("tr[data-l]");if(!tr)return;var id=+tr.dataset.l,k=PL.lsel.indexOf(id),ids=rowIds();
     if(e.shiftKey&&PL.last>=0&&ids.indexOf(PL.last)>=0){var a=ids.indexOf(PL.last),b=ids.indexOf(id);ids.slice(Math.min(a,b),Math.max(a,b)+1).forEach(function(i){if(PL.lsel.indexOf(i)<0)PL.lsel.push(i)})}
     else if(e.ctrlKey||e.metaKey){if(k<0)PL.lsel.push(id);else PL.lsel.splice(k,1)}
     else PL.lsel=k>=0&&PL.lsel.length===1?[]:[id];
@@ -2549,6 +2618,7 @@ function mlPick(id,i,btn){
     f.style.left=x+"px";f.style.top=y+"px";f.style.bottom="auto";f.style.maxHeight=Math.max(140,Math.min(window.innerHeight*0.8,window.innerHeight-y-8))+"px";return [x,y]}   // 옮긴 자리에서 화면 아래까지를 쓸 수 있게
   function back(){try{var sv=JSON.parse(localStorage.getItem("ascLlPos")||"null");if(sv)put(sv[0],sv[1])}catch(_){}}
   window.addEventListener("load",back);back();
+  PL.fit=function(){if(f.style.top&&!d)put(parseFloat(f.style.left)||0,parseFloat(f.style.top)||0)};
   window.addEventListener("resize",function(){if(f.style.top)put(parseFloat(f.style.left)||0,parseFloat(f.style.top)||0)});
   hd.addEventListener("pointerdown",function(e){if(e.button!==0||e.target.closest("button,input,select,label"))return;var r=f.getBoundingClientRect();d={dx:e.clientX-r.left,dy:e.clientY-r.top};hd.setPointerCapture(e.pointerId);e.preventDefault()});
   hd.addEventListener("pointermove",function(e){if(d)d.p=put(e.clientX-d.dx,e.clientY-d.dy)});
