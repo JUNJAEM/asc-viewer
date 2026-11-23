@@ -25,22 +25,48 @@ if ($token -notmatch '^[0-9a-fA-F]{32,}$') { $token = [Guid]::NewGuid().ToString
 [IO.File]::WriteAllText((Join-Path $tmp 'mailsrv.js'), "window.__MAILSRV__={port:$port,token:'$token'};", (New-Object Text.UTF8Encoding($false)))
 Log "listening on $port"
 
-# ---- rules: first match wins. Each rule: cat (name shown), and any of from (domain endings), fromName (regex), subject (regex on subject + file names), folder (text in folder path)
-$rules = @()
+# ---- categories. The Outlook folders are the categories (mail-rules.json names them); only mail that sits in no named folder (Deleted Items, ...) is told apart by its sender.
+# Order of deciding: 1) folder rule (a rule with only "folder" = text in the folder path)  2) a sender whose mails are filed in a folder rule marked "learn" (taken from the scanned mails)
+# 3) the other rules, first match wins: from (address endings, "" = unknown address), fromName (regex), subject (regex on subject + file names);
+#    a rule marked "fleet" gives the category of the fleet folder ("fleet" folder rule) that has a sub-folder "CODE - NAME" of the vessel named in the mail   4) .jp / .cn / the rest
+$rules = @(); $order = @()
 $rf = Join-Path $dir 'mail-rules.json'
-if (Test-Path $rf) { try { $rules = @((Get-Content -LiteralPath $rf -Raw -Encoding UTF8 | ConvertFrom-Json).rules) } catch { Log ('rules: ' + $_.Exception.Message) } }
+if (Test-Path $rf) { try { $rj = Get-Content -LiteralPath $rf -Raw -Encoding UTF8 | ConvertFrom-Json; $rules = @($rj.rules); $order = @($rj.order) } catch { Log ('rules: ' + $_.Exception.Message) } }
+function IsFolderRule($r) { return [bool]($r.folder -and -not $r.from -and -not $r.fromName -and -not $r.subject -and ($null -eq $r.PSObject.Properties['from'])) }
+$folderRules = @($rules | Where-Object { IsFolderRule $_ }); $otherRules = @($rules | Where-Object { -not (IsFolderRule $_) })
+$fleet = @{}; $fleetNames = @{}; $learn = @{}
+function FolderRule($folder) { foreach ($r in $folderRules) { if (([string]$folder).IndexOf([string]$r.folder, [StringComparison]::OrdinalIgnoreCase) -ge 0) { return $r } }; return $null }
+function FleetOf($o) {
+    $t = ($o.sub + ' ' + (($o.files | ForEach-Object { $_.n }) -join ' ')).ToUpper()
+    foreach ($c in $fleet.Keys) { if ($t -cmatch ('(?<![A-Z])' + [regex]::Escape($c) + '(?![A-Z])')) { return $fleet[$c] } }
+    foreach ($n in $fleetNames.Keys) { if ($t.Contains($n)) { return $fleetNames[$n] } }
+    return ''
+}
 function CatOf($o) {
-    foreach ($r in $rules) {
+    $fr = FolderRule $o.folder; if ($fr) { return [string]$fr.cat }
+    if ($o.ad -and $learn.ContainsKey($o.ad)) { return $learn[$o.ad] }
+    foreach ($r in $otherRules) {
         $ok = $true
-        if ($r.from) { $hit = $false; foreach ($d in $r.from) { if ($o.fd -eq $d -or $o.fd.EndsWith('.' + $d) -or ($d.StartsWith('.') -and $o.fd.EndsWith($d))) { $hit = $true; break } }; if (-not $hit) { $ok = $false } }
+        if ($null -ne $r.PSObject.Properties['from']) { $hit = $false; foreach ($d in @($r.from)) { $d = [string]$d; if ($o.fd -eq $d -or ($d -and ($o.fd.EndsWith('.' + $d) -or ($d.StartsWith('.') -and $o.fd.EndsWith($d))))) { $hit = $true; break } }; if (-not $hit) { $ok = $false } }
         if ($ok -and $r.fromName -and ($o.from -notmatch $r.fromName)) { $ok = $false }
-        if ($ok -and $r.subject -and (($o.sub + ' ' + ($o.files | ForEach-Object { $_.n })) -notmatch $r.subject)) { $ok = $false }
+        if ($ok -and $r.subject -and (($o.sub + ' ' + (($o.files | ForEach-Object { $_.n }) -join ' ')) -notmatch $r.subject)) { $ok = $false }
         if ($ok -and $r.folder -and ($o.folder.IndexOf([string]$r.folder, [StringComparison]::OrdinalIgnoreCase) -lt 0)) { $ok = $false }
-        if ($ok) { return [string]$r.cat }
+        if (-not $ok) { continue }
+        if ($r.fleet) { $c = FleetOf $o; if ($c) { return $c }; if ($r.cat) { return [string]$r.cat }; continue }
+        return [string]$r.cat
     }
     if ($o.fd.EndsWith('.jp')) { return 'JP' }
     if ($o.fd.EndsWith('.cn')) { return 'CN' }
     return 'ETC'
+}
+# after a scan: learn the senders of the "learn" folders, then name every mail again (folders, fleets and senders may have changed)
+function Recat {
+    $cnt = @{}
+    foreach ($o in $script:cache.Values) { $fr = FolderRule $o.folder; if (-not $fr -or -not $fr.learn -or -not $o.ad) { continue }
+        if (-not $cnt.ContainsKey($o.ad)) { $cnt[$o.ad] = @{} }; $c = [string]$fr.cat; $cnt[$o.ad][$c] = 1 + [int]$cnt[$o.ad][$c] }
+    $script:learn = @{}
+    foreach ($ad in $cnt.Keys) { $best = ''; $bn = 0; foreach ($c in $cnt[$ad].Keys) { if ($cnt[$ad][$c] -gt $bn) { $bn = $cnt[$ad][$c]; $best = $c } }; if ($best) { $script:learn[$ad] = $best } }
+    foreach ($o in $script:cache.Values) { $o.cat = CatOf $o }
 }
 
 # ---- Outlook scan (read-only), kept in memory and refreshed incrementally
@@ -85,6 +111,7 @@ function OutOpen($q) {
 
 function Walk($f, $path, $since, $sentId) {
     $p = if ($path) { $path + '/' + $f.Name } else { $f.Name }
+    try { $fr0 = FolderRule $p; if ($fr0 -and $fr0.fleet -and ([string]$f.Name) -match '^\s*([A-Za-z0-9]{3,5})\s*-\s*(.+?)\s*$') { $script:fleet[$Matches[1].ToUpper()] = [string]$fr0.cat; $script:fleetNames[$Matches[2].ToUpper()] = [string]$fr0.cat } } catch { }
     try {
         if ($f.DefaultItemType -eq 0 -and $f.Items.Count -gt 0) {
             $field = if ($f.EntryID -eq $sentId) { 'SentOn' } else { 'ReceivedTime' }
@@ -115,6 +142,7 @@ function Scan($days) {
     $sentId = ''; try { $sentId = $ns.GetDefaultFolder(5).EntryID } catch { }
     $root = $ns.GetDefaultFolder(6).Parent      # the mailbox that holds the inbox
     Walk $root '' $since $sentId
+    try { Recat } catch { Log ('recat: ' + $_.Exception.Message) }
     $script:lastScan = $t0; if ($days -gt $script:scanDays) { $script:scanDays = $days }
     $cut = (Get-Date).AddDays(-[Math]::Max($days, $script:scanDays)).ToString('yyyy-MM-dd HH:mm')
     foreach ($k in @($script:cache.Keys)) { if ($script:cache[$k].when -lt $cut) { $script:cache.Remove($k) } }
@@ -129,7 +157,7 @@ function ListJson($days) {
         if ($seen.ContainsKey($key)) { continue }; $seen[$key] = 1
         [void]$out.Add(@{ id = $o.id; sub = $o.sub; from = $o.from; fd = $o.fd; when = $o.when; cat = $o.cat; files = @($o.files) })
     }
-    return (@{ at = (Get-Date).ToString('HH:mm'); days = $days; items = @($out) } | ConvertTo-Json -Depth 5 -Compress)
+    return (@{ at = (Get-Date).ToString('HH:mm'); days = $days; order = @($order); items = @($out) } | ConvertTo-Json -Depth 5 -Compress)
 }
 # ---- where a plan came from: the mail that carried a file of this name (or the given mail). The viewer uses it to guess the port when the file name does not say it.
 # Gives the subject, the first part of the text and the names of other plans from the same sender. The answer goes to the viewer page on this PC only; nothing is logged.
