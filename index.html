@@ -863,7 +863,7 @@ header.win .body{background:#fff}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-23 16:21 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-23 16:37 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -3531,6 +3531,14 @@ function outGo(send){
   $("mlB").addEventListener("keydown",function(e){if(e.target.id==="mlConnIn"){e.stopPropagation();if(e.key==="Enter"){var c=mcDecode(e.target.value);if(c){mcSet(c);location.reload()}}}});
   $("mailV").addEventListener("click",function(e){if(e.target.id==="mailV")mlOpen(false)});
   if(!grOn())setInterval(function(){mlGet("/ping").catch(function(){})},5*60000);   // 뷰어가 떠 있는 동안 도우미가 꺼지지 않게
+  // 폰(Tailscale): 화면이 돌아오면 미리 연결을 깨워 둠 — 누르기 전에 터널이 올라오게. 끊겨 있던 메일함은 자동으로 다시 불러옴
+  var _wakeT=0;
+  function mlWake(){if(grOn()||!mlConn())return;var now=Date.now();if(now-_wakeT<3000)return;_wakeT=now;
+    var mv=$("mailV");
+    if(mv&&!mv.hidden&&!ML.busy&&(ML.err||!ML.items.length)){mlLoad();return}   // 메일함이 열려 있고 끊겼던 경우 → 다시 불러오며 터널도 깨움
+    mlGet("/ping").catch(function(){})}                                          // 그 외 → 미리 터널만 깨워 둠
+  document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")mlWake()});
+  window.addEventListener("pageshow",mlWake);window.addEventListener("focus",mlWake);
 })();
 // ---------- 설정: 화면 모드(밝게 · 어둡게) ----------
 // 고른 값은 이 기기에만 기억(localStorage "ascTheme"). 색은 스타일의 [data-theme="dark"] 묶음.
