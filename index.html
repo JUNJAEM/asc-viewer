@@ -863,7 +863,7 @@ header.win .body{background:#fff}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-23 10:26 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-23 16:21 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -2949,7 +2949,7 @@ function tDraw(){
 // 팀 메일로 온 플랜(ASC · EDI)을 폰·PC 에 내려받았다 다시 올릴 필요 없이, 아웃룩에서 바로 목록으로 보고 눌러서 엶.
 // 이 PC 의 도우미(mail-server.ps1)가 아웃룩을 읽어 127.0.0.1 로만 알려 줌 — 메일·첨부는 이 PC 밖으로 나가지 않음.
 // 분류(부산운항팀 발신 / 부산검수 국보·신양 / 울산 / 광양 / 일본 / 중국 …)는 보낸 곳 주소로 정함: mail-rules.json. 연 플랜의 이름은 메일 제목.
-var ML={ship:"",items:[],cat:"",q:"",busy:false,err:"",at:"",days:3,order:[]};
+var ML={ship:"",items:[],cat:"",q:"",busy:false,err:"",at:"",days:3,order:[],retry:0};
 // ---- 폰·웹: 회사 계정으로 Microsoft 365 에 로그인해서 내 메일함을 직접 읽음 (Microsoft Graph). 메일은 Microsoft → 이 기기로만 오가고 다른 곳을 거치지 않음.
 // 필요한 것: 회사 Entra(Azure AD)에 등록한 앱 ID 하나 = mail-config.js 의 ASC_GRAPH.clientId  (종류: 단일 페이지 앱(SPA), 리디렉션 URI: 이 페이지 주소, 위임 권한: Mail.Read)
 // 로그인은 표준 방식(인증 코드 + PKCE)을 직접 구현 — 외부 라이브러리 없음. 토큰은 이 기기의 브라우저 저장소에만 둠.
@@ -3025,9 +3025,20 @@ function mlSrv(){return new Promise(function(ok){
   var sc=document.createElement("script");window.__MAILSRV__=null;sc.src=window.__MAILSRVJS__+"?"+Date.now();
   sc.onload=function(){sc.remove();var S=window.__MAILSRV__;ok(S&&S.port?{base:"http://127.0.0.1:"+S.port,token:S.token}:null)};sc.onerror=function(){sc.remove();ok(null)};document.head.appendChild(sc)})}
 function mlGet(path,bin){return mlSrv().then(function(S){if(!S)throw new Error("off");
-  return fetch(S.base+path+(path.indexOf("?")<0?"?":"&")+"t="+encodeURIComponent(S.token)).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return bin?r.arrayBuffer():r.json()})})}
+  var url=S.base+path+(path.indexOf("?")<0?"?":"&")+"t="+encodeURIComponent(S.token);
+  var tries=mlConn()?4:1, ui=/^\/list/.test(path);   // 폰(Tailscale): 끊겼던 VPN 이 깨어나는 2~5초 동안 기다리며 다시 시도 (PC 는 로컬이라 1번)
+  function once(ms){var ctl,tm;try{ctl=new AbortController();tm=setTimeout(function(){try{ctl.abort()}catch(_){}},ms)}catch(_){}
+    return fetch(url,ctl?{signal:ctl.signal}:{}).then(function(r){if(tm)clearTimeout(tm);
+      if(!r.ok){var e=new Error("HTTP "+r.status);e.st=r.status;throw e}return bin?r.arrayBuffer():r.json()},
+      function(err){if(tm)clearTimeout(tm);throw err})}
+  function go(n){return once(n===0?4000:7000).then(function(v){if(ui)ML.retry=0;return v},function(err){
+    var net=!err||err.st==null||err.st>=500;   // 네트워크 끊김 · 5xx 만 다시 시도 (401/404 같은 건 바로 포기)
+    if(!net||n>=tries-1){if(ui)ML.retry=0;throw err}
+    if(ui){ML.retry=n+1;try{mlDraw()}catch(_){}}
+    return new Promise(function(res){setTimeout(res,800+n*700)}).then(function(){return go(n+1)})})}
+  return go(0)})}
 function mlLoad(){
-  if(ML.busy)return;ML.busy=true;ML.err="";mlDraw();
+  if(ML.busy)return;ML.busy=true;ML.err="";ML.retry=0;mlDraw();
   (grOn()?(grReady()?grList(ML.days):Promise.reject(new Error("setup"))):mlGet("/list?days="+ML.days)).then(function(d){if(d.order&&d.order.length)MLTREE=mlTreeOf(d.order);ML.items=d.items||[];ML.at=d.at||"";ML.seen=d.seen}).catch(function(e){ML.err=String(e&&e.message||e)}).then(function(){ML.busy=false;mlDraw()})}
 function mlCat(c){return {JP:"일본",CN:"중국",ETC:"기타"}[c]||c}
 // 아웃룩처럼: 왼쪽은 폴더(분류가 폴더, '부산검수' 아래에 국보·신양), 그 아래 선박별. 오른쪽은 날짜별로 묶은 메일 목록. 검색은 고른 폴더 안에서 찾음.
@@ -3055,14 +3066,16 @@ function mlDraw(){
   var ships=Object.keys(sc).sort(function(a,b){return sc[b]-sc[a]||a.localeCompare(b)});
   if(ships.length)h+='<div class="mlhd">선박</div>'+ships.map(function(c){return row(c,c+(SHIPS&&SHIPS[c]&&SHIPS[c].n?" · "+SHIPS[c].n:""),sc[c],false,"ms")}).join("");
   var side=$("mlC"),st0=side.scrollTop;side.innerHTML=h;side.scrollTop=st0;
-  $("mlS").textContent=ML.busy?(grOn()?"회사 메일에서 읽는 중…":(ML.days>=14?"아웃룩에서 읽는 중… (기간이 길어서 몇 분 걸릴 수 있어요)":"아웃룩에서 읽는 중… (처음에는 20초쯤 걸려요)")):ML.err?"":(ML.at?ML.at+" 기준 · ":"")+"파일을 누르면 플랜으로 열려요";
+  $("mlS").textContent=ML.busy?(ML.retry?"회사 PC 에 연결 중… ("+ML.retry+") · 폰 Tailscale 이 켜져 있는지 확인해 주세요":grOn()?"회사 메일에서 읽는 중…":(ML.days>=14?"아웃룩에서 읽는 중… (기간이 길어서 몇 분 걸릴 수 있어요)":"아웃룩에서 읽는 중… (처음에는 20초쯤 걸려요)")):ML.err?"":(ML.at?ML.at+" 기준 · ":"")+"파일을 누르면 플랜으로 열려요";
   var B=$("mlB");
   if(grOn()){B.innerHTML='<div class="msgbox"><b>이 기기를 회사 PC 에 연결해 주세요.</b><br>'
     +'퇴근 후에도 폰에서 회사 PC 의 아웃룩 메일을 보려면, 회사 PC 에서 띄운 <b>연결 QR</b> 을 폰 카메라로 찍거나, 받은 <b>연결 코드</b> 를 아래에 붙여넣으세요.<br>회사 PC 와 이 폰 모두 Tailscale 에 <b>같은 계정</b> 으로 켜져 있어야 해요.<br><br>'
     +'<input id="mlConnIn" type="text" autocomplete="off" spellcheck="false" placeholder="연결 코드 붙여넣기 (ascmail...)" style="font:inherit;font-size:15px;width:min(100%,360px);padding:9px 10px;border:1px solid #8a8a8a;border-radius:6px;margin-bottom:10px;display:block">'
     +'<button type="button" class="fb" id="mlConnSave" style="font-size:15px;padding:9px 18px">연결</button>'
     +'<p style="color:var(--fg2);font-size:12.5px;margin:12px 0 0">PC 설치판(아웃룩이 있는 회사 PC)에서는 이 연결 없이 바로 메일함이 돼요.</p></div>';return}
-  if(ML.err){B.innerHTML='<div class="msgbox"><b>메일 도우미에 연결하지 못했어요.</b><br>아웃룩이 켜져 있는지 확인하고, 플랜 파일을 하나 더블클릭해서 뷰어를 다시 열어 주세요 (그때 도우미가 같이 켜져요).</div>';return}
+  if(ML.err){B.innerHTML='<div class="msgbox"><b>메일 도우미에 연결하지 못했어요.</b><br>'
+    +(mlConn()?'폰 <b>Tailscale</b> 이 켜져 있는지 확인해 주세요(설정 → VPN · 위에 열쇠 아이콘). 회사 PC 도 켜져 있어야 해요.<br>잠깐 끊겼던 거면 아래 <b>다시 시도</b> 로 바로 붙어요.':'아웃룩이 켜져 있는지 확인하고, 플랜 파일을 하나 더블클릭해서 뷰어를 다시 열어 주세요 (그때 도우미가 같이 켜져요).')
+    +'<br><br><button type="button" class="fb" id="mlRetry" style="font-size:15px;padding:8px 20px">다시 시도</button></div>';return}
   // 검색: 띄어 쓴 낱말이 모두 들어 있는 메일. 선박 코드(MJEP)를 치면 선박 이름(MOJI EXPRESS)으로 적힌 메일도, 이름을 치면 코드로 적힌 메일도 찾음
   var words=q.split(/\s+/).filter(Boolean).map(function(w){var alt=[w],k;
     if(SHIPS){if(SHIPS[w]&&SHIPS[w].n)alt.push(SHIPS[w].n.toUpperCase());for(k in SHIPS)if(w.length>=4&&SHIPS[k].n&&SHIPS[k].n.toUpperCase().indexOf(w)>=0)alt.push(k)}return alt});
@@ -3512,6 +3525,7 @@ function outGo(send){
     else if(b){ML.cat=b.dataset.mc;ML.ship="";mlDraw();$("mlB").scrollTop=0}});
   $("mlB").addEventListener("click",function(e){var b=e.target.closest(".fb");
     if(b&&b.id==="mlConnSave"){var c=mcDecode(($("mlConnIn")||{}).value);if(!c){var i=$("mlConnIn");if(i)i.style.borderColor="#c50f1f";return}mcSet(c);location.reload();return}
+    if(b&&b.id==="mlRetry"){mlLoad();return}
     if(b&&b.id==="mlWide"){ML.days=30;$("mlD").value="30";mlLoad();return}
     if(b&&b.dataset.mid)mlPick(b.dataset.mid,b.dataset.mi,b)});
   $("mlB").addEventListener("keydown",function(e){if(e.target.id==="mlConnIn"){e.stopPropagation();if(e.key==="Enter"){var c=mcDecode(e.target.value);if(c){mcSet(c);location.reload()}}}});
