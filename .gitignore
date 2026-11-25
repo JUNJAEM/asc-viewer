@@ -20,3 +20,7 @@ mail-out.ps1
 svms.env
 # 폰 메일 연결 토큰 (이 PC 에서 생성, 공개 금지)
 mailsrv-token.txt
+# 폰 서버 로그인 아이디 · 비밀번호 (이 PC 에서 생성, 공개 금지)
+phone-server.json
+# 팀 서버 주소 (팀 배포 zip 에만 넣음)
+phone-agent-server.txt

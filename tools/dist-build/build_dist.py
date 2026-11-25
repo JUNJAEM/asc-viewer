@@ -6,7 +6,7 @@ CH = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
 DIST = os.path.join(V, "dist"); PK = os.path.join(DIST, "asc-viewer")
 if os.path.exists(DIST): shutil.rmtree(DIST)
 os.makedirs(PK)
-for f in ["viewer.src.html", "ships.js", "open-asc.ps1", "install.bat", "uninstall.bat", "mail-config.js", "splash.jpg", "mail-server.ps1", "mail-phone-setup.ps1", "mail-rules.json", "mail-out.ps1"]:
+for f in ["viewer.src.html", "ships.js", "open-asc.ps1", "install.bat", "uninstall.bat", "mail-config.js", "splash.jpg", "mail-server.ps1", "mail-rules.json", "mail-out.ps1"]:   # 폰은 공유 링크로 보므로 팀 묶음에 폰용 파일은 넣지 않음 (각자 PC 메일을 보게 하려면 phone-agent-setup.* 를 따로 줌)
     if not os.path.exists(os.path.join(V, f)): continue   # mail-config.js 는 이 PC 에만 있음(깃허브 제외)
     shutil.copy2(os.path.join(V, f), os.path.join(PK, f))
 
@@ -83,21 +83,21 @@ kbd{border:1px solid #777;border-radius:3px;padding:0 4px;background:#f2f2f2;fon
 </ul>
 </div>
 </div>
-<div class="foot">PLAN VIEWER · 부산 운항 · 1 / 4</div>
+<div class="foot">PLAN VIEWER · 부산 운항 · 1 / 5</div>
 </section>
 
 <section class="pg">
 <h2>3. 첫 화면 — Summary와 General Plan</h2>
 <img class="shot" src="%(main)s" alt="">
 <p class="cap">CASP처럼 <b>General Plan이 메인</b>이에요. 선수가 오른쪽이고, 해치마다 위가 앞 베이, 아래가 뒤 베이(40'는 <kbd>15(14)</kbd>처럼 표시)예요. 칸 위쪽 색 = 양하항(POD), 아래 띠 색 = 선적항(POL).</p>
-<div class="foot">PLAN VIEWER · 부산 운항 · 2 / 4</div>
+<div class="foot">PLAN VIEWER · 부산 운항 · 2 / 5</div>
 </section>
 
 <section class="pg">
 <h2>4. Bay Plan 창 — 베이를 더블클릭하면 떠요</h2>
 <img class="shot" src="%(bay)s" alt="">
 <p class="cap">칸 위쪽 색 = 양하항(POD), 아래 띠 = 선적항(POL, 북항 PUS / 신항 PNC). 빗금 = 40', × = 옆 베이 40'가 차지한 칸. 로우 번호 아래 작은 숫자는 그 줄의 무게 합계(톤)예요.</p>
-<div class="foot">PLAN VIEWER · 부산 운항 · 3 / 4</div>
+<div class="foot">PLAN VIEWER · 부산 운항 · 3 / 5</div>
 </section>
 
 <section class="pg">
@@ -126,7 +126,34 @@ kbd{border:1px solid #777;border-radius:3px;padding:0 4px;background:#f2f2f2;fon
 </table>
 <p style="margin:10px 0 0">고장이나 건의는 배포한 사람에게 알려 주세요.</p>
 </div></div>
-<div class="foot">PLAN VIEWER · 부산 운항 · 4 / 4</div>
+<div class="foot">PLAN VIEWER · 부산 운항 · 4 / 5</div>
+</section>
+
+<section class="pg">
+<h2>6. 폰에서 보기 (선택)</h2>
+<div class="cols">
+<div>
+<h3 style="margin-top:0">받은 링크를 폰에서 열면 끝이에요</h3>
+<ol>
+<li><b>배포한 사람에게 받은 링크를 폰에서 누르세요.</b><br>로그인도, 따로 까는 것도 없어요. 바로 뷰어가 떠요.</li>
+<li><b>홈 화면에 올려 두면 앱처럼 써요.</b><br><b>안드로이드 크롬</b>: 화면의 <b>앱 설치</b> 버튼.<br><b>아이폰 사파리</b>: 공유 버튼 → <b>홈 화면에 추가</b>.</li>
+<li><b>홈 화면 아이콘으로 열고 <span class="tag">메일함</span>을 누르세요.</b><br>최근 플랜 메일이 목록으로 뜨고, 파일을 누르면 플랜이 열려요.</li>
+</ol>
+<div class="box"><b>링크가 곧 열쇠예요.</b> 링크를 가진 사람은 누구나 메일함을 볼 수 있으니 팀 밖으로 넘기지 마세요. 새 링크를 받으면 앞의 링크는 못 쓰게 돼요 (홈 화면 아이콘도 새 링크로 다시 만들어야 해요).</div>
+</div>
+<div>
+<h3 style="margin-top:0">알아 두세요</h3>
+<table>
+<tr><th>폰에 보이는 메일</th><td>링크를 준 사람의 회사 PC 아웃룩에 온 <b>플랜 메일(.asc · .edi)</b>이에요. 다른 메일은 안 보여요.</td></tr>
+<tr><th>보이는 범위</th><td>받은 편지함과 분류해 둔 폴더의 <b>최근 14일</b>.</td></tr>
+<tr><th>"회사 PC 가 응답하지 않아요"</th><td>메일함을 내어 주는 PC 가 꺼졌거나 아웃룩이 닫힌 경우예요. 배포한 사람에게 알려 주세요.</td></tr>
+<tr><th>"이 링크는 더 이상 쓸 수 없어요"</th><td>링크가 바뀐 거예요. 새 링크를 받아 다시 열고, 홈 화면 아이콘도 새로 만드세요.</td></tr>
+<tr><th>폰에서 못 하는 것</th><td>메일 쓰기 · 보내기는 회사 PC 의 뷰어에서만 돼요.</td></tr>
+<tr><th>플랜 파일만 열 때</th><td>메일함 없이 파일만 열려면 뷰어에서 <b>ASC 파일 열기</b>로 폰에 있는 파일을 고르면 돼요.</td></tr>
+</table>
+</div>
+</div>
+<div class="foot">PLAN VIEWER · 부산 운항 · 5 / 5</div>
 </section>
 </body></html>'''
 for k, v in {"%(main)s": img("main"), "%(bay)s": img("bay"), "%(ships)s": shiplist, "%(n)d": str(len(codes)), "3%%": "3%"}.items():

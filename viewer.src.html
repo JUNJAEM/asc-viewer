@@ -238,6 +238,13 @@ body.static #sumWin .rz{display:none}
 @container (max-width:210px){ #sum .chipb small{display:none} #sum .kv span{font-size:10.5px} }
 /* 끌어서 고르기 (네모) */
 #gpw{user-select:none;-webkit-user-select:none;cursor:default}
+/* 터치 화면 (폰 · 태블릿) */
+@media (hover:none),(pointer:coarse){
+  .gpw{overscroll-behavior:auto}   /* 플랜 위에 손가락을 대고 끌어도 화면이 따라 움직이게 — 두 손가락으로 키운 뒤 옮기기, 플랜이 한 화면에 다 보일 때 위아래로 넘기기 (contain 이면 플랜 칸 안에 갇혀 안 움직임) */
+  body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}   /* 꾹 눌러도 글자가 선택되지 않게 */
+  input,textarea,select,[contenteditable],[contenteditable] *{-webkit-user-select:text;user-select:text}   /* 글자를 넣는 칸은 그대로 */
+  #sCn,.hsc code{-webkit-user-select:all;user-select:all}   /* 컨테이너 번호 · 단축어 주소는 꾹 눌러 통째로 복사할 수 있게 */
+}
 /* 플랜 리모컨: 화면 아래 붙는 조작판. 위쪽 General Plan 은 보기 · 커서 표시만 */
 #rc{position:fixed;left:50%;bottom:0;transform:translateX(-50%);z-index:13;width:min(560px,100vw);box-sizing:border-box;background:var(--win);color:var(--fg);border:1px solid var(--edge);border-bottom:0;border-radius:12px 12px 0 0;box-shadow:0 -8px 28px rgba(0,20,60,.3);padding:0 0 max(6px,env(safe-area-inset-bottom,0px));font-size:13px;user-select:none;-webkit-user-select:none;touch-action:manipulation}
 #rc[hidden]{display:none}
@@ -1038,7 +1045,8 @@ header.win .body{background:#fff}
 (function(){
 "use strict";
 var $=function(id){return document.getElementById(id)};
-var st={plan:null,name:"",example:false,color:"podpol",filter:null,q:"",sel:-1,open:null,ship:"",shipBad:false,pick:[],lines:null,orig:null,eol:"\r\n",plan0:null,saved:""};   // lines·orig: 편집용 원본 줄(바이트 그대로), plan0: 고치기 전 값
+// filter: 진하게 볼 포트들 (여러 개 고를 수 있음). 양하항은 "OSA", 선적항은 "@PUS" 모양. 비어 있으면 전체. 같은 종류끼리는 '또는', 양하항과 선적항을 같이 고르면 둘 다 맞는 것만.
+var st={plan:null,name:"",example:false,color:"podpol",filter:[],q:"",sel:-1,open:null,ship:"",shipBad:false,pick:[],lines:null,orig:null,eol:"\r\n",plan0:null,saved:""};   // lines·orig: 편집용 원본 줄(바이트 그대로), plan0: 고치기 전 값
 var SHIPS=window.ASC_SHIPS||null;
 var LAYOUT="wrap";   // 플랜을 열면 항상 여러 줄 배열 (2026-11 사용자 요청). 한 줄로 바꾼 것은 그 플랜을 보는 동안만
 var BP={},ORD=[],FIRSTHIT="",PANELS={},BOXP={};   // PANELS·BOXP: 긴급양하 메일 그림용 (베이 그림 재료, 컨테이너가 있는 베이)   // Bay Plan 창에 넣을 그림(베이별), 베이 순서, 검색에 걸린 첫 베이
@@ -1264,7 +1272,8 @@ function render(){
   HEX=hex;
   rcColorSet(order.map(function(k){return hex[k]}).concat(PP?polOrder.map(function(k){return hexL[k]}):[]));
   function sty(b){return col[keyOf(b)]+(PP?";"+pols[b.pol].css:"")}
-  if(st.filter&&(st.filter[0]==="@"?!(PP&&pols[st.filter.slice(1)]):!groups[st.filter]))st.filter=null;
+  st.filter=(st.filter||[]).filter(function(f){return f[0]==="@"?!!(PP&&pols[f.slice(1)]):!!groups[f]});   // 이 플랜에 없는 포트는 뺌
+  var FD=[],FL=[];st.filter.forEach(function(f){if(f[0]==="@")FL.push(f.slice(1));else FD.push(f)});          // 고른 양하항 · 선적항
 
   var sh=curShip(), nout=sh?outside(sh,B):0;
   var n20=0,n40=0,kg=0,dg=0,rf=0,em=0;
@@ -1284,9 +1293,9 @@ function render(){
         SR.calls.map(function(c){return c.skip?"<s>"+esc(c.p)+"</s>":(!c.next&&c.p===SRP?"<b>"+esc(c.p)+"</b>":esc(c.p))}).join(" › ")+'<small>전산 포트 스케줄 기준</small></div>':(rot?'<div class="rot">Port Rotation: '+esc(rot)+'</div>':''))+
     '<div class="chips"><button type="button" class="x" id="sortCol" title="양하항 '+order.length+'개에 맞춰 가장 잘 구분되는 색으로 다시 칠해요">색정렬</button><button type="button" class="x" id="v3Btn" title="General Plan 위에 선박 그림(입체 · 옆모습 · 윗모습)을 켜고 꺼요. 베이를 누르면 Bay Plan이 떠요" aria-pressed="'+!$("v3").hidden+'">VESSEL VIEW</button><em>POD</em>'+order.map(function(k){return chip(k,k,groups[k])}).join("")+
       '<em>POL</em>'+polOrder.map(function(k){return chip(k,"@"+k,pols[k])}).join("")+'</div>';
-  function chip(k,f,g){return '<span class="chip'+(st.filter===f?' on':'')+'">'+
+  function chip(k,f,g){var on=st.filter.indexOf(f)>=0;return '<span class="chip'+(on?' on':'')+'">'+
     '<input type="color" class="swc" id="col-'+esc(f)+'" data-port="'+esc(k)+'" value="'+(f[0]==="@"?hexL[k]:hex[k])+'" aria-label="'+esc(k)+' 색 바꾸기" title="색 바꾸기">'+
-    '<button type="button" class="chipb" data-f="'+esc(f)+'" aria-pressed="'+(st.filter===f)+'"><b>'+esc(k)+'</b>'+
+    '<button type="button" class="chipb" data-f="'+esc(f)+'" aria-pressed="'+on+'" title="누르면 이 포트만 진하게 보여요. 여러 포트를 같이 고를 수 있고, 다시 누르면 풀려요"><b>'+esc(k)+'</b>'+
     '<small>20\' '+g.n20+' · 40\' '+g.n40+' · '+Math.round(g.kg/1000).toLocaleString()+'t</small></button></span>'}
 
   // General Plan 옆 표 (세로): 양하항·선적항별 수량, BSA(14 HOMO TEU, x14 = 톤) 대비 선적항별 화물
@@ -1311,7 +1320,7 @@ function render(){
   var q=st.q, hits=0, GH=[];
   BP={};ORD=[];FIRSTHIT="";PANELS={};BOXP={};
   function kc(b){return ' k'+b.pod.replace(/\W/g,"_")+' l'+b.pol.replace(/\W/g,"_")}
-  function dimmed(b){return (st.filter&&(st.filter[0]==="@"?b.pol!==st.filter.slice(1):keyOf(b)!==st.filter))||(q&&!qHit(b))||(ES.fade&&st.pick.length&&st.pick.indexOf(b.i)<0)}
+  function dimmed(b){return (FD.length&&FD.indexOf(keyOf(b))<0)||(FL.length&&FL.indexOf(b.pol)<0)||(q&&!qHit(b))||(ES.fade&&st.pick.length&&st.pick.indexOf(b.i)<0)}
   function marks(b){var d=b.dgno?((P.dg[b.dgno]||[])[0]||{}).cls||"DG":"";   // General Plan 칸 구석 표시 (Bay Plan 과 같은 자리)
     return (b.hc?'<i class="mh">H</i>':'')+(d?'<i class="md">'+esc(d)+'</i>':'')+
       (b.tk||b.fe==="E"?'<i class="me">'+(b.tk?"T":"")+(b.fe==="E"?"E":"")+'</i>':'')+(b.rf?'<i class="mrr">R</i>':'')}
@@ -1962,7 +1971,7 @@ function load(text,name){
   tabSave();var same=-1;TABS.forEach(function(T,i){if((i===CUR?st.name:T.name)===name)same=i});   // 같은 이름의 파일을 다시 열면 그 탭을 새로 읽음
   if(same>=0)CUR=same;else{TABS.push({name:name});CUR=TABS.length-1}
   st.raw=null;
-  st.plan=P;st.name=name;st.example=false;pickShip(detectShip(name)||shipByName(P.vsl));st.filter=null;st.sel=-1;st.pick=[];st.lines=st.orig=st.plan0=st.p0=null;st.undo=[];st.mod=false;st.saved="";st.ll=[];st.sft={};sumReset();st.open=null;st.q="";$("q").value="";$("sheet").hidden=true;
+  st.plan=P;st.name=name;st.example=false;pickShip(detectShip(name)||shipByName(P.vsl));st.filter=[];st.sel=-1;st.pick=[];st.lines=st.orig=st.plan0=st.p0=null;st.undo=[];st.mod=false;st.saved="";st.ll=[];st.sft={};sumReset();st.open=null;st.q="";$("q").value="";$("sheet").hidden=true;
   document.title=name.replace(/\.(asc|edi)$/i,"")+" · PLAN VIEWER"+ZW;
   render(); if(typeof autoFit==="function")autoFit(); else toBow();
   tabDraw();
@@ -2026,7 +2035,7 @@ document.addEventListener("click",function(e){
   else if(e.target.id==="pkC"){st.pick=[];render()}
   else if(mi){if(e.detail===0||TOUCH)openBay(mi.dataset.go)}   // 키보드(Enter)·터치 화면은 한 번에 열림
   else if(e.target.id==="bw"&&!BWDRAG)closeBay();
-  else if(ch){st.filter=st.filter===ch.dataset.f?null:ch.dataset.f;render()}
+  else if(ch){var fk=ch.dataset.f,fi=st.filter.indexOf(fk);if(fi<0)st.filter.push(fk);else st.filter.splice(fi,1);render()}   // 포트: 누르면 켜지고(여러 개 가능), 같은 포트를 다시 누르면 꺼짐
 
 });
 if(SHIPS){$("ship").innerHTML='<option value="">자동 (실린 칸 기준)</option>'+Object.keys(SHIPS).sort().map(function(c){
@@ -2037,7 +2046,7 @@ document.addEventListener("change",function(e){var t=e.target;
   if(t.classList&&t.classList.contains("swc")){CUSTOM[t.dataset.port]=t.value;saveColors();render()}});
 // 색정렬: 이 플랜의 포트에 직접 고른 색을 지우고 기본 규칙(양하항 개수별 최적 색, 선적항 흑백)으로 다시 칠함
 document.addEventListener("click",function(e){if(e.target.id==="sortCol"&&st.plan){
-  st.plan.boxes.forEach(function(b){delete CUSTOM[b.pod];delete CUSTOM[b.pol]});saveColors();st.filter=null;render()}});
+  st.plan.boxes.forEach(function(b){delete CUSTOM[b.pod];delete CUSTOM[b.pol]});saveColors();st.filter=[];render()}});
 var ZS=[25,30,40,50,60,75,100,125,150,200,250,300], zoom=window.innerWidth<600?60:100;
 try{var zz=+localStorage.getItem("ascZoom");if(zz>=30&&zz<=400)zoom=zz}catch(_){}
 function setZoom(z){var w=$("gpw"),fx=w.scrollWidth?(w.scrollLeft+w.clientWidth/2)/w.scrollWidth:1,fy=w.scrollHeight?(w.scrollTop+w.clientHeight/2)/w.scrollHeight:0;
@@ -2953,7 +2962,9 @@ var ML={ship:"",items:[],cat:"",q:"",busy:false,err:"",at:"",days:3,order:[],ret
 // 로그인은 표준 방식(인증 코드 + PKCE)을 직접 구현 — 외부 라이브러리 없음. 토큰은 이 기기의 브라우저 저장소에만 둠.
 var GR={cfg:window.ASC_GRAPH||{},K:"ascGrTok",mail:function(){try{return localStorage.getItem("ascGrMail")||""}catch(_){return ""}}};
 // 폰 메일 연결: 회사 PC 의 도우미(127.0.0.1)에 Tailscale 사설망으로 직접 닿는 주소(base)+토큰. 바깥 서버를 거치지 않음. PC 에서 mail-phone-setup 을 돌려 받은 연결 코드를 한 번 저장.
-function mlConn(){try{var c=JSON.parse(localStorage.getItem("ascMailConn")||"null");return c&&c.base&&c.token?c:null}catch(_){return null}}
+// 폰 서버판(phone-server.py · Tailscale Funnel): 이 페이지를 회사 PC 가 직접 내어 주고 로그인까지 마친 상태 → 같은 주소의 /api 로 물어봄. 토큰은 PC 안에서만 붙고 폰으로 오지 않음.
+// 공유 링크(…/t/<열쇠>/)로 열었을 때는 __PCSRV__.link: 로그인 없이 링크 주인의 메일함을 봄 — 그래서 /api 를 이 페이지 주소 아래에서 찾음.
+function mlConn(){if(window.__PCSRV__)return {base:new URL("api",location.href.split(/[?#]/)[0]).href,token:"",pc:1};try{var c=JSON.parse(localStorage.getItem("ascMailConn")||"null");return c&&c.base&&c.token?c:null}catch(_){return null}}
 function mlOn(){return !!window.__MAILSRVJS__||!!mlConn()}   // 메일 도우미를 쓸 수 있나 (PC 설치판 또는 폰 저장 연결)
 function mcDecode(x){x=String(x||"").trim();var m=/ascmail\.([A-Za-z0-9_\-]+)/.exec(x);if(!m)return null;
   try{var b=m[1].replace(/-/g,"+").replace(/_/g,"/");while(b.length%4)b+="=";var j=JSON.parse(atob(b));return j&&j.b&&j.t?{base:String(j.b).replace(/\/+$/,""),token:String(j.t)}:null}catch(_){return null}}
@@ -3024,13 +3035,16 @@ function mlSrv(){return new Promise(function(ok){
   sc.onload=function(){sc.remove();var S=window.__MAILSRV__;ok(S&&S.port?{base:"http://127.0.0.1:"+S.port,token:S.token}:null)};sc.onerror=function(){sc.remove();ok(null)};document.head.appendChild(sc)})}
 function mlGet(path,bin){return mlSrv().then(function(S){if(!S)throw new Error("off");
   var url=S.base+path+(path.indexOf("?")<0?"?":"&")+"t="+encodeURIComponent(S.token);
-  var tries=mlConn()?4:1, ui=/^\/list/.test(path);   // 폰(Tailscale): 끊겼던 VPN 이 깨어나는 2~5초 동안 기다리며 다시 시도 (PC 는 로컬이라 1번)
+  var PC=!!window.__PCSRV__;   // 폰 서버판: 요청이 서버 대기열을 거쳐 내 회사 PC 도우미가 가져가 처리하므로 넉넉히 기다림 (서버가 까닭을 글로 알려 줌)
+  var tries=PC?2:mlConn()?4:1, ui=/^\/list/.test(path);   // 폰(Tailscale): 끊겼던 VPN 이 깨어나는 2~5초 동안 기다리며 다시 시도 (PC 는 로컬이라 1번)
   function once(ms){var ctl,tm;try{ctl=new AbortController();tm=setTimeout(function(){try{ctl.abort()}catch(_){}},ms)}catch(_){}
     return fetch(url,ctl?{signal:ctl.signal}:{}).then(function(r){if(tm)clearTimeout(tm);
+      if(r.status===401&&PC)location.reload();   // 폰 서버판: 로그인이 풀렸으면 로그인 화면으로
+      if(!r.ok&&PC)return r.text().then(function(t){var e=new Error(t&&t.length<200&&r.status!==401?t:"HTTP "+r.status);e.st=r.status;throw e});
       if(!r.ok){var e=new Error("HTTP "+r.status);e.st=r.status;throw e}return bin?r.arrayBuffer():r.json()},
       function(err){if(tm)clearTimeout(tm);throw err})}
-  function go(n){return once(n===0?4000:7000).then(function(v){if(ui)ML.retry=0;return v},function(err){
-    var net=!err||err.st==null||err.st>=500;   // 네트워크 끊김 · 5xx 만 다시 시도 (401/404 같은 건 바로 포기)
+  function go(n){return once(PC?150000:n===0?4000:7000).then(function(v){if(ui)ML.retry=0;return v},function(err){
+    var net=!err||err.st==null||(PC?err.st===502||err.st===503:err.st>=500);   // 네트워크 끊김 · 5xx 만 다시 시도 (401/404 같은 건 바로 포기)
     if(!net||n>=tries-1){if(ui)ML.retry=0;throw err}
     if(ui){ML.retry=n+1;try{mlDraw()}catch(_){}}
     return new Promise(function(res){setTimeout(res,800+n*700)}).then(function(){return go(n+1)})})}
@@ -3064,7 +3078,7 @@ function mlDraw(){
   var ships=Object.keys(sc).sort(function(a,b){return sc[b]-sc[a]||a.localeCompare(b)});
   if(ships.length)h+='<div class="mlhd">선박</div>'+ships.map(function(c){return row(c,c+(SHIPS&&SHIPS[c]&&SHIPS[c].n?" · "+SHIPS[c].n:""),sc[c],false,"ms")}).join("");
   var side=$("mlC"),st0=side.scrollTop;side.innerHTML=h;side.scrollTop=st0;
-  $("mlS").textContent=ML.busy?(ML.retry?"회사 PC 에 연결 중… ("+ML.retry+") · 폰 Tailscale 이 켜져 있는지 확인해 주세요":grOn()?"회사 메일에서 읽는 중…":(ML.days>=14?"아웃룩에서 읽는 중… (기간이 길어서 몇 분 걸릴 수 있어요)":"아웃룩에서 읽는 중… (처음에는 20초쯤 걸려요)")):ML.err?"":(ML.at?ML.at+" 기준 · ":"")+"파일을 누르면 플랜으로 열려요";
+  $("mlS").textContent=ML.busy?(ML.retry?"회사 PC 에 연결 중… ("+ML.retry+")"+(window.__PCSRV__?"":" · 폰 Tailscale 이 켜져 있는지 확인해 주세요"):grOn()?"회사 메일에서 읽는 중…":(ML.days>=14?"아웃룩에서 읽는 중… (기간이 길어서 몇 분 걸릴 수 있어요)":"아웃룩에서 읽는 중… (처음에는 20초쯤 걸려요)")):ML.err?"":(ML.at?ML.at+" 기준 · ":"")+"파일을 누르면 플랜으로 열려요";
   var B=$("mlB");
   if(grOn()){B.innerHTML='<div class="msgbox"><b>이 기기를 회사 PC 에 연결해 주세요.</b><br>'
     +'퇴근 후에도 폰에서 회사 PC 의 아웃룩 메일을 보려면, 회사 PC 에서 띄운 <b>연결 QR</b> 을 폰 카메라로 찍거나, 받은 <b>연결 코드</b> 를 아래에 붙여넣으세요.<br>회사 PC 와 이 폰 모두 Tailscale 에 <b>같은 계정</b> 으로 켜져 있어야 해요.<br><br>'
@@ -3072,7 +3086,7 @@ function mlDraw(){
     +'<button type="button" class="fb" id="mlConnSave" style="font-size:15px;padding:9px 18px">연결</button>'
     +'<p style="color:var(--fg2);font-size:12.5px;margin:12px 0 0">PC 설치판(아웃룩이 있는 회사 PC)에서는 이 연결 없이 바로 메일함이 돼요.</p></div>';return}
   if(ML.err){B.innerHTML='<div class="msgbox"><b>메일 도우미에 연결하지 못했어요.</b><br>'
-    +(mlConn()?'폰 <b>Tailscale</b> 이 켜져 있는지 확인해 주세요(설정 → VPN · 위에 열쇠 아이콘). 회사 PC 도 켜져 있어야 해요.<br>잠깐 끊겼던 거면 아래 <b>다시 시도</b> 로 바로 붙어요.':'아웃룩이 켜져 있는지 확인하고, 플랜 파일을 하나 더블클릭해서 뷰어를 다시 열어 주세요 (그때 도우미가 같이 켜져요).')
+    +(window.__PCSRV__?(/[가-힣]/.test(ML.err)?esc(ML.err):(window.__PCSRV__.link?'메일함을 내어 주는':'내')+' 회사 PC 가 켜져 있고 <b>아웃룩</b>이 열려 있어야 해요.')+'<br>잠깐 끊겼던 거면 아래 <b>다시 시도</b> 로 바로 붙어요.':mlConn()?'폰 <b>Tailscale</b> 이 켜져 있는지 확인해 주세요(설정 → VPN · 위에 열쇠 아이콘). 회사 PC 도 켜져 있어야 해요.<br>잠깐 끊겼던 거면 아래 <b>다시 시도</b> 로 바로 붙어요.':'아웃룩이 켜져 있는지 확인하고, 플랜 파일을 하나 더블클릭해서 뷰어를 다시 열어 주세요 (그때 도우미가 같이 켜져요).')
     +'<br><br><button type="button" class="fb" id="mlRetry" style="font-size:15px;padding:8px 20px">다시 시도</button></div>';return}
   // 검색: 띄어 쓴 낱말이 모두 들어 있는 메일. 선박 코드(MJEP)를 치면 선박 이름(MOJI EXPRESS)으로 적힌 메일도, 이름을 치면 코드로 적힌 메일도 찾음
   var words=q.split(/\s+/).filter(Boolean).map(function(w){var alt=[w],k;
@@ -3084,7 +3098,8 @@ function mlDraw(){
   var where=ML.ship?ML.ship:(ML.cat||"전체");
   if(!ML.busy&&q)$("mlS").textContent="검색 결과 "+R.length+"건 · "+where+" (최근 "+ML.days+"일)";
   else if(!ML.busy)$("mlS").textContent=where+" "+R.length+"건"+(ML.at?" · "+ML.at+" 기준":"")+" · 파일을 누르면 플랜으로 열려요";
-  var wider=q&&ML.days<30?'<div class="msgbox">찾는 메일이 더 예전 것이면 <button type="button" class="fb" id="mlWide">최근 30일까지 넓혀서 찾기</button></div>':"";
+  var maxD=window.__PCSRV__?14:30;   // 폰 서버판: 회사 PC 도우미가 최근 14일까지만 읽음
+  var wider=q&&ML.days<maxD?'<div class="msgbox">찾는 메일이 더 예전 것이면 <button type="button" class="fb" id="mlWide">최근 '+maxD+'일까지 넓혀서 찾기</button></div>':"";
   if(!R.length){B.innerHTML='<div class="msgbox">'+(ML.busy?"읽는 중이에요…":!L.length&&grOn()?"<b>최근 "+ML.days+"일 동안 ASC · EDI 가 붙은 메일을 찾지 못했어요.</b><br>첨부가 있는 메일 "+(ML.seen==null?"?":ML.seen)+"건을 살펴봤어요. 기간을 늘려 보거나 ‘새로고침’을 눌러 주세요.<br>계속 0건이면 이 화면을 캡처해서 만든 사람에게 보여 주세요.":"이 폴더·조건에 맞는 메일이 없어요.")+'</div>'+(ML.busy?"":wider);return}
   var day="",o="";
   R.slice(0,400).forEach(function(m){var d=mlDay(m.when);if(d!==day){day=d;o+='<div class="mld">'+d+'</div>'}
@@ -3390,6 +3405,7 @@ function outAdd(k,el){var v=String(el.value||"").trim();if(!v)return;
   OUT[k]=L;if($("outS"))OUT.keepS=$("outS").value;outDraw();var ni=document.querySelector('[data-ra="'+k+'"]');if(ni)ni.focus()}
 function mlPost(path,obj){return mlSrv().then(function(S){if(!S)throw new Error("off");
   return fetch(S.base+path+"?t="+encodeURIComponent(S.token),{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(obj)}).then(function(r){
+    if(r.status===401&&window.__PCSRV__)location.reload();
     if(!r.ok)return r.text().then(function(t){throw new Error(t||("HTTP "+r.status))});return r.json()})})}
 function outInfoOf(nm,plan,ship){   // 한 플랜에서 읽는 것: 선박 코드 · 항차 · 그 플랜의 포트(파일 이름) · 서비스(파일 이름에 있으면)
   nm=nm||"";var m=/ASC\d+_([A-Z0-9]+)_(\d{3,4}[A-Z])_([A-Z]{5})_([A-Z0-9]{3,5})/i.exec(nm),p5=m?m[3].toUpperCase():"",voy=String(plan&&plan.voy||"").trim().toUpperCase();
@@ -3482,6 +3498,7 @@ function outGo(send){
     .catch(function(e){OUT.ask=false;var t=String(e&&e.message||e);OUT.err=send===true?"보내지 못했어요 ("+(/needs review/.test(t)?"내용 확인이 필요한 메일이에요":/recipient/.test(t)?"받는 사람 주소를 확인하지 못했어요":t)+"). 아웃룩에서 열어 확인해 주세요.":"아웃룩에 메일을 만들지 못했어요 ("+t+")"}).then(function(){OUT.busy=false;var s=$("outS").value,r=$("outR").value;outDraw();if($("outS")){$("outS").value=s;$("outR").value=r}})}
 (function(){
   if(window.__STATIC__||!mlOn())return;
+  if(window.__PCSRV__&&!window.__PCSRV__.send)return;   // 폰 서버판: 메일 쓰기 · 보내기는 PC 의 phone-server.json 에서 켠 때만 (인터넷에 열린 길이라 기본은 꺼 둠)
   $("outBtn").hidden=false;$("outBtn").onclick=function(){outOpen()};$("outX").onclick=function(){outOpen(false)};
   $("outV").addEventListener("keydown",function(e){e.stopPropagation();if(e.key==="Escape")outOpen(false)});
   $("outB").addEventListener("mousedown",function(e){var b=e.target.closest&&e.target.closest("[data-ex]");if(b)e.preventDefault()});   // 글자 모양 버튼을 눌러도 본문에서 고른 자리가 풀리지 않게
@@ -3524,7 +3541,7 @@ function outGo(send){
   $("mlB").addEventListener("click",function(e){var b=e.target.closest(".fb");
     if(b&&b.id==="mlConnSave"){var c=mcDecode(($("mlConnIn")||{}).value);if(!c){var i=$("mlConnIn");if(i)i.style.borderColor="#c50f1f";return}mcSet(c);location.reload();return}
     if(b&&b.id==="mlRetry"){mlLoad();return}
-    if(b&&b.id==="mlWide"){ML.days=30;$("mlD").value="30";mlLoad();return}
+    if(b&&b.id==="mlWide"){ML.days=window.__PCSRV__?14:30;$("mlD").value=String(ML.days);mlLoad();return}
     if(b&&b.dataset.mid)mlPick(b.dataset.mid,b.dataset.mi,b)});
   $("mlB").addEventListener("keydown",function(e){if(e.target.id==="mlConnIn"){e.stopPropagation();if(e.key==="Enter"){var c=mcDecode(e.target.value);if(c){mcSet(c);location.reload()}}}});
   $("mailV").addEventListener("click",function(e){if(e.target.id==="mailV")mlOpen(false)});
@@ -3557,10 +3574,16 @@ function setTheme(t,keep){t=t==="dark"?"dark":"light";if(t==="dark")document.doc
   $("setBtn").onclick=function(){box()};$("setX").onclick=function(){box(false)};
   $("setV").addEventListener("click",function(e){if(e.target.id==="setV")box(false)});
   $("thSeg").addEventListener("click",function(e){var b=e.target.closest("[data-th]");if(b){setTheme(b.dataset.th,true);if(st.plan)render()}});
-  function mcShow(){var c=mlConn(),el=$("mcInfo");if(!el)return;if(c){var h=c.base.split("://").pop().split("/")[0];el.textContent="연결됨 · "+h;el.className="ok"}else{el.textContent="연결 안 됨";el.className="no"}}
+  function mcShow(){var c=mlConn(),el=$("mcInfo");if(!el)return;if(c&&c.pc){el.textContent=(window.__PCSRV__.link?"공유 링크 · ":"로그인 · ")+(window.__PCSRV__.user||"");el.className="ok";return}if(c){var h=c.base.split("://").pop().split("/")[0];el.textContent="연결됨 · "+h;el.className="ok"}else{el.textContent="연결 안 됨";el.className="no"}}
   var _box=box;box=function(on){_box(on);if(!$("setV").hidden)mcShow()};$("setBtn").onclick=function(){box()};
   $("mcSave").onclick=function(){var c=mcDecode($("mcIn").value);if(!c){$("mcIn").style.borderColor="#c50f1f";return say("연결 코드를 알아볼 수 없어요. PC 에서 받은 ascmail... 코드를 그대로 붙여넣어 주세요.",true)}mcSet(c);say("폰 메일 연결을 저장했어요. 메일함이 이 PC 에서 직접 와요.");location.reload()};
   $("mcClear").onclick=function(){mcSet(null);$("mcIn").value="";mcShow();say("폰 메일 연결을 지웠어요.");location.reload()};
+  if(window.__PCSRV__){   // 폰 서버판: 연결 코드가 필요 없음 → 그 자리에 로그아웃
+    var mr=$("mcIn").parentNode,mh=mr.nextElementSibling;
+    mr.innerHTML='<a class="btn" href="logout" style="display:inline-block;text-decoration:none">로그아웃</a>';
+    if(mh)mh.textContent="내 아이디로 로그인해서 쓰는 중이에요. 메일함은 내 회사 PC 의 아웃룩에서 와요 (회사 PC 가 켜져 있어야 해요). 이 기기를 더 안 쓸 때는 로그아웃해 주세요.";
+    if(window.__PCSRV__.link){mr.innerHTML="";if(mh)mh.textContent="받은 링크로 보는 중이에요. 메일함에는 "+(window.__PCSRV__.user||"")+" 님 회사 PC 의 플랜 메일이 보여요 (그 PC 가 켜져 있어야 해요). 이 링크는 다른 사람에게 넘기지 마세요."}
+    var o30=$("mlD")&&$("mlD").querySelector('option[value="30"]');if(o30)o30.remove()}   // 회사 PC 도우미는 최근 14일까지만 읽음
 })();
 // ---------- VESSEL VIEW (예전 이름 3D VIEW — 코드 안 이름은 v3 그대로) ----------
 // 선박 모양은 도면이 아니라 cCASP 구조에서 만든 것: 전장·폭·깊이, 베이·로우·티어 칸, 거주구가 어느 베이 뒤에 있는지(ships.js 의 g).

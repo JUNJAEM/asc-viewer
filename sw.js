@@ -7,6 +7,8 @@ self.addEventListener("activate", function (e) { e.waitUntil(self.clients.claim(
 self.addEventListener("fetch", function (e) {
   var r = e.request, u = new URL(r.url);
   if (u.origin !== location.origin) return;
+  // 폰 서버판(회사 PC 가 내어 주는 주소): 메일함 · 로그인 요청은 건드리지 않음 — 메일 목록이 폰에 저장되지 않게, 로그인 화면이 옛 것으로 보이지 않게
+  if (/^(api\/|login$|logout$|healthz$)/.test(u.pathname.slice(new URL(self.registration.scope).pathname.length))) return;
   if (r.method === "POST" && /\/share$/.test(u.pathname)) {
     e.respondWith(r.formData().then(function (fd) {
       var fs = fd.getAll("file").filter(function (x) { return x && x.arrayBuffer; }), f = fs[0];
