@@ -489,6 +489,11 @@ body.static #edWin,body.static #edBtn{display:none}
 .etab button.on{background:#fff;opacity:1;box-shadow:inset 0 -3px 0 var(--num)}
 #edWin .fo{font-size:12px;font-weight:400;display:inline-flex;gap:4px;align-items:center;cursor:pointer}
 #edCnt{font-weight:400}
+#edQ{font:inherit;font-size:12px;font-weight:700;color:#b00000;background:var(--win);border:1px solid #b00000;border-radius:3px;padding:1px 8px;cursor:pointer;white-space:nowrap}
+[data-theme="dark"] #edQ{color:#ff9a9a;border-color:#ff9a9a}
+#edMail{display:inline-flex;gap:4px}#edMail[hidden]{display:none}
+#edMU{color:#b00000;border-color:#b00000}[data-theme="dark"] #edMU{color:#ffb3b8;border-color:#8c3a40}
+#edMsg{border-radius:0!important;border-top:0;border-bottom:1px solid var(--edge)}#edMsg:empty{display:none}
 .edw{overflow:auto;max-height:420px;background:var(--win)}
 table.et{border-collapse:collapse;font-size:12px;font-family:Consolas,"Malgun Gothic",monospace;white-space:nowrap;min-width:100%}
 .et th,.et td{border:1px solid #c4c4c4;padding:2px 7px;text-align:left}
@@ -526,6 +531,7 @@ dd.chg .ei,dd.chg{background:#fff3a6}
 #sheet .edt{display:none}
 @media (min-width:900px){
   #sheet{left:auto;top:0;bottom:0;right:0;width:318px;padding:0;border-top:0;border-left:2px solid var(--title);overflow:auto;box-shadow:-3px 0 0 rgba(0,0,0,.25)}
+  body:has(#sheet:not([hidden])) #fbox{right:334px;max-width:calc(100vw - 350px)}   /* 찾기 창이 오른쪽 Container Editor 를 가리지 않게 (끌어서 옮겨 둔 자리는 그대로) */
   #sheet .edt{display:flex;align-items:baseline;gap:8px;background:var(--title);color:var(--title-fg);font-weight:700;padding:5px 10px;position:sticky;top:0;z-index:1}
   #sheet .edt small{font-weight:400;opacity:.85;font-size:11px}
   #sheet .in{display:block;max-width:none;padding:8px 10px 14px}
@@ -870,7 +876,7 @@ header.win .body{background:#fff}
 </style>
 
 <div class="wrap">
-  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-25 14:54 판</small></div>
+  <header class="win"><div class="tb">PLAN VIEWER <small style="opacity:.85">MADE BY JUNJAE</small> <small id="voyT"></small><span class="sp"></span><small style="font-weight:400;opacity:.8">11-27 17:10 판</small></div>
     <div class="body">
       <img id="logo" alt="" hidden>
       <div class="file" id="fname"></div>
@@ -929,15 +935,15 @@ header.win .body{background:#fff}
     <div class="gpx"><aside class="gi" id="gpInfo"></aside><div class="gpw" id="gpw"><div class="gp" id="gp"></div></div></div>
     <div class="rz rzr" data-rz="r" title="끌어서 너비 조절 (더블클릭: 원래대로)"></div><div class="rz rzb" data-rz="b" title="끌어서 높이 조절 (더블클릭: 원래대로)"></div><div class="rz rzc" data-rz="c" title="끌어서 크기 조절 (더블클릭: 원래대로)"></div></section>
   <section class="win" id="edWin" hidden><div class="tb"><span class="etab"><button type="button" id="tabP">Pivot</button><button type="button" id="tabE">Editor</button><button type="button" id="tabS" title="쉬프팅한 컨테이너만 모아 봐요 (원래 자리 → 지금 자리)">Shifting</button></span>
-      <small id="edCnt"></small><span class="sp"></span>
+      <small id="edCnt"></small><button type="button" id="edQ" hidden title="컨테이너 찾기에 넣은 번호의 컨테이너만 보여 주는 중이에요. 누르면 찾기를 지우고 전체를 보여 줘요"></button><span id="edMail" hidden><button type="button" id="edMU" title="찾은 컨테이너 전부로 BPT 긴급양하 요청 메일을 만들어요 (그 컨테이너들이 지정돼요)"></button><button type="button" id="edMC" title="찾은 컨테이너 전부로 COD NOTICE 메일을 만들어요. POD를 바꾼 컨테이너여야 해요 (그 컨테이너들이 지정돼요)"></button></span><span class="sp"></span>
       <label class="fo" title="고른 컨테이너만 진하게, 나머지는 흐리게 (cCASP의 Highlight · Fade Out)"><input type="checkbox" id="edFade"> Fade Out</label>
       <button type="button" id="edCS" title="정렬 지우기 (Clear Sorters)">정렬 지우기</button><button type="button" id="edCF" title="조건 지우기 (Clear Filters)">조건 지우기</button></div>
-    <div id="edBody"></div></section>
+    <div class="bwf" id="edMsg"></div><div id="edBody"></div></section>
 </div>
 <div id="bw" hidden><div class="bwin win" role="dialog" aria-label="Bay Plan">
   <div class="tb"><span id="bwT"></span><small id="bwS"></small><span class="sp"></span>
-    <button type="button" id="bwM" title="고른 컨테이너로 BPT 긴급양하 요청 메일을 만들어요" disabled>긴급양하 메일 생성</button>
-    <button type="button" id="bwC" title="POD를 바꾼(COD) 컨테이너를 골라 COD NOTICE 메일을 만들어요" disabled>COD 메일 생성</button>
+    <button type="button" id="bwM" title="고른 컨테이너로 BPT 긴급양하 요청 메일을 만들어요. 고른 것이 없으면 컨테이너 찾기로 찾은 컨테이너로 만들어요" disabled>긴급양하 메일 생성</button>
+    <button type="button" id="bwC" title="POD를 바꾼(COD) 컨테이너를 골라 COD NOTICE 메일을 만들어요. 고른 것이 없으면 컨테이너 찾기로 찾은 컨테이너로 만들어요" disabled>COD 메일 생성</button>
     <button type="button" id="bwP" aria-label="왼쪽 베이" title="왼쪽 베이 (←)">◀</button><button type="button" id="bwN" aria-label="오른쪽 베이" title="오른쪽 베이 (→)">▶</button>
     <button type="button" id="bwZ" aria-label="최대화" title="최대화 / 이전 크기 (제목줄 더블클릭)">□</button><button type="button" id="bwX" aria-label="닫기" title="닫기 (Esc)">×</button></div>
   <div class="bpl" id="bwPl" hidden><b class="plNm"></b><span class="plMsg"></span></div>
@@ -1032,7 +1038,7 @@ header.win .body{background:#fff}
       <span></span><span></span><button type="button" data-rc="menu" class="rcm">‹ 메뉴</button></div>
   </div></div>
 <div id="fbox" hidden role="search"><b>컨테이너 찾기</b>
-  <input id="q" type="search" placeholder="번호 또는 위치 (예: 8172320, 250884)" autocomplete="off" aria-label="컨테이너 번호 또는 위치">
+  <input id="q" type="search" placeholder="번호 · 위치, 여러 개도 돼요" title="컨테이너 번호(일부만 쳐도 돼요)나 위치(예: 250884). 여러 개는 띄어쓰기나 쉼표로 나눠 넣거나, 엑셀에서 복사해 그대로 붙여 넣으세요. 찾은 뒤 Enter 를 누르면 찾은 것만 담은 목록(Editor · Pivot)이 뜨고, 더 누르면 그 베이가 열려요. 찾은 컨테이너로 긴급양하 · COD 메일도 만들 수 있어요" autocomplete="off" aria-label="컨테이너 번호 또는 위치 (여러 개는 띄어쓰기나 쉼표로 나눔)">
   <span id="qn"></span><button type="button" id="fX" aria-label="닫기" title="닫기 (Alt + F 또는 Esc)">×</button></div>
 <div id="sheet" hidden><div class="edt"><span>Container Editor</span><small>보기 전용</small></div><div class="in">
   <div class="cn" id="sCn"></div><dl id="sDl"></dl><div id="eMsg"></div>
@@ -1051,7 +1057,9 @@ var $=function(id){return document.getElementById(id)};
 var st={plan:null,name:"",example:false,color:"podpol",filter:[],q:"",sel:-1,open:null,ship:"",shipBad:false,pick:[],lines:null,orig:null,eol:"\r\n",plan0:null,saved:""};   // lines·orig: 편집용 원본 줄(바이트 그대로), plan0: 고치기 전 값
 var SHIPS=window.ASC_SHIPS||null;
 var LAYOUT="wrap";   // 플랜을 열면 항상 여러 줄 배열 (2026-11 사용자 요청). 한 줄로 바꾼 것은 그 플랜을 보는 동안만
-var BP={},ORD=[],FIRSTHIT="",PANELS={},BOXP={};   // PANELS·BOXP: 긴급양하 메일 그림용 (베이 그림 재료, 컨테이너가 있는 베이)   // Bay Plan 창에 넣을 그림(베이별), 베이 순서, 검색에 걸린 첫 베이
+var BP={},ORD=[],HITB=[],PANELS={},BOXP={};
+// 찾기 결과: QHIT = 찾은 컨테이너(없으면 null), QN = 개수, QED = 찾기가 띄운 PIVOT / EDITOR 창(닫을 때 돌려놓을 탭)
+var QHIT=null,QN=0,QED=null;   // PANELS·BOXP: 긴급양하 메일 그림용 (베이 그림 재료, 컨테이너가 있는 베이)   // Bay Plan 창에 넣을 그림(베이별), 베이 순서, 검색에 걸린 베이들
 // 양하항 색 (색정렬): 양하항이 N개면 이 목록의 앞 N색을 기항 순서대로. 앞 N색이 곧 'N개일 때 가장 잘 구분되는 묶음'
 // (tools/pick_colors.py: CIEDE2000 + 적록 색약 시뮬레이션 + 선적항 흑백 띠와의 거리로 계산, 2·3개는 가장 익숙한 노랑·파랑·빨강)
 // 노랑 파랑 빨강 청록 분홍 주황 초록 보라 연두 하늘 갈색 살구
@@ -1244,8 +1252,23 @@ function panels(H,sh){
 }
 
 // 찾기: 컨테이너 번호의 일부, 또는 위치(베이-로우-티어). 위치는 하이픈 없이 250884 처럼 쳐도 되고 앞부분만(2508) 쳐도 됨
-function qHit(b){var q=st.q.replace(/[\s-]/g,"");if(!q)return false;
-  return b.cntr.indexOf(q)>=0||(/^\d{1,6}$/.test(q)&&(pad(b.bay)+pad(b.row)+pad(b.tier)).indexOf(q)===0)}
+// 여러 개를 한 번에: 쉼표 · 줄바꿈 · 띄어쓰기로 나눠 넣으면 그 중 하나라도 맞는 컨테이너를 다 찾음 (엑셀에서 한 줄씩 복사해 붙여도 됨).
+// 한 번호를 띄어 쓴 것(TEMU 817232 0, 25 08 84)은 예전처럼 한 개로 붙여서 봄.
+function qTerms(s){var out=[];
+  String(s||"").toUpperCase().replace(/-/g,"").split(/[,;\/|\n\r\t，、]+/).forEach(function(seg){
+    var w=seg.split(/\s+/).filter(Boolean),i,t;
+    for(i=0;i<w.length;i++){t=w[i];
+      if(/^[A-Z]{1,4}$/.test(t)&&/^\d+$/.test(w[i+1]||""))t+=w[++i];                       // TEMU 8172320
+      if(/(^|[A-Z])\d{6}$/.test(t)&&/^\d$/.test(w[i+1]||""))t+=w[++i];                     // 817232 0 (끝자리를 띄어 쓴 것)
+      else if(/^(\d\d){1,2}$/.test(t)){while(/^(\d\d){1,2}$/.test(w[i+1]||"")&&t.length+w[i+1].length<=6)t+=w[++i]}   // 25 08 84, 2508 84 (위치를 띄어 쓴 것)
+      if(out.indexOf(t)<0)out.push(t)}});
+  return out}
+// 찾은 컨테이너(hit), 그 개수(n), 플랜에 없는 검색어(miss)
+function qFind(B,T){var hit={},n=0,got=T.map(function(){return 0});
+  B.forEach(function(b,i){var pos=pad(b.bay)+pad(b.row)+pad(b.tier),h=0;
+    T.forEach(function(t,k){if(b.cntr.indexOf(t)>=0||(/^\d{1,6}$/.test(t)&&pos.indexOf(t)===0)){h=1;got[k]=1}});
+    if(h){hit[i]=1;n++}});
+  return {hit:hit,n:n,miss:T.filter(function(t,k){return !got[k]})}}
 function render(){
   var P=st.plan; if(!P)return;
   var B=P.boxes, groups={}, order=[];
@@ -1319,8 +1342,11 @@ function render(){
       '<h4>LOADING</h4><table><tr><th>POL</th><th>TEU</th><th>TON</th></tr>'+
         po.map(function(k){return lrow(k,pg[k],hexL[k]||CUSTOM[k]||POLFIX[k]||"#8c8c8c")}).join("")+lrow("TOTAL",{n20:n20,n40:n40,kg:kg})+'</table></div></div>';
   })();
-  var q=st.q, hits=0, GH=[];
-  BP={};ORD=[];FIRSTHIT="";PANELS={};BOXP={};
+  var QT=qTerms(st.q), QF=QT.length?qFind(B,QT):null, q=!!QF, hits=0, GH=[];
+  function qHit(b){return QF.hit[b.i]===1}
+  QHIT=QF?QF.hit:null;QN=QF?QF.n:0;
+  if(!QF&&QED){ES.on=false;ES.tab=QED.tab;QED=null}   // 찾기가 띄웠던 PIVOT / EDITOR 창은 찾기를 지우면 같이 닫힘 (직접 켠 창은 그대로)
+  BP={};ORD=[];HITB=[];PANELS={};BOXP={};
   function kc(b){return ' k'+b.pod.replace(/\W/g,"_")+' l'+b.pol.replace(/\W/g,"_")}
   function dimmed(b){return (FD.length&&FD.indexOf(keyOf(b))<0)||(FL.length&&FL.indexOf(b.pol)<0)||(q&&!qHit(b))||(ES.fade&&st.pick.length&&st.pick.indexOf(b.i)<0)}
   function marks(b){var d=b.dgno?((P.dg[b.dgno]||[])[0]||{}).cls||"DG":"";   // General Plan 칸 구석 표시 (Bay Plan 과 같은 자리)
@@ -1332,7 +1358,7 @@ function render(){
     // General Plan (축소)
     GH.push('<div class="gh">'+X.P.map(function(p){
       function line(ts){return ts.map(function(t){return rs.map(function(r){var c=p.cell(r,t);
-        if(c.b){var mh=q&&qHit(c.b);if(mh&&!FIRSTHIT)FIRSTHIT=p.id;
+        if(c.b){var mh=q&&qHit(c.b);
           return '<div class="m b'+(PP?' pp':'')+(c.f40?' f40':'')+(mh?' hit':'')+(dimmed(c.b)?' dim':'')+(st.pick.indexOf(c.b.i)>=0?' pk':'')+(fromOf(c.b)?' sf':'')+kc(c.b)+'" data-i="'+c.b.i+'" style="'+sty(c.b)+'">'+marks(c.b)+'</div>'}
         return c.x?'<div class="m">×</div>':'<div class="m'+(c.slot?'':' n')+'"'+(c.slot?' data-s="'+r+'_'+t+'"':'')+'></div>'}).join("")+'<div class="mt">'+pad(t)+'</div>'}).join("")}
       var mrow=rs.map(function(r){return '<div class="mr">'+pad(r)+'</div>'}).join("")+'<div class="mr"></div>';
@@ -1366,8 +1392,17 @@ function render(){
   // 배열: 한 줄(선수가 오른쪽 끝, 가로 스크롤) / 여러 줄(CASP처럼 창 폭에 맞춰 접힘, 줄마다 오른쪽부터)
   $("gp").className="gp"+(LAYOUT==="wrap"?" wrap":"");
   $("gp").innerHTML=LAYOUT==="wrap"?GH.join(""):GH.slice().reverse().join(""); drawWin();
-  var mh2=q?B.filter(function(b){return qHit(b)}).length:0;
-  $("qn").textContent=q?(mh2?mh2+"개 찾았어요 · Enter를 누르면 그 베이가 열려요":"없어요"):"";
+  // 찾은 컨테이너가 있는 베이 (Enter 로 차례로 열어 봄)
+  if(q){var hp={};B.forEach(function(b){if(qHit(b)&&BOXP[b.i])hp[BOXP[b.i]]=1});HITB=ORD.filter(function(id){return hp[id]})}
+  (function(){var qn=$("qn"),t="",tip="";
+    // Enter 가 할 일: 한 개든 여러 개든 먼저 목록(Editor) 띄우기, 목록이 떠 있으면 찾은 베이를 차례로 (사용자 결정 2026-11-27: 단수 · 복수 구분 없이 전부 Editor 로)
+    var ent=!q||!QF.n?"":!ES.on?" · Enter = 목록 보기":HITB.length>1?" · Enter = 다음 베이":" · Enter = 그 베이 열기";
+    if(q&&QT.length<2)t=QF.n?QF.n+"개 찾았어요"+ent:"없어요";
+    else if(q){var ms=QF.miss,ok=QT.length-ms.length;
+      t=QT.length+"개 중 "+ok+"개 찾았어요"+(QF.n!==ok?" (컨테이너 "+QF.n+"개)":"")+
+        (ms.length?" · 없는 것: "+ms.slice(0,4).join(", ")+(ms.length>4?" 외 "+(ms.length-4)+"개":""):"")+ent;
+      if(ms.length)tip="플랜에 없는 것: "+ms.join(", ")}
+    qn.textContent=t;qn.title=tip})();
   $("fname").textContent=st.name||"(예시)";
   var nt=$("note");
   if(st.example){nt.hidden=false;nt.className="note";nt.textContent="지금 보이는 건 가짜 예시 플랜이에요. ‘ASC 파일 열기’를 누르거나 파일을 이 화면에 끌어다 놓으면 실제 플랜으로 바뀌어요. 파일은 이 기기 안에서만 읽고 어디에도 올리지 않아요."}
@@ -1432,6 +1467,7 @@ function edList(){   // 조건에 맞는 컨테이너를 정렬해서
   if(!st.plan)return [];
   var ks=Object.keys(ES.flt).filter(function(k){return ES.flt[k]&&EFM[k]});
   var L=st.plan.boxes.filter(function(b){return ks.every(function(k){return edMatch(EFM[k][3](b),ES.flt[k],EFM[k][2])})});
+  if(QHIT)L=L.filter(function(b){return QHIT[b.i]===1});   // 컨테이너 찾기에 번호를 넣었으면 찾은 것만 (cCASP 의 Search Container → Editor · Pivot)
   if(ES.sort.length)L.sort(function(a,b){for(var i=0;i<ES.sort.length;i++){var f=EFM[ES.sort[i].k],x=f[3](a),y=f[3](b),c=f[2]?x-y:(x<y?-1:x>y?1:0);if(c)return ES.sort[i].d*c}return a.i-b.i});
   return L;
 }
@@ -1476,7 +1512,7 @@ function pvSnap(){
   function add(k,b){var o=cur[k]||(cur[k]={n:0,teu:0,kg:0});o.n++;o.teu+=b.size===20?1:2;o.kg+=b.kg}
   edList().forEach(function(b){if(fromOf(b))return;var r=String(fr[3](b)),c=String(fc[3](b));add(r+S+c,b);add(r+S+NUL,b);add(NUL+S+c,b);add(NUL+S+NUL,b)});
   for(k in cur)out[k]=ES.pv==="van"?cur[k].n:ES.pv==="teu"?cur[k].teu:ES.pv==="kg"?cur[k].kg:cur[k].kg/cur[k].n;
-  var sig=CUR+"|"+st.name+"|"+ES.pr+"|"+ES.pc+"|"+ES.pv+"|"+JSON.stringify(ES.flt);
+  var sig=CUR+"|"+st.name+"|"+ES.pr+"|"+ES.pc+"|"+ES.pv+"|"+JSON.stringify(ES.flt)+"|"+st.q;
   if(PVH.sig!==sig||!PVH.prev){PVH.sig=sig;PVH.prev=out;PVH.chg={};return}
   var d={},n=0;for(k in out)if(out[k]!==PVH.prev[k]){d[k]=out[k]-(PVH.prev[k]||0);n++}
   for(k in PVH.prev)if(!(k in out)){d[k]=-PVH.prev[k];n++}
@@ -1486,6 +1522,9 @@ function edDraw(){
   if(!st.plan||window.__STATIC__)return;
   $("edWin").hidden=!ES.on;$("edBtn").setAttribute("aria-pressed",ES.on?"true":"false");
   if(!ES.on)return;   // 꺼져 있으면 그리지 않음
+  $("edQ").hidden=!QHIT;if(QHIT)$("edQ").textContent="찾은 "+QN+"개만 보는 중 · 전체 보기";
+  $("edMail").hidden=!QN;$("edMU").textContent="긴급양하 메일 ("+QN+")";$("edMC").textContent="COD 메일 ("+QN+")";
+  var em=$("edMsg");if(em.dataset.q!==st.q){em.innerHTML="";em.dataset.q=st.q}   // 메일 안내 글은 찾기가 바뀌면 지움
   $("tabE").className=ES.tab==="E"?"on":"";$("tabP").className=ES.tab==="P"?"on":"";$("edFade").checked=ES.fade;
   var nSf=sftRows().length;$("tabS").className=(ES.tab==="S"?"on":"")+(nSf?" has":"");$("tabS").textContent="Shifting"+(nSf?" !":"");   // 개수는 안 붙임. 쉬프팅이 있을 때만 'CNTR 지정중 !' 처럼 강조(사용자 지시)
   var body=$("edBody");
@@ -1526,7 +1565,7 @@ function edDraw(){
 }
 (function(){
   var W=$("edWin");
-  $("edBtn").onclick=function(){ES.on=!ES.on;try{localStorage.setItem("ascEdOn",ES.on?"1":"0")}catch(_){}
+  $("edBtn").onclick=function(){QED=null;ES.on=!ES.on;try{localStorage.setItem("ascEdOn",ES.on?"1":"0")}catch(_){}
     if(!ES.on&&ES.fade){ES.fade=false;render()}else edDraw();
     if(ES.on)W.scrollIntoView({block:"nearest"})};
   $("tabE").onclick=function(){ES.tab="E";edDraw()};$("tabP").onclick=function(){ES.tab="P";edDraw()};$("tabS").onclick=function(){ES.tab="S";edDraw()};
@@ -1535,6 +1574,8 @@ function edDraw(){
   W.addEventListener("input",function(e){var t=e.target;if(!t.classList.contains("ef"))return;ES.flt[t.dataset.k]=t.value.trim();t.classList.toggle("on",!!t.value.trim());edRows()});
   W.addEventListener("change",function(e){var id=e.target.id;if(id==="pvR"){ES.pr=e.target.value;edDraw()}else if(id==="pvC"){ES.pc=e.target.value;edDraw()}else if(id==="pvV"){ES.pv=e.target.value;edDraw()}});
   W.addEventListener("click",function(e){
+    if(e.target.id==="edQ"){QED=null;$("q").value="";st.q="";render();return}
+    if(e.target.id==="edMU"||e.target.id==="edMC"){var em=$("edMsg");em.innerHTML="";em.dataset.q=st.q;mailGo(e.target.id==="edMC"?"cod":"urgent",true,em);return}   // 찾은 것 전부로 메일   // 전체 보기: 찾기를 지움 (창은 그대로 둠)
     if(e.target.id==="pvX"){var t=ES.pr;ES.pr=ES.pc;ES.pc=t;edDraw();return}
     if(e.target.id==="pvS"){ES.tab="S";edDraw();return}
     if(e.target.id==="sfCopy"){sftCopy();return}
@@ -1568,12 +1609,22 @@ function pickFlag(){   // render() 가 끝날 때마다: 골라 둔 컨테이너
   rcDraw();
   if(!st.pick.length&&ES.fade&&!ES.on)ES.fade=false;
   $("pkBtn").hidden=!st.pick.length||!!(RC&&RC.on);$("pkBtn").setAttribute("aria-pressed",!!ES.fade);$("pkBtn").title=ES.fade?"다시 누르면 흐림 풀기":"누르면 지정한 컨테이너만 남기고 나머지를 흐리게"; if(!st.pick.length)$("pkTip").hidden=true; else if(!$("pkTip").hidden)$("pkTip").innerHTML=pickTip()}
+// 긴급양하 · COD 메일에 넣을 컨테이너: 고른(지정한) 것이 있으면 그것, 없으면 컨테이너 찾기로 찾은 것
+// (사용자 요청 2026-11-27: 번호를 여러 개 넣어 찾은 채로도 메일이 되게). 찾은 것으로 만들 때는 그 컨테이너들을 지정해 둠 — 메일 그림의 빨간 칸 · 목록 표시가 거기서 나옴.
+function foundIds(){var o=[];if(QHIT&&st.plan)st.plan.boxes.forEach(function(b){if(QHIT[b.i]===1)o.push(b.i)});return o}
+var MAILF=null;   // 메일 안내 글을 쓸 곳 (기본: Bay Plan 창 아래 줄, Editor 창의 버튼으로 만들 때는 그 창)
+function mailF(){return MAILF||$("bwF")}
+function mailGo(kind,found,where){   // found: 고른 것과 상관없이 찾은 것 전부로 (Editor 창의 버튼)
+  var ids=found||!st.pick.length?foundIds():st.pick;if(!ids.length)return;
+  if(ids!==st.pick){st.pick=ids;render()}
+  MAILF=where||null;try{if(kind==="cod")codMail();else urgentMail()}finally{MAILF=null}}
 function pickBar(){
-  var n=st.pick.length, B=st.plan?st.plan.boxes:[];
-  $("bwM").disabled=!n; $("bwM").textContent="긴급양하 메일 생성"+(n?" ("+n+")":"");
-  $("bwC").disabled=!n; $("bwC").textContent="COD 메일 생성"+(n?" ("+n+")":"");
+  var n=st.pick.length, B=st.plan?st.plan.boxes:[], fd=n?[]:foundIds(), m=n||fd.length;
+  $("bwM").disabled=!m; $("bwM").textContent="긴급양하 메일 생성"+(m?" ("+m+")":"");
+  $("bwC").disabled=!m; $("bwC").textContent="COD 메일 생성"+(m?" ("+m+")":"");
   var f=$("bwF"), keep=f.querySelector(".ok");
   f.innerHTML=(n?'<span>고른 컨테이너 '+n+'개:</span><span class="pkl">'+st.pick.map(function(i){return esc((B[i]||{}).cntr||"?")}).join(", ")+'</span><button type="button" id="pkC">선택 지우기</button>'
+    :fd.length?'<span>찾은 컨테이너 '+fd.length+'개:</span><span class="pkl">'+fd.slice(0,12).map(function(i){return esc((B[i]||{}).cntr||"?")}).join(", ")+(fd.length>12?" 외 "+(fd.length-12)+"개":"")+'</span><span>고른 것이 없으면 메일은 이 컨테이너들로 만들어요.</span>'
     :(TOUCH?'<span>칸을 누르면 고르고, <b>여러 개 고르기</b>를 켜면 누르는 대로 여러 개 골라요 (다른 베이로 넘어가도 유지돼요).</span>'
       :'<span>칸을 누르면 고르고, <b>Ctrl</b>을 누른 채 누르면 여러 개 골라요 (다른 베이로 넘어가도 유지돼요).</span>'));
   if(keep&&n)f.appendChild(keep);
@@ -1643,7 +1694,7 @@ function mailTo(kind){
 // 본문: POL/POD(원래) · CNTR · POSITION · COD TO(원래 POD → 바뀐 POD) + 그 베이 그림, 반영된 플랜(ASC)은 첨부.
 // 받는 사람은 항차마다 달라서 비워 둠(참조에 부산운항팀만). 고른 것 중 POD를 안 바꾼 컨테이너가 있으면 만들지 않음.
 function codMail(){
-  var f=$("bwF"),old=f.querySelector(".er");if(old)old.remove();
+  var f=mailF(),old=f.querySelector(".er");if(old)old.remove();
   function fail(m){var e=document.createElement("div");e.className="er";e.textContent=m;f.appendChild(e)}
   if(!st.pick.length)return;
   if(!st.lines||!st.plan0)return fail(st.plan.edi?"EDI 파일은 보기 전용이라 COD 메일을 만들 수 없어요. ASC 파일을 열어 주세요.":"예시 플랜에서는 만들 수 없어요. 실제 ASC 파일을 열어 주세요.");
@@ -1745,7 +1796,7 @@ function urgentMail(){
   var a=document.createElement("a"), url=URL.createObjectURL(new Blob([eml],{type:"message/rfc822"}));
   a.href=url;a.download="긴급양하_"+(st.ship||"")+"_"+voy+".eml";document.body.appendChild(a);a.click();
   setTimeout(function(){URL.revokeObjectURL(url);a.remove()},4000);
-  var f=$("bwF"),o=f.querySelector(".ok");if(!o){o=document.createElement("div");o.className="ok";f.appendChild(o)}
+  var f=mailF(),o=f.querySelector(".ok");if(!o){o=document.createElement("div");o.className="ok";f.appendChild(o)}
   o.textContent="메일 파일을 받았어요. 브라우저의 다운로드 목록에서 열면 아웃룩 새 메일 창이 떠요. 터미널 칸만 채우고 보내기를 누르세요.";
 }
 function openBay(id){st.open=id;st.sel=-1;$("sheet").hidden=true;render()}
@@ -2241,13 +2292,22 @@ var BWDRAG=false, bwApply=function(){};
     if(e.target.closest(".tb")&&!e.target.closest("button"))toggleMax()});
   window.addEventListener("resize",function(){if(!bw.hidden)bwApply()});
 })();
-$("bwM").onclick=urgentMail;
-$("bwC").onclick=codMail;
+$("bwM").onclick=function(){mailGo("urgent")};
+$("bwC").onclick=function(){mailGo("cod")};
 $("bwP").onclick=function(){stepBay(1)};   // General Plan 에서 왼쪽 = 번호가 큰 베이
 $("bwN").onclick=function(){stepBay(-1)};
 document.addEventListener("keydown",function(e){if(!st.open||/^(INPUT|SELECT)$/.test(e.target.tagName))return;
   if(e.key==="Escape")closeBay();else if(e.key==="ArrowLeft")stepBay(1);else if(e.key==="ArrowRight")stepBay(-1)});
-$("q").addEventListener("keydown",function(e){if(e.key==="Enter"&&FIRSTHIT)openBay(FIRSTHIT)});
+// Enter: 찾은 것이 한 개든 여러 개든 먼저 찾은 것만 담은 목록(PIVOT / EDITOR 창의 Editor)을 띄우고 (cCASP 의 Search Container 처럼), 그 다음부터는 찾은 베이를 차례로 엶 (Shift = 거꾸로).
+$("q").addEventListener("keydown",function(e){if(e.key!=="Enter"||!HITB.length)return;
+  if(!ES.on){QED={tab:ES.tab};ES.on=true;ES.tab="E";render();$("edWin").scrollIntoView({block:"nearest"});return}
+  var n=HITB.length,i=HITB.indexOf(st.open);openBay(HITB[i<0?(e.shiftKey?n-1:0):(i+(e.shiftKey?n-1:1))%n])});
+// 엑셀 · 메일에서 여러 줄을 복사해 붙이면 줄마다 한 개로 (한 줄짜리 칸이라 줄바꿈을 쉼표로 바꿔 넣음)
+$("q").addEventListener("paste",function(e){var cd=e.clipboardData||window.clipboardData,s=cd&&cd.getData("text");if(!s||!/[\r\n\t]/.test(s))return;
+  e.preventDefault();s=s.replace(/\t+/g," ").replace(/\s*[\r\n]+\s*/g,", ").replace(/^[,\s]+|[,\s]+$/g,"");
+  var el=e.target,a=el.selectionStart,b=el.selectionEnd;if(a==null)a=b=el.value.length;
+  el.value=el.value.slice(0,a)+s+el.value.slice(b);el.selectionStart=el.selectionEnd=a+s.length;
+  st.q=el.value.trim().toUpperCase();render()});
 // 찾기 창: Alt+F 로 열고 닫음(닫으면 검색도 지움), Alt+E = EDITOR / PIVOT 켜고 끄기
 function findBox(on){var f=$("fbox");if(on==null)on=f.hidden;f.hidden=!on;
   if(on){var fr=f.getBoundingClientRect();if(fr.left<0||fr.top<0||fr.right>window.innerWidth||fr.bottom>window.innerHeight){f.style.left=f.style.top=f.style.right=""}   // 옮겨 둔 자리가 화면 밖이면 원래 자리로

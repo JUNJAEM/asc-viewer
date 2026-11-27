@@ -4,37 +4,8 @@
 param([string]$Path, [string]$OutFile, [switch]$NoOpen, [switch]$Static)
 $ErrorActionPreference = 'Stop'
 $dir = Split-Path -Parent $MyInvocation.MyCommand.Path
-# Loading picture while the page is being built (optional: splash.jpg next to this script).
-$splash = $null
-$sp = Join-Path $dir 'local\splash.jpg'   # this PC only (not shared), used first when present
-if (-not (Test-Path $sp)) { $sp = Join-Path $dir 'splash.jpg' }
-if ((Test-Path $sp) -and -not $NoOpen -and -not $Static) {
-    try {
-        Add-Type -AssemblyName System.Windows.Forms, System.Drawing
-        $simg = [Drawing.Image]::FromFile($sp)
-        $splash = New-Object Windows.Forms.Form
-        $splash.FormBorderStyle = 'None'; $splash.StartPosition = 'CenterScreen'; $splash.TopMost = $true; $splash.ShowInTaskbar = $false
-        $sw = [int][Math]::Min(760, 440 * $simg.Width / $simg.Height); $splash.ClientSize = New-Object Drawing.Size($sw, [int]($sw * $simg.Height / $simg.Width))
-        $splash.BackgroundImage = $simg; $splash.BackgroundImageLayout = 'Stretch'
-        $splash.Show(); $splash.Refresh()
-    } catch { $splash = $null }
-}
-$tpl = [IO.File]::ReadAllText((Join-Path $dir 'viewer.src.html'), [Text.Encoding]::UTF8)
-$name = 'viewer'
-# One viewer window for many plans: the page polls this small file, and a later double-click writes the new plan into it.
-$tmpDir = Join-Path $env:TEMP 'asc-viewer'
-if (-not (Test-Path $tmpDir)) { New-Item -ItemType Directory -Path $tmpDir | Out-Null }
-$inbox = Join-Path $tmpDir 'inbox.js'
-# Build stamp: lets a later double-click tell an already-open (older) viewer window that a newer version is installed.
-$build = [string](Get-Item (Join-Path $dir 'viewer.src.html')).LastWriteTimeUtc.Ticks
-$newNote = ('(function(){if((+window.__PV_BUILD__||0)<@B@&&!document.getElementById(''pvNew'')){var d=document.createElement(''div'');d.id=''pvNew'';d.style.cssText=''position:fixed;left:0;right:0;bottom:0;z-index:99;cursor:pointer;padding:9px 14px;background:#b00000;color:#fff;font:700 14px sans-serif;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.4)'';d.textContent=''\uC0C8 \uBC84\uC804\uC774 \uC124\uCE58\uB410\uC5B4\uC694. \uC774 \uCC3D\uC744 \uB2EB\uACE0 \uD50C\uB79C \uD30C\uC77C\uC744 \uB2E4\uC2DC \uC5F4\uBA74 \uC801\uC6A9\uB3FC\uC694. (\uBA54\uC77C\uD568 \u00B7 \uC0C8 \uAE30\uB2A5\uC774 \uADF8\uB54C \uBCF4\uC5EC\uC694)'';d.onclick=function(){d.remove()};document.body.appendChild(d)}})();').Replace('@B@', $build)
-$inboxJs = "window.__PV_BUILD__='" + $build + "';window.__INBOX__='" + ([Uri]$inbox).AbsoluteUri + "';window.__MAILSRVJS__='" + ([Uri](Join-Path $tmpDir 'mailsrv.js')).AbsoluteUri + "';"
-if ($Static) { $inboxJs = '' }
-# Mail tab helper: reads Outlook on this PC for the viewer's mail list (hidden, one instance, stops by itself when unused).
-if (-not $Static -and -not $OutFile -and -not $NoOpen) {
-    try { $ms = Join-Path $dir 'mail-server.ps1'; if (Test-Path $ms) { Start-Process -FilePath 'conhost.exe' -ArgumentList @('--headless', 'powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', ('"' + $ms + '"')) -WindowStyle Hidden } } catch { }
-}
-Add-Type @'
+# Small Windows helpers (find the open viewer window; draw the loading picture with a see-through background).
+$winCs = @'
 using System; using System.Text; using System.Runtime.InteropServices;
 public class AscWin {
   delegate bool EnumProc(IntPtr h, IntPtr l);
@@ -52,8 +23,81 @@ public class AscWin {
       if (hit) { found = h; return false; } return true; }, IntPtr.Zero);
     return found; }
   public static void Front(IntPtr h) { if (IsIconic(h)) ShowWindow(h, 9); SetForegroundWindow(h); }
+  // Loading picture with a see-through background: paints a 32-bit bitmap (with alpha) straight onto a borderless window.
+  [StructLayout(LayoutKind.Sequential)] struct PT { public int x, y; }
+  [StructLayout(LayoutKind.Sequential)] struct SZ { public int cx, cy; }
+  [StructLayout(LayoutKind.Sequential, Pack = 1)] struct BF { public byte op, flags, alpha, fmt; }
+  [DllImport("user32.dll")] static extern IntPtr GetDC(IntPtr h);
+  [DllImport("user32.dll")] static extern int ReleaseDC(IntPtr h, IntPtr dc);
+  [DllImport("gdi32.dll")] static extern IntPtr CreateCompatibleDC(IntPtr dc);
+  [DllImport("gdi32.dll")] static extern bool DeleteDC(IntPtr dc);
+  [DllImport("gdi32.dll")] static extern IntPtr SelectObject(IntPtr dc, IntPtr o);
+  [DllImport("gdi32.dll")] static extern bool DeleteObject(IntPtr o);
+  [DllImport("user32.dll")] static extern int GetWindowLong(IntPtr h, int i);
+  [DllImport("user32.dll")] static extern int SetWindowLong(IntPtr h, int i, int v);
+  [DllImport("user32.dll")] static extern bool UpdateLayeredWindow(IntPtr h, IntPtr dst, ref PT pos, ref SZ size, IntPtr src, ref PT sp, int key, ref BF bf, int flags);
+  public static bool Layer(IntPtr hwnd, IntPtr hbmp, int x, int y, int w, int h) {
+    SetWindowLong(hwnd, -20, GetWindowLong(hwnd, -20) | 0x80000);
+    IntPtr sdc = GetDC(IntPtr.Zero), mdc = CreateCompatibleDC(sdc), old = SelectObject(mdc, hbmp);
+    PT pos; pos.x = x; pos.y = y; SZ sz; sz.cx = w; sz.cy = h; PT sp; sp.x = 0; sp.y = 0;
+    BF bf; bf.op = 0; bf.flags = 0; bf.alpha = 255; bf.fmt = 1;
+    bool ok = UpdateLayeredWindow(hwnd, sdc, ref pos, ref sz, mdc, ref sp, 0, ref bf, 2);
+    SelectObject(mdc, old); DeleteDC(mdc); ReleaseDC(IntPtr.Zero, sdc); DeleteObject(hbmp);
+    return ok; }
 }
 '@
+# Loading picture while the page is being built (optional). local\ = this PC only (not shared), used first when present.
+# A .png is drawn with its see-through background (only the picture floats on the screen); a .jpg is shown as a plain box.
+$splash = $null
+$sp = @('local\splash.png', 'local\splash.jpg', 'splash.png', 'splash.jpg') | ForEach-Object { Join-Path $dir $_ } | Where-Object { Test-Path $_ } | Select-Object -First 1
+if ($sp -and -not $NoOpen -and -not $Static) {
+    Add-Type -AssemblyName System.Windows.Forms, System.Drawing
+    if ($sp -like '*.png') {
+        try {
+            Add-Type $winCs
+            $simg = [Drawing.Image]::FromFile($sp)
+            $sh = 440; $sw = [int]($sh * $simg.Width / $simg.Height); if ($sw -gt 760) { $sw = 760; $sh = [int]($sw * $simg.Height / $simg.Width) }
+            $sbmp = New-Object Drawing.Bitmap($sw, $sh, [Drawing.Imaging.PixelFormat]::Format32bppArgb)
+            $sg = [Drawing.Graphics]::FromImage($sbmp); $sg.InterpolationMode = 'HighQualityBicubic'; $sg.PixelOffsetMode = 'HighQuality'; $sg.DrawImage($simg, 0, 0, $sw, $sh); $sg.Dispose(); $simg.Dispose()
+            $wa = [Windows.Forms.Screen]::FromPoint([Windows.Forms.Cursor]::Position).WorkingArea
+            $sx = [int]($wa.Left + ($wa.Width - $sw) / 2); $sy = [int]($wa.Top + ($wa.Height - $sh) / 2)
+            $splash = New-Object Windows.Forms.Form
+            $splash.FormBorderStyle = 'None'; $splash.StartPosition = 'Manual'; $splash.TopMost = $true; $splash.ShowInTaskbar = $false
+            $splash.SetBounds($sx, $sy, $sw, $sh)
+            if (-not [AscWin]::Layer($splash.Handle, $sbmp.GetHbitmap([Drawing.Color]::FromArgb(0)), $sx, $sy, $sw, $sh)) { throw 'layered window failed' }
+            $splash.Show()
+        } catch {
+            if ($splash) { try { $splash.Dispose() } catch { } }
+            $splash = $null; $sp = @('local\splash.jpg', 'splash.jpg') | ForEach-Object { Join-Path $dir $_ } | Where-Object { Test-Path $_ } | Select-Object -First 1
+        }
+    }
+    if (-not $splash -and $sp -and $sp -notlike '*.png') {
+        try {
+            $simg = [Drawing.Image]::FromFile($sp)
+            $splash = New-Object Windows.Forms.Form
+            $splash.FormBorderStyle = 'None'; $splash.StartPosition = 'CenterScreen'; $splash.TopMost = $true; $splash.ShowInTaskbar = $false
+            $sw = [int][Math]::Min(760, 440 * $simg.Width / $simg.Height); $splash.ClientSize = New-Object Drawing.Size($sw, [int]($sw * $simg.Height / $simg.Width))
+            $splash.BackgroundImage = $simg; $splash.BackgroundImageLayout = 'Stretch'
+            $splash.Show(); $splash.Refresh()
+        } catch { $splash = $null }
+    }
+}
+$tpl = [IO.File]::ReadAllText((Join-Path $dir 'viewer.src.html'), [Text.Encoding]::UTF8)
+$name = 'viewer'
+# One viewer window for many plans: the page polls this small file, and a later double-click writes the new plan into it.
+$tmpDir = Join-Path $env:TEMP 'asc-viewer'
+if (-not (Test-Path $tmpDir)) { New-Item -ItemType Directory -Path $tmpDir | Out-Null }
+$inbox = Join-Path $tmpDir 'inbox.js'
+# Build stamp: lets a later double-click tell an already-open (older) viewer window that a newer version is installed.
+$build = [string](Get-Item (Join-Path $dir 'viewer.src.html')).LastWriteTimeUtc.Ticks
+$newNote = ('(function(){if((+window.__PV_BUILD__||0)<@B@&&!document.getElementById(''pvNew'')){var d=document.createElement(''div'');d.id=''pvNew'';d.style.cssText=''position:fixed;left:0;right:0;bottom:0;z-index:99;cursor:pointer;padding:9px 14px;background:#b00000;color:#fff;font:700 14px sans-serif;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.4)'';d.textContent=''\uC0C8 \uBC84\uC804\uC774 \uC124\uCE58\uB410\uC5B4\uC694. \uC774 \uCC3D\uC744 \uB2EB\uACE0 \uD50C\uB79C \uD30C\uC77C\uC744 \uB2E4\uC2DC \uC5F4\uBA74 \uC801\uC6A9\uB3FC\uC694. (\uBA54\uC77C\uD568 \u00B7 \uC0C8 \uAE30\uB2A5\uC774 \uADF8\uB54C \uBCF4\uC5EC\uC694)'';d.onclick=function(){d.remove()};document.body.appendChild(d)}})();').Replace('@B@', $build)
+$inboxJs = "window.__PV_BUILD__='" + $build + "';window.__INBOX__='" + ([Uri]$inbox).AbsoluteUri + "';window.__MAILSRVJS__='" + ([Uri](Join-Path $tmpDir 'mailsrv.js')).AbsoluteUri + "';"
+if ($Static) { $inboxJs = '' }
+# Mail tab helper: reads Outlook on this PC for the viewer's mail list (hidden, one instance, stops by itself when unused).
+if (-not $Static -and -not $OutFile -and -not $NoOpen) {
+    try { $ms = Join-Path $dir 'mail-server.ps1'; if (Test-Path $ms) { Start-Process -FilePath 'conhost.exe' -ArgumentList @('--headless', 'powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', ('"' + $ms + '"')) -WindowStyle Hidden } } catch { }
+}
+if (-not ('AscWin' -as [type])) { Add-Type $winCs }
 if ($Path -and (Test-Path -LiteralPath $Path)) {
     $full = (Resolve-Path -LiteralPath $Path).ProviderPath
     $name = [IO.Path]::GetFileName($full)
